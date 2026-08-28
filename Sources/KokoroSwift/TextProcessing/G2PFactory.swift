@@ -8,6 +8,8 @@ import Foundation
 public enum G2P {
   /// MisakiSwift-based G2P engine for English text.
   case misaki
+  /// Native Hindi G2P with local Misaki handling for embedded English text.
+  case hindi
   /// eSpeak NG-based G2P engine supporting multiple languages.
   case eSpeakNG
 }
@@ -35,6 +37,13 @@ final class G2PFactory {
     case .misaki:
 #if canImport(MisakiSwift)
       return MisakiG2PProcessor()
+#else
+      throw G2PError.noSuchEngine
+#endif
+
+    case .hindi:
+#if canImport(MisakiSwift)
+      return HindiG2PProcessor()
 #else
       throw G2PError.noSuchEngine
 #endif
