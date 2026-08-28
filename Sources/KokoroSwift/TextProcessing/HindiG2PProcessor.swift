@@ -3,22 +3,27 @@
 import Foundation
 import MLXUtilsLibrary
 
-/// Native Hindi front end for Kokoro. Devanagari uses the deterministic Hindi
-/// phonemizer while embedded Latin names use the local Misaki English engine.
+/// Native bilingual front end for Kokoro. It lets one loaded TTS model switch
+/// between English and Hindi; Devanagari uses the native Hindi phonemizer while
+/// embedded Latin names and full English segments use the local Misaki engine.
 final class HindiG2PProcessor: G2PProcessor {
   private var english: MisakiG2PProcessor?
-  private var isInitialized = false
+  private var configuredEnglishLanguage: Language = .none
+  private var activeLanguage: Language = .none
 
   func setLanguage(_ language: Language) throws {
-    guard language == .hi else {
+    guard language == .hi || language == .enUS || language == .enGB else {
       throw G2PProcessorError.unsupportedLanguage
     }
-    isInitialized = true
+    activeLanguage = language
   }
 
   func process(input: String) throws -> (String, [MToken]?) {
-    guard isInitialized else {
+    guard activeLanguage != .none else {
       throw G2PProcessorError.processorNotInitialized
+    }
+    if activeLanguage == .enUS || activeLanguage == .enGB {
+      return try processEnglish(input, language: activeLanguage)
     }
 
     var output = ""
@@ -31,7 +36,7 @@ final class HindiG2PProcessor: G2PProcessor {
       if runIsDevanagari == true {
         rendered = HindiPhonemizer.phonemize(run)
       } else {
-        rendered = try processEnglish(run)
+        rendered = try processEnglish(run, language: .enUS).0
       }
       if !output.isEmpty, !output.hasSuffix(" "), !rendered.hasPrefix(" ") {
         output.append(" ")
@@ -61,17 +66,21 @@ final class HindiG2PProcessor: G2PProcessor {
     return (output.replacingOccurrences(of: "  ", with: " "), nil)
   }
 
-  private func processEnglish(_ input: String) throws -> String {
+  private func processEnglish(
+    _ input: String,
+    language: Language
+  ) throws -> (String, [MToken]?) {
     let processor: MisakiG2PProcessor
-    if let english {
+    if let english, configuredEnglishLanguage == language {
       processor = english
     } else {
       let newProcessor = MisakiG2PProcessor()
-      try newProcessor.setLanguage(.enUS)
+      try newProcessor.setLanguage(language)
       english = newProcessor
+      configuredEnglishLanguage = language
       processor = newProcessor
     }
-    return try processor.process(input: input).0
+    return try processor.process(input: input)
   }
 }
 

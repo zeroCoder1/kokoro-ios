@@ -20,4 +20,23 @@ import Testing
   #expect(phonemes.contains("dˈʊnɪjˌaː"))
   #expect(phonemes.contains("mˈe\u{0303}ː"))
 }
+
+@Test func hindiG2PCanSwitchBetweenHindiAndEnglishModes() throws {
+  let processor = HindiG2PProcessor()
+
+  try processor.setLanguage(.enGB)
+  try processor.setLanguage(.hi)
+  let phonemes = try processor.process(input: "यह दुनिया है.").0
+
+  #expect(phonemes.contains("jˈʌh"))
+  #expect(phonemes.contains("dˈʊnɪjˌaː"))
+}
+
+@Test func hindiG2PRejectsUnsupportedLanguages() {
+  let processor = HindiG2PProcessor()
+
+  #expect(throws: G2PProcessorError.self) {
+    try processor.setLanguage(.none)
+  }
+}
 #endif
