@@ -4,7 +4,7 @@
 
 ✨ *New in 1.0.5:* Voice styles are moved out of the library to the integrating application. Please check [Kokoro Test App](https://github.com/mlalma/KokoroTestApp) how to use them.
 
-Kokoro is a high-quality TTS (text-to-speech) model, providing faster than real-time English audio generation.
+Kokoro is a high-quality TTS (text-to-speech) model, providing faster than real-time English and Hindi audio generation.
 
 *NOTE:* This is a SPM package of the TTS engine. For an application integrating Kokoro and showing how the neural speech synthesis works, please see [KokoroTestApp](https://github.com/mlalma/KokoroTestApp) project.
 
@@ -56,10 +56,33 @@ let audioBuffer = try tts.generateAudio(voice: voiceEmbedding, language: .enUS, 
 // audioBuffer now contains the synthesized speech
 ```
 
+For native Hindi, select the Hindi G2P front end and pass `.hi` when generating audio:
+
+```swift
+let tts = KokoroTTS(modelPath: modelPath, g2p: .hindi)
+let hindiAudio = try tts.generateAudio(
+    voice: voiceEmbedding,
+    language: .hi,
+    text: "यह दुनिया की आज की खबर है।"
+)
+
+// The same KokoroTTS instance can switch back to English.
+let englishAudio = try tts.generateAudio(
+    voice: voiceEmbedding,
+    language: .enGB,
+    text: "Here is today's news."
+)
+```
+
+The Hindi processor is entirely local and deterministic. It handles Devanagari
+with native rules and routes Latin names embedded in Hindi text through the
+local Misaki English processor.
+
 ## G2P (Grapheme-to-Phoneme) Options
 
-- `.misaki` - MisakiSwift, default G2P processor
-- `.espeak` - eSpeakNG, an alternative G2P processor (commented out in current version)
+- `.misaki` - MisakiSwift, the default English G2P processor
+- `.hindi` - Native Hindi G2P with English switching and embedded Latin handling
+- `.eSpeakNG` - eSpeak NG, an optional processor whose dependency is commented out by default
 
 ## Model Files
 
