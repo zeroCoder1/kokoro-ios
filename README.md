@@ -91,6 +91,55 @@ it also handles the things that show up in real Hindi text:
 Any other Latin text embedded in Hindi still routes through the local Misaki
 English processor.
 
+## Long Text, Pauses and Loudness
+
+`generateAudio` takes at most 510 tokens and throws above that, and it leaves
+phrasing entirely to the model. For anything longer than a couple of sentences,
+use `generateContinuousAudio`, which splits at sentence boundaries (including
+the Devanagari danda `।`), synthesizes each group, and joins them with a pause
+you control:
+
+```swift
+let audio = try tts.generateContinuousAudio(
+    voice: voiceEmbedding,
+    language: .hi,
+    text: bulletin,          // any length
+    sentencePause: 0.35,     // seconds of silence between sentences
+    targetLUFS: -16          // or nil to leave the level alone
+)
+```
+
+Each segment is trimmed of the decoder's own edge silence before joining, so
+the gap is the one you asked for rather than that plus whatever the model added.
+
+Loudness is available on its own if you are assembling audio yourself. The
+voice packs render quietly — the Hindi ones sit near -29 LUFS, against roughly
+-16 for spoken content — so normalisation is usually worth applying:
+
+```swift
+let level = AudioLoudness.integratedLoudness(samples: audio, sampleRate: 24000)
+let ready = AudioLoudness.normalized(samples: audio, sampleRate: 24000)
+```
+
+Measurement follows ITU-R BS.1770-4, and normalisation is followed by a
+look-ahead limiter, so raising a quiet take by 13 dB does not clip it.
+
+## Comparing Hindi Phonemes Against espeak-ng
+
+Kokoro's Hindi voices were trained on espeak-ng's output, which makes espeak the
+target distribution regardless of what is more phonetically accurate. `Tools/`
+measures where this package's phonemizer diverges from it:
+
+```bash
+brew install espeak-ng
+KOKORO_PHONEME_DUMP=/tmp/ours.tsv swift test --filter dumpHindiPhonemesForEspeakDiff
+python3 Tools/espeak-diff.py /tmp/ours.tsv
+```
+
+The report groups differences into stress-only, vowel-length-only, segmental,
+and espeak's own retroflex-flap artifact. espeak is **not** a runtime
+dependency — it is used offline, to check work.
+
 ## G2P (Grapheme-to-Phoneme) Options
 
 - `.misaki` - MisakiSwift, the default English G2P processor
