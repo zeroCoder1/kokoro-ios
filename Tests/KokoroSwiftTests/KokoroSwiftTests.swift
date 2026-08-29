@@ -13,10 +13,33 @@ import Testing
   let decomposed = HindiPhonemizer.phonemize("पढ़ना")
   let precomposed = HindiPhonemizer.phonemize("पढ़ना")
 
-  #expect(decomposed == "pˈʌɽʰnaː")
+  #expect(decomposed == "pˈʌr.hənˌaː")
   #expect(precomposed == decomposed)
   #expect(HindiPhonemizer.phonemize("ढंग") == "ɖʰˈʌŋɡ")
-  #expect(HindiPhonemizer.phonemize("बढ़िया") == "bˈʌɽʰɪjˌaː")
+  #expect(HindiPhonemizer.phonemize("बढ़िया") == "bˈʌr.hɪjˌaː")
+  #expect(HindiPhonemizer.phonemize("लड़का") == "lˈʌr.kaː")
+}
+
+@Test func hindiPhonemizerKeepsHindiConsonantFamiliesDistinct() {
+  #expect(HindiPhonemizer.phonemize("चाय") == "cˈaːj")
+  #expect(HindiPhonemizer.phonemize("छत") == "cʰˈʌt")
+  #expect(HindiPhonemizer.phonemize("जल") == "ɟˈʌl")
+  #expect(HindiPhonemizer.phonemize("झंडा") == "ɟʰˈʌɳɖaː")
+  #expect(HindiPhonemizer.phonemize("जाना") == "ɟˈaːnaː")
+  #expect(HindiPhonemizer.phonemize("ज़मीन") == "zəmˈiːn")
+  #expect(HindiPhonemizer.phonemize("फैसला") == "pʰˈɛːslaː")
+  #expect(HindiPhonemizer.phonemize("फ़ैसला") == "fˈɛːslaː")
+  #expect(HindiPhonemizer.phonemize("दादा") == "dˈaːdaː")
+  #expect(HindiPhonemizer.phonemize("धागा") == "dʰˈaːɡaː")
+}
+
+@Test func hindiConsonantContrastsAreAllKokoroTokens() {
+  _ = KokoroConfig.loadConfig()
+  let phonemes = HindiPhonemizer.phonemize(
+    "चाय छत जल झंडा ज़मीन फैसला फ़ैसला डाक लड़का ढंग पढ़ना दादा धागा"
+  )
+
+  #expect(Tokenizer.tokenize(phonemizedText: phonemes).count == phonemes.count)
 }
 
 @Test func hindiPhonemizerSupportsBorrowedNuktaConsonants() {
@@ -55,7 +78,7 @@ import Testing
   पढ़ना ढंग क़ानून ख़बर ग़लत ज़िला फ़ैसला मुख्यमंत्री राष्ट्रपति \
   विश्वविद्यालय स्वतंत्रता श्रद्धा ज्ञान क्षेत्र हिंदी महिला कहना ॐ
   """
-  let allowed = Set(" abcdefhijklmnopqrstuvxyzəɛɪʊɔɡɣŋɲɳɖɽɾʂʃʈʋʌʤʧʰˈˌː\u{0303}".unicodeScalars)
+  let allowed = Set(". abcdefhijklmnopqrstuvxyzəɛɪʊɔɟɡɣŋɲɳɖɾʂʃʈʋʌʰˈˌː\u{0303}".unicodeScalars)
   let output = HindiPhonemizer.phonemize(corpus)
   let unsupported = Set(output.unicodeScalars).subtracting(allowed)
 
