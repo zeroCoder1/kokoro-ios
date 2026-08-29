@@ -26,6 +26,10 @@ final class HindiG2PProcessor: G2PProcessor {
       return try processEnglish(input, language: activeLanguage)
     }
 
+    // Numbers first, so a digit run becomes Devanagari words and joins the
+    // Hindi run instead of being read out in American English.
+    let prepared = HindiNumbers.expand(input)
+
     var output = ""
     var run = ""
     var runIsDevanagari: Bool?
@@ -45,7 +49,7 @@ final class HindiG2PProcessor: G2PProcessor {
       run.removeAll(keepingCapacity: true)
     }
 
-    for character in input {
+    for character in prepared {
       let isDevanagari = character.unicodeScalars.contains {
         (0x0900...0x097F).contains($0.value)
       }
