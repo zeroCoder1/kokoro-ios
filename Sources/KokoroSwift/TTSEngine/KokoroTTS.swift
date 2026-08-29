@@ -238,6 +238,74 @@ public final class KokoroTTS {
     return (audio[0].asArray(Float.self), tokenArray)
   }
 
+  /// Generates audio for text of any length, with a real pause between
+  /// sentences.
+  ///
+  /// `generateAudio(voice:language:text:speed:)` throws above
+  /// `Constants.maxTokenCount`, so a bulletin longer than a couple of
+  /// sentences cannot be synthesized in one call. It also leaves phrasing
+  /// entirely to the model, and on the Hindi voice packs the pause a sentence
+  /// break earns is short enough that a headline runs into the line after it.
+  ///
+  /// This splits the text at sentence boundaries, synthesizes each group
+  /// separately, and joins them with `sentencePause` of silence. Each segment
+  /// is trimmed of the decoder's own leading and trailing silence first, so the
+  /// gap is the one that was asked for rather than that plus whatever the model
+  /// happened to add.
+  ///
+  /// - Parameters:
+  ///   - voice: Voice embedding array.
+  ///   - language: Target language for pronunciation.
+  ///   - text: Input text, of any length.
+  ///   - speed: Speech speed multiplier.
+  ///   - sentencePause: Silence inserted between sentence groups, in seconds.
+  ///   - targetLUFS: Integrated loudness to normalise the finished audio to,
+  ///     or `nil` to leave the level alone. Normalisation is applied once over
+  ///     the whole stream, so the balance between sentences is preserved.
+  /// - Returns: Audio samples at `Constants.samplingRate`. Token timestamps are
+  ///   not returned: they would need re-basing per segment, and a wrong
+  ///   timestamp is worse than none.
+  public func generateContinuousAudio(
+    voice: MLXArray,
+    language: Language,
+    text: String,
+    speed: Float = 1.0,
+    sentencePause: TimeInterval = 0.35,
+    targetLUFS: Double? = AudioLoudness.defaultTargetLUFS
+  ) throws -> [Float] {
+    try updateLanguageIfNeeded(language)
+
+    let sampleRate = Double(Constants.samplingRate)
+    let chunks = try SentenceChunker.chunks(
+      of: text,
+      maxTokens: Constants.maxTokenCount,
+      tokenCount: { try tokenCount(of: $0) }
+    )
+    guard !chunks.isEmpty else { return [] }
+
+    var segments: [[Float]] = []
+    segments.reserveCapacity(chunks.count)
+    for chunk in chunks {
+      let (samples, _) = try generateAudio(
+        voice: voice, language: language, text: chunk, speed: speed
+      )
+      segments.append(AudioSegments.trimmingEdgeSilence(samples, sampleRate: sampleRate))
+    }
+
+    let joined = AudioSegments.joined(segments, pause: sentencePause, sampleRate: sampleRate)
+    guard let targetLUFS else { return joined }
+    return AudioLoudness.normalized(
+      samples: joined, sampleRate: sampleRate, targetLUFS: targetLUFS
+    )
+  }
+
+  /// Number of tokens `text` produces, used to measure chunks against the
+  /// model's limit in phonemes rather than characters.
+  private func tokenCount(of text: String) throws -> Int {
+    let (phonemes, _) = try phonemizeText(text)
+    return Tokenizer.tokenize(phonemizedText: phonemes).count
+  }
+
   /// Updates the G2P language if it differs from the current language.
   private func updateLanguageIfNeeded(_ language: Language) throws {
     guard chosenLanguage != language else { return }
