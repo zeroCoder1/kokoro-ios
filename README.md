@@ -74,14 +74,27 @@ let englishAudio = try tts.generateAudio(
 )
 ```
 
-The Hindi processor is entirely local and deterministic. It handles Devanagari
-with native rules and routes Latin names embedded in Hindi text through the
-local Misaki English processor.
+The Hindi processor is entirely local and deterministic. On top of Devanagari
+it also handles the things that show up in real Hindi text:
+
+- **Numbers** are read in Hindi with Indian grouping — `2024` becomes
+  `दो हज़ार चौबीस`, `1,50,000` becomes `एक लाख पचास हज़ार`, and `1947` becomes
+  `उन्नीस सौ सैंतालीस`. Devanagari digits `०-९`, decimals and attached `%`, `₹`
+  and `$` are covered too. Phone numbers and long identifiers are read digit by
+  digit.
+- **Latin acronyms** are read as a Hindi speaker says them, so `BJP` becomes
+  `बीजेपी` and `IPL` becomes `आईपीएल`.
+- **Common English terms** — WhatsApp, Google, ATM, online and about thirty
+  more — are spoken in Devanagari rather than with an American accent
+  mid-sentence.
+
+Any other Latin text embedded in Hindi still routes through the local Misaki
+English processor.
 
 ## G2P (Grapheme-to-Phoneme) Options
 
 - `.misaki` - MisakiSwift, the default English G2P processor
-- `.hindi` - Native Hindi G2P with English switching and embedded Latin handling
+- `.hindi` - Native Hindi G2P with number expansion, acronym and Latin handling, and English switching
 - `.eSpeakNG` - eSpeak NG, an optional processor whose dependency is commented out by default
 
 ## Model Files

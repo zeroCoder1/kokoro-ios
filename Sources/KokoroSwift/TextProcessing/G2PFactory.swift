@@ -8,7 +8,8 @@ import Foundation
 public enum G2P {
   /// MisakiSwift-based G2P engine for English text.
   case misaki
-  /// Native Hindi G2P with local Misaki handling for embedded English text.
+  /// Native Hindi G2P. Reads Devanagari, numbers and Latin acronyms locally,
+  /// and falls back to Misaki for the English it does not cover.
   case hindi
   /// eSpeak NG-based G2P engine supporting multiple languages.
   case eSpeakNG

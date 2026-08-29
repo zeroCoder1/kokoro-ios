@@ -4,8 +4,14 @@ import Foundation
 import MLXUtilsLibrary
 
 /// Native bilingual front end for Kokoro. It lets one loaded TTS model switch
-/// between English and Hindi; Devanagari uses the native Hindi phonemizer while
-/// embedded Latin names and full English segments use the local Misaki engine.
+/// between English and Hindi.
+///
+/// Input is prepared, then split into script runs. `HindiNumbers` rewrites
+/// digit runs as Devanagari words so they are spoken in Hindi rather than
+/// American English, and symbols with no Kokoro token are dropped. Devanagari
+/// runs go to the native `HindiPhonemizer`. In a Latin run, acronyms and a
+/// small transliteration lexicon are rendered as Devanagari and phonemized in
+/// Hindi; everything else falls back to the local Misaki engine.
 final class HindiG2PProcessor: G2PProcessor {
   private var english: MisakiG2PProcessor?
   private var configuredEnglishLanguage: Language = .none
