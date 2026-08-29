@@ -30,22 +30,24 @@ enum HindiPhonemizer {
     "ौ": "ɔː",
   ]
 
-  /// `ʧ` and `ʤ` are Kokoro's normalized eSpeak affricate tokens. The older
-  /// native path emitted palatal stops (`c`, `ɟ`), which changed the sound.
+  /// These values follow the Hindi eSpeak IPA stream used to train Kokoro,
+  /// rather than substituting similar English phonemes. In particular,
+  /// Hindi च/छ and ज/झ are palatal stops (`c`/`ɟ`), while the dotted
+  /// retroflex consonants use eSpeak's distinct `r.`/`r.h` labels.
   private static let consonants: [UnicodeScalar: String] = [
     "क": "k", "ख": "kʰ", "ग": "ɡ", "घ": "ɡʰ", "ङ": "ŋ",
-    "च": "ʧ", "छ": "ʧʰ", "ज": "ʤ", "झ": "ʤʰ", "ञ": "ɲ",
+    "च": "c", "छ": "cʰ", "ज": "ɟ", "झ": "ɟʰ", "ञ": "ɲ",
     "ट": "ʈ", "ठ": "ʈʰ", "ड": "ɖ", "ढ": "ɖʰ", "ण": "ɳ",
     "त": "t", "थ": "tʰ", "द": "d", "ध": "dʰ", "न": "n",
     "प": "p", "फ": "pʰ", "ब": "b", "भ": "bʰ", "म": "m",
     "य": "j", "र": "ɾ", "ल": "l", "व": "ʋ", "श": "ʃ", "ष": "ʂ",
     "स": "s", "ह": "h", "ऩ": "n", "ऱ": "ɾ", "ळ": "l", "ऴ": "l",
-    "क़": "q", "ख़": "x", "ग़": "ɣ", "ज़": "z", "ड़": "ɽ", "ढ़": "ɽʰ",
+    "क़": "q", "ख़": "x", "ग़": "ɣ", "ज़": "z", "ड़": "r.", "ढ़": "r.h",
     "फ़": "f", "य़": "j",
   ]
 
   private static let nuktaConsonants: [UnicodeScalar: String] = [
-    "क": "q", "ख": "x", "ग": "ɣ", "ज": "z", "ड": "ɽ", "ढ": "ɽʰ",
+    "क": "q", "ख": "x", "ग": "ɣ", "ज": "z", "ड": "r.", "ढ": "r.h",
     "फ": "f", "य": "j",
   ]
 
@@ -271,6 +273,12 @@ enum HindiPhonemizer {
       guard units[candidate].hasInherentSchwa,
             units[..<candidate].contains(where: \.isVocalic)
       else { continue }
+
+      // eSpeak represents ढ़ as a flap followed by breath (`r.h`). Its
+      // following inherent vowel remains audible before another consonant in
+      // words such as पढ़ना, बढ़ना and गढ़वाल. Deleting it makes
+      // Kokoro receive the untrained, clipped sequence `r.hn`/`r.hʋ`.
+      if units[candidate].onset == "r.h" { continue }
 
       // Preserve the vowel after an explicit conjunct. It is required in
       // words such as मुख्य, विश्व and स्वतंत्रता. The old broad deletion
