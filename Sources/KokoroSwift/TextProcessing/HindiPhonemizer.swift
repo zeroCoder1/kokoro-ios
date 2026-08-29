@@ -127,7 +127,14 @@ enum HindiPhonemizer {
       } else {
         flushWord()
         if character.isPunctuation {
-          result.append(String(character))
+          // Attach punctuation to the phoneme before it. Joining it as its own
+          // element left a space in front of it, and that space is token 16 —
+          // a pause the model never saw before a sentence break in training.
+          if result.isEmpty {
+            result.append(String(character))
+          } else {
+            result[result.count - 1].append(character)
+          }
         }
       }
     }
