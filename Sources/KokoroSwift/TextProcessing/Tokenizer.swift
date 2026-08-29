@@ -20,6 +20,17 @@ final class Tokenizer {
     // iteration combines a vowel and its nasalization mark into one grapheme
     // (for example `ẽ`), which is not a vocabulary entry and was silently
     // dropping the complete vowel. Scalar iteration preserves both tokens.
-    return text.unicodeScalars.compactMap { vocab[String($0)] }
+    return text.unicodeScalars.compactMap { scalar in
+      guard let id = vocab[String(scalar)] else {
+        // Release behaviour is unchanged: an unknown scalar is still dropped.
+        // The debug warning is so a future phonemizer mistake surfaces here
+        // instead of vanishing silently into a shorter token stream.
+        #if DEBUG
+        print("[Tokenizer] OOV phoneme U+\(String(format: "%04X", scalar.value)) '\(scalar)'")
+        #endif
+        return nil
+      }
+      return id
+    }
   }
 }
