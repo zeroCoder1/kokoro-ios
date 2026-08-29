@@ -69,8 +69,13 @@ enum HindiPhonemizer {
     // Kokoro needs the learned stress marker to hold these short words
     // clearly; the generic unstressed path reduced or swallowed their vowel.
     "यह": "jˈʌh",
+    "मैं": "mˈɛ\u{0303}ː",
     "में": "mˈe\u{0303}ː",
     "मे": "mˈeː",
+    // Treat both common spellings as the same three-syllable place name.
+    // Generic anusvara assimilation reduced मुंबई to a clipped /mumbiː/.
+    "मुंबई": "mˈʊmbəˌi",
+    "मुम्बई": "mˈʊmbəˌi",
     "ॐ": "ˈoːm",
   ]
 
@@ -86,6 +91,18 @@ enum HindiPhonemizer {
     "लोकसभा": ["लोक", "सभा"],
     "राज्यसभा": ["राज्य", "सभा"],
     "विधानसभा": ["विधान", "सभा"],
+  ]
+
+  /// Hindi publishing commonly omits the nukta from Persian and English
+  /// loanwords even though speakers retain /f/. This deliberately small news
+  /// lexicon restores that sound without turning native फल, फूल or फिर into
+  /// /f/ words. Stems cover ordinary inflections such as फैसले and फिल्मों.
+  private static let labiodentalFStems = [
+    "फैसल", "फोन", "फिल्म", "फोटो", "फाइल", "फाइनल", "फाइनेंस",
+    "फेसबुक", "फीस", "फीफा", "फर्ज", "फर्जी", "फंड", "फॉर्म",
+    "फ्रांस", "फ्रेंच", "फौज", "फायद", "फैक्टर", "फैक्टरी",
+    "फार्म", "फारसी", "फरवरी", "फैशन", "फर्नीचर", "फसल",
+    "फतवा", "फरार", "अफसर", "ऑफिस", "कॉफी", "सॉफ्ट", "टॉफी",
   ]
 
   static func phonemize(_ text: String) -> String {
@@ -127,6 +144,12 @@ enum HindiPhonemizer {
     let scalars = Array(word.unicodeScalars.filter {
       $0.value != 0x200C && $0.value != 0x200D
     })
+    // Compare scalars because a following vowel sign belongs to the same Swift
+    // grapheme as the stem's final consonant ("फैसल" is therefore not a
+    // Character-prefix of "फैसला").
+    let usesLabiodentalF = labiodentalFStems.contains {
+      word.unicodeScalars.starts(with: $0.unicodeScalars)
+    }
     var units: [Akshara] = []
     var index = 0
 
@@ -142,6 +165,10 @@ enum HindiPhonemizer {
         applyModifier(scalar, to: &units, following: nextConsonant(in: scalars, after: index))
         index += 1
         continue
+      }
+
+      if scalar == "फ", usesLabiodentalF {
+        onset = "f"
       }
 
       if index + 1 < scalars.count, scalars[index + 1] == "़" {
