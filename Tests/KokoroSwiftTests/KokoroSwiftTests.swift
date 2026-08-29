@@ -5,8 +5,11 @@ import Testing
   #expect(HindiPhonemizer.phonemize("नमस्ते") == "nəmˈʌsteː")
   #expect(HindiPhonemizer.phonemize("दुनिया") == "dˈʊnɪjˌaː")
   #expect(HindiPhonemizer.phonemize("यह") == "jˈʌh")
+  #expect(HindiPhonemizer.phonemize("मैं") == "mˈɛ\u{0303}ː")
   #expect(HindiPhonemizer.phonemize("में") == "mˈe\u{0303}ː")
   #expect(HindiPhonemizer.phonemize("मे") == "mˈeː")
+  #expect(HindiPhonemizer.phonemize("मुंबई") == "mˈʊmbəˌi")
+  #expect(HindiPhonemizer.phonemize("मुम्बई") == "mˈʊmbəˌi")
 }
 
 @Test func hindiPhonemizerDistinguishesRetroflexStopsAndNuktaFlaps() {
@@ -27,7 +30,9 @@ import Testing
   #expect(HindiPhonemizer.phonemize("झंडा") == "ɟʰˈʌɳɖaː")
   #expect(HindiPhonemizer.phonemize("जाना") == "ɟˈaːnaː")
   #expect(HindiPhonemizer.phonemize("ज़मीन") == "zəmˈiːn")
-  #expect(HindiPhonemizer.phonemize("फैसला") == "pʰˈɛːslaː")
+  #expect(HindiPhonemizer.phonemize("फल") == "pʰˈʌl")
+  #expect(HindiPhonemizer.phonemize("फ़ल") == "fˈʌl")
+  #expect(HindiPhonemizer.phonemize("फैसला") == "fˈɛːslaː")
   #expect(HindiPhonemizer.phonemize("फ़ैसला") == "fˈɛːslaː")
   #expect(HindiPhonemizer.phonemize("दादा") == "dˈaːdaː")
   #expect(HindiPhonemizer.phonemize("धागा") == "dʰˈaːɡaː")
