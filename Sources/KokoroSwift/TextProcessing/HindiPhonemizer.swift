@@ -17,15 +17,17 @@ enum HindiPhonemizer {
   }
 
   private static let independentVowels: [UnicodeScalar: String] = [
-    "अ": "ə", "आ": "aː", "इ": "ɪ", "ई": "iː", "उ": "ʊ", "ऊ": "uː",
-    "ऋ": "ɾɪ", "ॠ": "ɾiː", "ऌ": "lɪ", "ए": "eː", "ऐ": "ɛː",
-    "ओ": "oː", "औ": "ɔː", "ऑ": "ɔ", "ऍ": "ɛ",
+    "ऄ": "ə", "अ": "ə", "आ": "aː", "इ": "ɪ", "ई": "iː",
+    "उ": "ʊ", "ऊ": "uː", "ऋ": "ɾɪ", "ॠ": "ɾiː", "ऌ": "lɪ",
+    "ॡ": "liː", "ऍ": "ɛ", "ऎ": "e", "ए": "eː", "ऐ": "ɛː",
+    "ऑ": "ɔ", "ऒ": "o", "ओ": "oː", "औ": "ɔː", "ॲ": "ɛ",
   ]
 
   private static let vowelSigns: [UnicodeScalar: String] = [
     "ा": "aː", "ि": "ɪ", "ी": "iː", "ु": "ʊ", "ू": "uː", "ृ": "ɾɪ",
-    "ॄ": "ɾiː", "े": "eː", "ै": "ɛː", "ो": "oː", "ौ": "ɔː",
-    "ॉ": "ɔ", "ॅ": "ɛ",
+    "ॄ": "ɾiː", "ॢ": "lɪ", "ॣ": "liː", "ॅ": "ɛ", "ॆ": "e",
+    "े": "eː", "ै": "ɛː", "ॉ": "ɔ", "ॊ": "o", "ो": "oː",
+    "ौ": "ɔː",
   ]
 
   /// `ʧ` and `ʤ` are Kokoro's normalized eSpeak affricate tokens. The older
@@ -37,7 +39,7 @@ enum HindiPhonemizer {
     "त": "t", "थ": "tʰ", "द": "d", "ध": "dʰ", "न": "n",
     "प": "p", "फ": "pʰ", "ब": "b", "भ": "bʰ", "म": "m",
     "य": "j", "र": "ɾ", "ल": "l", "व": "ʋ", "श": "ʃ", "ष": "ʂ",
-    "स": "s", "ह": "h", "ळ": "l",
+    "स": "s", "ह": "h", "ऩ": "n", "ऱ": "ɾ", "ळ": "l", "ऴ": "l",
     "क़": "q", "ख़": "x", "ग़": "ɣ", "ज़": "z", "ड़": "ɽ", "ढ़": "ɽʰ",
     "फ़": "f", "य़": "j",
   ]
@@ -67,6 +69,21 @@ enum HindiPhonemizer {
     "यह": "jˈʌh",
     "में": "mˈe\u{0303}ː",
     "मे": "mˈeː",
+    "ॐ": "ˈoːm",
+  ]
+
+  /// Orthography alone does not expose morpheme boundaries, yet those
+  /// boundaries decide whether an internal schwa survives. Keeping this list
+  /// deliberately small fixes common news vocabulary without turning the G2P
+  /// into an unbounded dictionary or changing unknown-word behaviour.
+  private static let compoundWords: [String: [String]] = [
+    "प्रधानमंत्री": ["प्रधान", "मंत्री"],
+    "मुख्यमंत्री": ["मुख्य", "मंत्री"],
+    "राष्ट्रपति": ["राष्ट्र", "पति"],
+    "उपराष्ट्रपति": ["उप", "राष्ट्रपति"],
+    "लोकसभा": ["लोक", "सभा"],
+    "राज्यसभा": ["राज्य", "सभा"],
+    "विधानसभा": ["विधान", "सभा"],
   ]
 
   static func phonemize(_ text: String) -> String {
@@ -99,8 +116,15 @@ enum HindiPhonemizer {
 
   private static func phonemizeWord(_ word: String) -> String {
     if let pronunciation = pronunciationOverrides[word] { return pronunciation }
+    if let components = compoundWords[word] {
+      return components.map(phonemizeWord).joined(separator: " ")
+    }
 
-    let scalars = Array(word.unicodeScalars)
+    // Join controls change glyph shaping, not pronunciation. Removing them
+    // also lets the conjunct recognizer handle both क्ष and क्‍ष identically.
+    let scalars = Array(word.unicodeScalars.filter {
+      $0.value != 0x200C && $0.value != 0x200D
+    })
     var units: [Akshara] = []
     var index = 0
 
@@ -154,6 +178,7 @@ enum HindiPhonemizer {
 
     collapseGemination(in: &units)
     applySchwaDeletion(to: &units)
+    applyContextualVowels(to: &units)
     let stressIndex = unstressedWords.contains(word) ? nil : primaryStressIndex(in: units)
     let secondaryStress = stressIndex.map {
       secondaryStressIndices(in: units, primary: $0)
@@ -230,7 +255,13 @@ enum HindiPhonemizer {
   /// keeps words such as “नमस्ते” from being over-compressed.
   private static func applySchwaDeletion(to units: inout [Akshara]) {
     guard units.count > 1 else { return }
-    if units[units.count - 1].hasInherentSchwa {
+    let final = units.count - 1
+    // A final य that completes a written conjunct normally keeps its schwa:
+    // मुख्य /mukʰjə/, योग्य /joːɡjə/, वाक्य /ʋaːkjə/. Treating it like an
+    // ordinary final consonant produces the clipped pronunciation users hear.
+    let finalCompletesYaConjunct = units[final].onset == "j"
+      && units[final - 1].vowel == nil
+    if units[final].hasInherentSchwa, !finalCompletesYaConjunct {
       units[units.count - 1].vowel = nil
       units[units.count - 1].hasInherentSchwa = false
     }
@@ -240,6 +271,11 @@ enum HindiPhonemizer {
       guard units[candidate].hasInherentSchwa,
             units[..<candidate].contains(where: \.isVocalic)
       else { continue }
+
+      // Preserve the vowel after an explicit conjunct. It is required in
+      // words such as मुख्य, विश्व and स्वतंत्रता. The old broad deletion
+      // rule flattened these into unnatural three-consonant runs.
+      if units[candidate - 1].vowel == nil { continue }
 
       var next = candidate + 1
       var consonantCount = 1
@@ -253,6 +289,19 @@ enum HindiPhonemizer {
 
       units[candidate].vowel = nil
       units[candidate].hasInherentSchwa = false
+    }
+  }
+
+  /// Delhi Hindi fronts schwa before an `h` whose own schwa was deleted, as
+  /// in कहना, रहना and पहला. Applying this after deletion keeps the rule
+  /// narrow and avoids changing words such as बहुत, शहर and महिला.
+  private static func applyContextualVowels(to units: inout [Akshara]) {
+    guard units.count > 1 else { return }
+    for index in 0 ..< units.count - 1 where units[index].vowel == "ə" {
+      let following = units[index + 1]
+      if following.onset == "h", following.vowel == nil {
+        units[index].vowel = "ɛ"
+      }
     }
   }
 
