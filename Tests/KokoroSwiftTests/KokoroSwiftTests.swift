@@ -39,7 +39,26 @@ import Testing
     "चाय छत जल झंडा ज़मीन फैसला फ़ैसला डाक लड़का ढंग पढ़ना दादा धागा"
   )
 
-  #expect(Tokenizer.tokenize(phonemizedText: phonemes).count == phonemes.count)
+  #expect(
+    Tokenizer.tokenize(phonemizedText: phonemes).count
+      == phonemes.unicodeScalars.count
+  )
+}
+
+@Test func hindiNasalVowelsRemainDistinctAfterTokenization() {
+  let config = KokoroConfig.loadConfig()
+  let main = HindiPhonemizer.phonemize("मैं")
+  let mein = HindiPhonemizer.phonemize("में")
+  let mainTokens = Tokenizer.tokenize(phonemizedText: main)
+  let meinTokens = Tokenizer.tokenize(phonemizedText: mein)
+
+  #expect(mainTokens.count == main.unicodeScalars.count)
+  #expect(meinTokens.count == mein.unicodeScalars.count)
+  #expect(mainTokens != meinTokens)
+  #expect(config.vocab["ɛ"].map(mainTokens.contains) == true)
+  #expect(config.vocab["e"].map(meinTokens.contains) == true)
+  #expect(config.vocab["\u{0303}"].map(mainTokens.contains) == true)
+  #expect(config.vocab["\u{0303}"].map(meinTokens.contains) == true)
 }
 
 @Test func hindiPhonemizerSupportsBorrowedNuktaConsonants() {

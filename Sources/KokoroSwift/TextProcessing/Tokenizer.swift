@@ -16,9 +16,10 @@ final class Tokenizer {
   /// - Returns: Tokenized array that can then be passed to TTS system
   static func tokenize(phonemizedText text: String) -> [Int] {
     guard let vocab = KokoroConfig.config?.vocab else { return [] }
-    return text
-      .map { vocab[String($0)] }
-      .filter { $0 != nil }
-      .map { $0! }
+    // Kokoro's vocabulary is made of Unicode scalar tokens. Swift `Character`
+    // iteration combines a vowel and its nasalization mark into one grapheme
+    // (for example `ẽ`), which is not a vocabulary entry and was silently
+    // dropping the complete vowel. Scalar iteration preserves both tokens.
+    return text.unicodeScalars.compactMap { vocab[String($0)] }
   }
 }
