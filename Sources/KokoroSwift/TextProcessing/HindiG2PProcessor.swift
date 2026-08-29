@@ -77,10 +77,11 @@ final class HindiG2PProcessor: G2PProcessor {
 
     // Numbers first, so a digit run becomes Devanagari words and joins the
     // Hindi run instead of being read out in American English.
-    let prepared = HindiNumbers.expand(input)
+    let prepared = droppingUnmappedSymbols(HindiNumbers.expand(input))
 
     var output = ""
     var run = ""
+    var neutrals = ""
     var runIsDevanagari: Bool?
 
     func appendRun() throws {
@@ -91,32 +92,62 @@ final class HindiG2PProcessor: G2PProcessor {
       } else {
         rendered = try processLatin(run)
       }
+      run.removeAll(keepingCapacity: true)
+      guard !rendered.isEmpty else { return }
       if !output.isEmpty, !output.hasSuffix(" "), !rendered.hasPrefix(" ") {
         output.append(" ")
       }
       output.append(rendered)
-      run.removeAll(keepingCapacity: true)
+    }
+
+    /// Whitespace and punctuation sitting between two scripts belong to
+    /// neither phonemizer, so they go straight to the output. Punctuation goes
+    /// on flush against the phoneme before it: a space in front of `.` is
+    /// token 16, a pause the model never saw before a sentence break.
+    func flushNeutrals() {
+      for character in neutrals {
+        if character.isWhitespace {
+          if !output.isEmpty, !output.hasSuffix(" ") { output.append(" ") }
+        } else {
+          if output.hasSuffix(" ") { output.removeLast() }
+          output.append(character)
+        }
+      }
+      neutrals.removeAll(keepingCapacity: true)
     }
 
     for character in prepared {
+      if isNeutral(character) {
+        neutrals.append(character)
+        continue
+      }
       let isDevanagari = character.unicodeScalars.contains {
         (0x0900...0x097F).contains($0.value)
       }
-      let isNeutral = character.unicodeScalars.allSatisfy {
-        CharacterSet.whitespacesAndNewlines.contains($0)
-          || CharacterSet.punctuationCharacters.contains($0)
-      }
-      if isNeutral || runIsDevanagari == nil || runIsDevanagari == isDevanagari {
-        run.append(character)
-        if !isNeutral { runIsDevanagari = isDevanagari }
+      if runIsDevanagari == isDevanagari {
+        // Same script on both sides, so these neutrals are internal to the
+        // run. Keeping them lets the run's own phonemizer see whole phrases.
+        run += neutrals
+        neutrals.removeAll(keepingCapacity: true)
       } else {
+        // A script boundary. Close the run before the neutrals so they are not
+        // handed to whichever phonemizer happened to run last.
         try appendRun()
+        flushNeutrals()
         runIsDevanagari = isDevanagari
-        run.append(character)
       }
+      run.append(character)
     }
     try appendRun()
-    return (output.replacingOccurrences(of: "  ", with: " "), nil)
+    flushNeutrals()
+
+    // A single `replacingOccurrences(of: "  ", with: " ")` pass is not
+    // idempotent: four spaces collapse to two, not one.
+    let cleaned = output
+      .components(separatedBy: .whitespacesAndNewlines)
+      .filter { !$0.isEmpty }
+      .joined(separator: " ")
+    return (cleaned, nil)
   }
 
   /// Renders a Latin run, sending each word either to the Hindi phonemizer as
@@ -180,6 +211,25 @@ final class HindiG2PProcessor: G2PProcessor {
       core = core.dropLast()
     }
     return (leading, String(core), trailing)
+  }
+
+  private func isNeutral(_ character: Character) -> Bool {
+    character.unicodeScalars.allSatisfy {
+      CharacterSet.whitespacesAndNewlines.contains($0)
+        || CharacterSet.punctuationCharacters.contains($0)
+    }
+  }
+
+  /// `₹`, `%`, `°` and `©` are Unicode symbols rather than punctuation, so the
+  /// run splitter used to treat them as Latin and let Misaki speak them. The
+  /// ones that ride on a number have already been consumed by `HindiNumbers`;
+  /// anything still here has no Kokoro token, so drop it.
+  private func droppingUnmappedSymbols(_ text: String) -> String {
+    guard text.unicodeScalars.contains(where: { CharacterSet.symbols.contains($0) })
+    else { return text }
+    return String(String.UnicodeScalarView(
+      text.unicodeScalars.filter { !CharacterSet.symbols.contains($0) }
+    ))
   }
 
   private func processEnglish(
