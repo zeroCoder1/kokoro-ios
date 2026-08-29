@@ -58,6 +58,13 @@ func hindiRetroflexFlapsEmitNoSentenceBreak(word: String) {
   #expect(HindiPhonemizer.phonemize("बहुत") == "bˈʌhʊt")
 }
 
+/// Deleting the schwa in वाराणसी strands the ɳ in the coda, where it is heard
+/// as nasalization on the vowel before it — वारांसी. The name has four
+/// syllables, so the schwa is spelled out.
+@Test func hindiKeepsTheSchwaInVaranasi() {
+  #expect(HindiPhonemizer.phonemize("वाराणसी") == "ʋaːɾˈaːɳəsiː")
+}
+
 /// A Devanagari-spelled acronym is a sequence of letter names, not one word.
 @Test func hindiDevanagariAcronymsAreReadLetterByLetter() {
   #expect(HindiPhonemizer.phonemize("एनडीआरएफ") == "ˈeːn ɖˈiː ˈaːɾ ˈeːf")

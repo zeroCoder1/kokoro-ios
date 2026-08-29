@@ -78,6 +78,10 @@ enum HindiPhonemizer {
     // Generic anusvara assimilation reduced मुंबई to a clipped /mumbiː/.
     "मुंबई": "mˈʊmbəˌi",
     "मुम्बई": "mˈʊmbəˌi",
+    // Generic schwa deletion strands the ɳ in the coda, where it is heard as
+    // nasalization on the preceding vowel rather than as its own syllable:
+    // /ʋaːɾˈaːɳsiː/ comes out as वारांसी. The name has four syllables.
+    "वाराणसी": "ʋaːɾˈaːɳəsiː",
     "ॐ": "ˈoːm",
   ]
 
