@@ -83,8 +83,8 @@ import Testing
 }
 
 @Test func hindiPhonemizerRespectsCommonNewsCompoundBoundaries() {
-  #expect(HindiPhonemizer.phonemize("प्रधानमंत्री") == "pɾədʰˈaːn mˈʌntɾiː")
-  #expect(HindiPhonemizer.phonemize("मुख्यमंत्री") == "mˈʊkʰjə mˈʌntɾiː")
+  #expect(HindiPhonemizer.phonemize("प्रधानमंत्री") == "pɾədʰˈaːn mˈʌntɾi")
+  #expect(HindiPhonemizer.phonemize("मुख्यमंत्री") == "mˈʊkʰjə mˈʌntɾi")
   #expect(HindiPhonemizer.phonemize("राष्ट्रपति") == "ɾˈaːʂʈɾ pˈʌtɪ")
   #expect(HindiPhonemizer.phonemize("विश्वविद्यालय") == "ʋɪʃʋəʋɪdjˈaːləj")
 }

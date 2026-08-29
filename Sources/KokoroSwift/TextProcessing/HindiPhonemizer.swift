@@ -10,6 +10,9 @@ enum HindiPhonemizer {
     var onset: String
     var vowel: String?
     var hasInherentSchwa = false
+    /// Set when a virama is written, as opposed to an inherent schwa that
+    /// deletion removed later. espeak distinguishes the two for र.
+    var hasWrittenVirama = false
     var nasalized = false
     var coda = ""
 
@@ -140,6 +143,9 @@ enum HindiPhonemizer {
     "फतवा", "फरार", "अफसर", "ऑफिस", "कॉफी", "सॉफ्ट", "टॉफी",
   ]
 
+  /// Word-final long high vowels are written long but transcribed short.
+  private static let finalHighVowels = ["iː": "i", "uː": "u"]
+
   static func phonemize(_ text: String) -> String {
     let normalized = text.precomposedStringWithCanonicalMapping
       .replacingOccurrences(of: "॥", with: ".")
@@ -198,7 +204,11 @@ enum HindiPhonemizer {
     while index < scalars.count {
       let scalar = scalars[index]
       if let vowel = independentVowels[scalar] {
-        units.append(Akshara(onset: "", vowel: vowel))
+        // espeak opens a word written with अ on ʌ rather than ə, whether or
+        // not the syllable carries stress: अदालत is /ʌdˈaːlət/, अस्पताल is
+        // /ˌʌspətˈaːl/. Reading it as ə is why अंतर was heard as इंतर.
+        let opensOnA = index == 0 && scalar == "अ"
+        units.append(Akshara(onset: "", vowel: opensOnA ? "ʌ" : vowel))
         index += 1
         continue
       }
@@ -236,6 +246,7 @@ enum HindiPhonemizer {
         if next == "्" {
           unit.vowel = nil
           unit.hasInherentSchwa = false
+          unit.hasWrittenVirama = true
           index += 1
         } else if let vowel = vowelSigns[next] {
           unit.vowel = vowel
@@ -255,9 +266,26 @@ enum HindiPhonemizer {
       secondaryStressIndices(in: units, primary: $0)
     } ?? []
 
+    // Only a vowel that actually ends the word shortens. क़ानून keeps its long
+    // /uː/ because a consonant follows it; पानी does not.
+    let finalVowelIndex: Int? = {
+      guard let last = units.indices.last, units[last].isVocalic,
+            units[last].coda.isEmpty
+      else { return nil }
+      return last
+    }()
+
     return units.enumerated().map { index, unit in
       var vowel = unit.vowel ?? ""
       if index == stressIndex, vowel == "ə" { vowel = "ʌ" }
+      // espeak never ends a Hindi word on a long high vowel: पानी is
+      // /pˈaːni/, भेजी is /bʰˈeːɟi/. Long aː and eː endings are untouched.
+      if index == finalVowelIndex, let shortened = finalHighVowels[vowel] {
+        vowel = shortened
+      }
+      // A written virama gives the trill; an inherent schwa that deletion
+      // removed keeps the flap. कुर्सी is /kˈʊrsi/, सरकार is /sˌəɾkˈaːɾ/.
+      let onset = unit.onset == "ɾ" && unit.hasWrittenVirama ? "r" : unit.onset
       let stress: String
       if index == stressIndex, unit.isVocalic {
         stress = "ˈ"
@@ -276,7 +304,7 @@ enum HindiPhonemizer {
       }
       // eSpeak's Hindi IPA places the stress token immediately before the
       // vowel (for example `nəmˈʌsteː`), which is the sequence Kokoro learned.
-      return unit.onset + stress + vowel + unit.coda
+      return onset + stress + vowel + unit.coda
     }.joined()
   }
 

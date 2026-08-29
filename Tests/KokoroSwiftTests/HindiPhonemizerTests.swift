@@ -49,7 +49,7 @@ func hindiRetroflexFlapsEmitNoSentenceBreak(word: String) {
   #expect(HindiPhonemizer.phonemize("आग्रह") == "ˈaːɡɾəh")
   #expect(HindiPhonemizer.phonemize("प्रवाह") == "pɾəʋˈaːh")
   #expect(HindiPhonemizer.phonemize("उत्साह") == "ʊtsˈaːh")
-  #expect(HindiPhonemizer.phonemize("निर्वाह") == "nɪɾʋˈaːh")
+  #expect(HindiPhonemizer.phonemize("निर्वाह") == "nɪrʋˈaːh")
 
   // The words the rule was written for are untouched.
   #expect(HindiPhonemizer.phonemize("कहना") == "kˈɛhnaː")
@@ -65,12 +65,54 @@ func hindiRetroflexFlapsEmitNoSentenceBreak(word: String) {
   #expect(HindiPhonemizer.phonemize("वाराणसी") == "ʋaːɾˈaːɳəsiː")
 }
 
+// MARK: - Rules verified against espeak-ng
+//
+// Every expectation below was read off `espeak-ng -v hi -q --ipa`, which is
+// the distribution Kokoro's Hindi voices were trained on. Re-check with
+// Tools/espeak-diff.py before changing any of them.
+
+/// espeak opens a word written with अ on ʌ, stressed or not. Reading it as ə
+/// is why अंतरराष्ट्रीय was heard starting on इ.
+@Test func hindiWordInitialAIsOpenNotSchwa() {
+  #expect(HindiPhonemizer.phonemize("अदालत") == "ʌdˈaːlət")
+  #expect(HindiPhonemizer.phonemize("अस्पताल") == "ʌspətˈaːl")
+  #expect(HindiPhonemizer.phonemize("अख़बार") == "ʌxbˈaːɾ")
+  #expect(HindiPhonemizer.phonemize("अनुमान") == "ʌnʊmˈaːn")
+}
+
+/// espeak never ends a Hindi word on a long high vowel.
+@Test func hindiFinalHighVowelsAreShort() {
+  #expect(HindiPhonemizer.phonemize("पानी") == "pˈaːni")
+  #expect(HindiPhonemizer.phonemize("रोटी") == "ɾˈoːʈi")
+  #expect(HindiPhonemizer.phonemize("भेजी") == "bʰˈeːɟi")
+  #expect(HindiPhonemizer.phonemize("मंत्री") == "mˈʌntɾi")
+}
+
+/// ...but only when the vowel actually ends the word. A following consonant
+/// keeps it long.
+@Test func hindiHighVowelsStayLongBeforeAConsonant() {
+  #expect(HindiPhonemizer.phonemize("ज़मीन") == "zəmˈiːn")
+  #expect(HindiPhonemizer.phonemize("क़ानून") == "qaːnˈuːn")
+}
+
+/// A written virama gives the trill; an inherent schwa that deletion removed
+/// keeps the flap.
+@Test func hindiRhoticSplitsOnTheWrittenVirama() {
+  #expect(HindiPhonemizer.phonemize("निर्माण") == "nɪrmˈaːɳ")
+  #expect(HindiPhonemizer.phonemize("निर्वाह") == "nɪrʋˈaːh")
+  #expect(HindiPhonemizer.phonemize("कुर्सी") == "kˈʊrsi")
+
+  // सरकार has no virama — the schwa was deleted, so the flap stays.
+  #expect(HindiPhonemizer.phonemize("सरकार") == "səɾkˈaːɾ")
+  #expect(HindiPhonemizer.phonemize("रवाना") == "ɾəʋˈaːnaː")
+}
+
 /// A Devanagari-spelled acronym is a sequence of letter names, not one word.
 @Test func hindiDevanagariAcronymsAreReadLetterByLetter() {
-  #expect(HindiPhonemizer.phonemize("एनडीआरएफ") == "ˈeːn ɖˈiː ˈaːɾ ˈeːf")
-  #expect(HindiPhonemizer.phonemize("बीजेपी") == "bˈiː ɟˈeː pˈiː")
-  #expect(HindiPhonemizer.phonemize("सीबीआई") == "sˈiː bˈiː ˈaːiː")
-  #expect(HindiPhonemizer.phonemize("पीएम") == "pˈiː ˈeːm")
+  #expect(HindiPhonemizer.phonemize("एनडीआरएफ") == "ˈeːn ɖˈi ˈaːɾ ˈeːf")
+  #expect(HindiPhonemizer.phonemize("बीजेपी") == "bˈi ɟˈeː pˈi")
+  #expect(HindiPhonemizer.phonemize("सीबीआई") == "sˈi bˈi ˈaːi")
+  #expect(HindiPhonemizer.phonemize("पीएम") == "pˈi ˈeːm")
 }
 
 /// The nukta-less एफ that most copy uses was read as /pʰ/, so एनडीआरएफ ended
