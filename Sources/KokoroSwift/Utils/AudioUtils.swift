@@ -27,10 +27,10 @@ public final class AudioUtils {
     /// Thrown when unable to create an AVAudioFormat with the specified parameters
     case cannotCreateAVAudioFormat
   }
-  
+
   /// AudioUtils is a utility class with only static methods and should not be instantiated.
   private init() {}
-  
+
   /// Writes audio samples to a WAV file. Takes raw audio samples and writes them to disk as a WAV file
   /// using the specified sample rate. The output is mono (single channel) audio in 32-bit floating-point PCM format.
   /// - Parameters:
@@ -60,8 +60,10 @@ public final class AudioUtils {
 
     // Set buffer length and copy samples
     buffer.frameLength = frameCount
-    let channelData = buffer.floatChannelData![0]
-    
+    guard let channelData = buffer.floatChannelData?.pointee else {
+      throw AudioUtilsErrors.cannotCreateAVAudioFormat
+    }
+
     for i in 0 ..< Int(frameCount) {
       channelData[i] = samples[i]
     }

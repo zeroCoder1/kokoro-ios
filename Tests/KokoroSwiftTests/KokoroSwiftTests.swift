@@ -38,8 +38,8 @@ import Testing
   #expect(HindiPhonemizer.phonemize("धागा") == "dʰˈaːɡaː")
 }
 
-@Test func hindiConsonantContrastsAreAllKokoroTokens() {
-  _ = KokoroConfig.loadConfig()
+@Test func hindiConsonantContrastsAreAllKokoroTokens() throws {
+  _ = try KokoroConfig.loadConfig()
   let phonemes = HindiPhonemizer.phonemize(
     "चाय छत जल झंडा ज़मीन फैसला फ़ैसला डाक लड़का ढंग पढ़ना दादा धागा"
   )
@@ -50,8 +50,8 @@ import Testing
   )
 }
 
-@Test func hindiNasalVowelsRemainDistinctAfterTokenization() {
-  let config = KokoroConfig.loadConfig()
+@Test func hindiNasalVowelsRemainDistinctAfterTokenization() throws {
+  let config = try KokoroConfig.loadConfig()
   let main = HindiPhonemizer.phonemize("मैं")
   let mein = HindiPhonemizer.phonemize("में")
   let mainTokens = Tokenizer.tokenize(phonemizedText: main)

@@ -19,6 +19,14 @@ import MLXNN
 /// - Text encoder weights
 /// - Decoder weights
 final class WeightLoader {
+  enum LoadingError: LocalizedError {
+    case noCompatibleWeights
+
+    var errorDescription: String? {
+      "The downloaded Kokoro weights are missing or incompatible."
+    }
+  }
+
   /// WeightLoader is a utility class with only static methods.
   private init() {}
 
@@ -30,10 +38,10 @@ final class WeightLoader {
   /// - **Decoder weights**: Transposes noise convolution weights and handles weight_v conditionally
   /// - Parameter modelPath: URL to the directory containing model weight files
   /// - Returns: Dictionary mapping weight names to their processed MLXArray tensors
-  /// - Note: Uses forced try (try!) as weight loading is critical and should fail fast if unsuccessful
-  static func loadWeights(modelPath: URL) -> [String: MLXArray] {
+  static func loadWeights(modelPath: URL) throws -> [String: MLXArray] {
     // Load raw weights from disk
-    let weights = try! MLX.loadArrays(url: modelPath)
+    let weights = try MLX.loadArrays(url: modelPath)
+    guard !weights.isEmpty else { throw LoadingError.noCompatibleWeights }
     var sanitizedWeights: [String: MLXArray] = [:]
 
     // Process each weight based on its component prefix
@@ -45,17 +53,17 @@ final class WeightLoader {
           continue
         }
         sanitizedWeights[key] = value
-        
+
       // Process predictor (duration and prosody) weights
       } else if key.hasPrefix("predictor") {
         // F0 projection weights need transposition for proper matrix multiplication
         if key.contains("F0_proj.weight") {
           sanitizedWeights[key] = value.transposed(0, 2, 1)
-          
+
         // N (noise) projection weights need transposition
         } else if key.contains("N_proj.weight") {
           sanitizedWeights[key] = value.transposed(0, 2, 1)
-          
+
         // Weight normalization V parameters need conditional transposition
         } else if key.contains("weight_v") {
           if checkArrayShape(arr: value) {
@@ -66,7 +74,7 @@ final class WeightLoader {
         } else {
           sanitizedWeights[key] = value
         }
-        
+
       // Process text encoder weights
       } else if key.hasPrefix("text_encoder") {
         // Weight normalization V parameters need conditional transposition
@@ -79,13 +87,13 @@ final class WeightLoader {
         } else {
           sanitizedWeights[key] = value
         }
-        
+
       // Process decoder weights
       } else if key.hasPrefix("decoder") {
         // Noise convolution weights need transposition
         if key.contains("noise_convs"), key.hasSuffix(".weight") {
           sanitizedWeights[key] = value.transposed(0, 2, 1)
-          
+
         // Weight normalization V parameters need conditional transposition
         } else if key.contains("weight_v") {
           if checkArrayShape(arr: value) {

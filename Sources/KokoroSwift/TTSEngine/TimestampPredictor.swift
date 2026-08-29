@@ -8,7 +8,7 @@ import MLXUtilsLibrary
 
 class TimestampPredictor {
   private init() {}
-  
+
   static func preditTimestamps(tokens: [MToken], predictionDuration: MLXArray) {
     /*
      Multiply by 600 to go from pred_dur frames to sample_rate 24000.
@@ -19,9 +19,9 @@ class TimestampPredictor {
       // We expect at least 3: <bos>, token, <eos>
       return
     }
-              
+
     let magicDivisor: Float = 80.0
-    
+
     // We track 2 counts, measured in half-frames: (left, right)
     // This way we can cut space characters in half
     // TO_DO: Is -3 an appropriate offset?
@@ -37,18 +37,20 @@ class TimestampPredictor {
       guard i < predictionDuration.shape[0] - 1 else {
         break
       }
-     
+
       if t.phonemes == nil {
         if !t.whitespace.isEmpty {
           i += 1
+          guard i < predictionDuration.shape[0] else { break }
           left = right + predictionDuration[i].item()
           right = left + predictionDuration[i].item()
           i += 1
         }
         continue
       }
-      
-      let j = i + t.phonemes!.count
+
+      guard let phonemes = t.phonemes else { continue }
+      let j = i + phonemes.count
       if j >= predictionDuration.shape[0] {
         break
       }
