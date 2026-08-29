@@ -42,6 +42,40 @@ func hindiRetroflexFlapsEmitNoSentenceBreak(word: String) {
   #expect(HindiPhonemizer.phonemize("पढ़ना") == HindiPhonemizer.phonemize("पढ़ना"))
 }
 
+/// Schwa fronting before `h` is real in कहना, रहना and पहला, where the `h` is
+/// followed by another consonant. Word-finally it is not: fronting there gave
+/// आग्रह as /aːɡɾɛh/, which is heard as आगरे.
+@Test func hindiSchwaFrontingSkipsWordFinalH() {
+  #expect(HindiPhonemizer.phonemize("आग्रह") == "ˈaːɡɾəh")
+  #expect(HindiPhonemizer.phonemize("प्रवाह") == "pɾəʋˈaːh")
+  #expect(HindiPhonemizer.phonemize("उत्साह") == "ʊtsˈaːh")
+  #expect(HindiPhonemizer.phonemize("निर्वाह") == "nɪɾʋˈaːh")
+
+  // The words the rule was written for are untouched.
+  #expect(HindiPhonemizer.phonemize("कहना") == "kˈɛhnaː")
+  #expect(HindiPhonemizer.phonemize("रहना") == "ɾˈɛhnaː")
+  #expect(HindiPhonemizer.phonemize("पहला") == "pˈɛhlaː")
+  #expect(HindiPhonemizer.phonemize("बहुत") == "bˈʌhʊt")
+}
+
+/// A Devanagari-spelled acronym is a sequence of letter names, not one word.
+@Test func hindiDevanagariAcronymsAreReadLetterByLetter() {
+  #expect(HindiPhonemizer.phonemize("एनडीआरएफ") == "ˈeːn ɖˈiː ˈaːɾ ˈeːf")
+  #expect(HindiPhonemizer.phonemize("बीजेपी") == "bˈiː ɟˈeː pˈiː")
+  #expect(HindiPhonemizer.phonemize("सीबीआई") == "sˈiː bˈiː ˈaːiː")
+  #expect(HindiPhonemizer.phonemize("पीएम") == "pˈiː ˈeːm")
+}
+
+/// The nukta-less एफ that most copy uses was read as /pʰ/, so एनडीआरएफ ended
+/// in "eph" rather than "eff".
+@Test(arguments: ["एनडीआरएफ", "एसडीआरएफ", "बीएसएफ", "सीआरपीएफ", "आईएएफ"])
+func hindiAcronymsEndingInEfUseTheLabiodental(acronym: String) {
+  let phonemes = HindiPhonemizer.phonemize(acronym)
+
+  #expect(phonemes.hasSuffix("ˈeːf"), "\(acronym) -> \(phonemes)")
+  #expect(!phonemes.contains("pʰ"), "\(acronym) -> \(phonemes)")
+}
+
 @Test(arguments: commonHindiWords)
 func hindiPhonemesAreAllKokoroVocabulary(word: String) throws {
   let vocab = try KokoroConfig.loadConfig().vocab

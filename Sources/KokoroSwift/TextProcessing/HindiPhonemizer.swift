@@ -95,6 +95,35 @@ enum HindiPhonemizer {
     "विधानसभा": ["विधान", "सभा"],
   ]
 
+  /// Acronyms are routinely written out in Devanagari in Hindi copy. Phonemized
+  /// as one word they receive a single primary stress across every letter and
+  /// smear together; a newsreader says each letter name separately. Splitting
+  /// them also restores the nukta on एफ़, which is /f/ — the nukta-less एफ that
+  /// most copy actually uses was read as /pʰ/, so एनडीआरएफ ended in "eph".
+  /// Add a row to extend this.
+  private static let devanagariAcronyms: [String: [String]] = [
+    "एनडीआरएफ": ["एन", "डी", "आर", "एफ़"],
+    "एसडीआरएफ": ["एस", "डी", "आर", "एफ़"],
+    "आईएएफ": ["आई", "ए", "एफ़"],
+    "बीएसएफ": ["बी", "एस", "एफ़"],
+    "सीआरपीएफ": ["सी", "आर", "पी", "एफ़"],
+    "आईटीबीपी": ["आई", "टी", "बी", "पी"],
+    "बीजेपी": ["बी", "जे", "पी"],
+    "सीबीआई": ["सी", "बी", "आई"],
+    "एनआईए": ["एन", "आई", "ए"],
+    "आरबीआई": ["आर", "बी", "आई"],
+    "एसबीआई": ["एस", "बी", "आई"],
+    "जीएसटी": ["जी", "एस", "टी"],
+    "यूपीआई": ["यू", "पी", "आई"],
+    "एटीएम": ["ए", "टी", "एम"],
+    "आईपीएल": ["आई", "पी", "एल"],
+    "एनडीए": ["एन", "डी", "ए"],
+    "यूपीए": ["यू", "पी", "ए"],
+    "एमएलए": ["एम", "एल", "ए"],
+    "पीएम": ["पी", "एम"],
+    "सीएम": ["सी", "एम"],
+  ]
+
   /// Hindi publishing commonly omits the nukta from Persian and English
   /// loanwords even though speakers retain /f/. This deliberately small news
   /// lexicon restores that sound without turning native फल, फूल or फिर into
@@ -144,7 +173,7 @@ enum HindiPhonemizer {
 
   private static func phonemizeWord(_ word: String) -> String {
     if let pronunciation = pronunciationOverrides[word] { return pronunciation }
-    if let components = compoundWords[word] {
+    if let components = compoundWords[word] ?? devanagariAcronyms[word] {
       return components.map(phonemizeWord).joined(separator: " ")
     }
 
@@ -338,9 +367,14 @@ enum HindiPhonemizer {
   /// Delhi Hindi fronts schwa before an `h` whose own schwa was deleted, as
   /// in कहना, रहना and पहला. Applying this after deletion keeps the rule
   /// narrow and avoids changing words such as बहुत, शहर and महिला.
+  ///
+  /// The `h` has to be followed by something. In कहना it is, and the fronting
+  /// is real; word-finally it is not, and applying it there turned आग्रह into
+  /// /aːɡɾɛh/ — heard as आगरे. Words such as आग्रह, प्रवाह and उत्साह keep
+  /// their schwa.
   private static func applyContextualVowels(to units: inout [Akshara]) {
-    guard units.count > 1 else { return }
-    for index in 0 ..< units.count - 1 where units[index].vowel == "ə" {
+    guard units.count > 2 else { return }
+    for index in 0 ..< units.count - 2 where units[index].vowel == "ə" {
       let following = units[index + 1]
       if following.onset == "h", following.vowel == nil {
         units[index].vowel = "ɛ"
