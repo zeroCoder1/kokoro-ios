@@ -33,7 +33,9 @@ enum HindiPhonemizer {
   /// These values follow the Hindi eSpeak IPA stream used to train Kokoro,
   /// rather than substituting similar English phonemes. In particular,
   /// Hindi च/छ and ज/झ are palatal stops (`c`/`ɟ`), while the dotted
-  /// retroflex consonants use eSpeak's distinct `r.`/`r.h` labels.
+  /// retroflex consonants are the flap `ɽ` and its aspirate `ɽʰ`.
+  /// Those are real Kokoro tokens; eSpeak's ASCII mnemonics `r.`/`r.h` are
+  /// not, and the `.` in them was tokenized as a mid-word sentence break.
   private static let consonants: [UnicodeScalar: String] = [
     "क": "k", "ख": "kʰ", "ग": "ɡ", "घ": "ɡʰ", "ङ": "ŋ",
     "च": "c", "छ": "cʰ", "ज": "ɟ", "झ": "ɟʰ", "ञ": "ɲ",
@@ -42,12 +44,12 @@ enum HindiPhonemizer {
     "प": "p", "फ": "pʰ", "ब": "b", "भ": "bʰ", "म": "m",
     "य": "j", "र": "ɾ", "ल": "l", "व": "ʋ", "श": "ʃ", "ष": "ʂ",
     "स": "s", "ह": "h", "ऩ": "n", "ऱ": "ɾ", "ळ": "l", "ऴ": "l",
-    "क़": "q", "ख़": "x", "ग़": "ɣ", "ज़": "z", "ड़": "r.", "ढ़": "r.h",
+    "क़": "q", "ख़": "x", "ग़": "ɣ", "ज़": "z", "ड़": "ɽ", "ढ़": "ɽʰ",
     "फ़": "f", "य़": "j",
   ]
 
   private static let nuktaConsonants: [UnicodeScalar: String] = [
-    "क": "q", "ख": "x", "ग": "ɣ", "ज": "z", "ड": "r.", "ढ": "r.h",
+    "क": "q", "ख": "x", "ग": "ɣ", "ज": "z", "ड": "ɽ", "ढ": "ɽʰ",
     "फ": "f", "य": "j",
   ]
 
@@ -125,7 +127,14 @@ enum HindiPhonemizer {
       } else {
         flushWord()
         if character.isPunctuation {
-          result.append(String(character))
+          // Attach punctuation to the phoneme before it. Joining it as its own
+          // element left a space in front of it, and that space is token 16 —
+          // a pause the model never saw before a sentence break in training.
+          if result.isEmpty {
+            result.append(String(character))
+          } else {
+            result[result.count - 1].append(character)
+          }
         }
       }
     }
@@ -301,11 +310,10 @@ enum HindiPhonemizer {
             units[..<candidate].contains(where: \.isVocalic)
       else { continue }
 
-      // eSpeak represents ढ़ as a flap followed by breath (`r.h`). Its
-      // following inherent vowel remains audible before another consonant in
-      // words such as पढ़ना, बढ़ना and गढ़वाल. Deleting it makes
-      // Kokoro receive the untrained, clipped sequence `r.hn`/`r.hʋ`.
-      if units[candidate].onset == "r.h" { continue }
+      // The inherent vowel after an aspirated flap stays audible before
+      // another consonant in words such as पढ़ना, बढ़ना and गढ़वाल.
+      // Deleting it makes Kokoro receive the clipped sequence `ɽʰn`/`ɽʰʋ`.
+      if units[candidate].onset == "ɽʰ" { continue }
 
       // Preserve the vowel after an explicit conjunct. It is required in
       // words such as मुख्य, विश्व and स्वतंत्रता. The old broad deletion
