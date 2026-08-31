@@ -1,0 +1,202 @@
+# Fine-tuning Kokoro for better Hindi voices
+
+The bundled Hindi voices are all Grade C, each trained on 10–100 minutes of
+audio. The English voices that sound good sit at 10–100 *hours*. That gap is
+the reason Hindi sounds the way it does, and no amount of work in this Swift
+package closes it — it is a training problem.
+
+This is the path from here to two better Hindi voices, male and female.
+
+**You do not need a GPU of your own.** You rent one for the training run and
+delete it afterwards. Everything else happens on your Mac.
+
+---
+
+## What this costs
+
+Kokoro's *entire* original training was about 500 GPU-hours, roughly $400. A
+single-language fine-tune is a fraction of that. Renting a suitable GPU runs
+about $0.20–0.80/hour, so the training itself is likely $10–40.
+
+The real cost is your time on data preparation. Budget days, not hours, and
+expect most of it to be checking that transcripts match audio.
+
+---
+
+## The one idea worth understanding first
+
+Kokoro's Hindi was trained on **espeak-ng's** phoneme output. That is why this
+package chases espeak rather than being "more correct" — the model only
+understands what it was trained on. espeak's Hindi has real defects: it emits
+its internal mnemonic `r.` for the retroflex flap in ड़ and ढ़, and it disagrees
+with this package's phonemizer on roughly half of common words.
+
+**Fine-tuning inverts that.** You produce the labels, so the model learns *this
+package's* phonemes. The espeak defects stop existing rather than being worked
+around. That is the main reason to do this beyond simply having more data.
+
+Which is why step 1 uses `kokoro-labels` instead of the recipe's espeak step.
+
+---
+
+## Phase 1 — On your Mac, free
+
+### 1.1 Get the data
+
+[AI4Bharat Indic-TTS](https://github.com/AI4Bharat/Indic-TTS) — studio
+recordings, roughly 20 hours per language. Take **both** the Hindi male and
+female sets; both voices train in one run.
+
+Check the licence before you publish anything built from it.
+
+### 1.2 Convert the audio
+
+Indic-TTS ships 48 kHz; the trainer wants 24 kHz mono 16-bit, in 2–30 s clips.
+
+```bash
+Tools/prepare-audio.sh /data/indic-tts/hindi_female/wav /data/hi_female/wav
+Tools/prepare-audio.sh /data/indic-tts/hindi_male/wav   /data/hi_male/wav
+```
+
+Clips outside the duration window are reported, not converted — a too-short
+clip is usually a bad segmentation and will hurt alignment. Read
+`prepare-audio-report.tsv` before moving on.
+
+### 1.3 Build the manifests
+
+```bash
+swift run kokoro-labels \
+  --transcripts /data/indic-tts/hindi_female/txt.done.data \
+  --audio-dir /data/hi_female/wav \
+  --speaker hi_female \
+  --output female.txt --rejections female_rejected.tsv
+
+swift run kokoro-labels \
+  --transcripts /data/indic-tts/hindi_male/txt.done.data \
+  --audio-dir /data/hi_male/wav \
+  --speaker hi_male \
+  --output male.txt --rejections male_rejected.tsv
+
+cat female.txt male.txt > filelist.txt
+```
+
+**Read the rejections file.** A handful is normal. Hundreds means something is
+wrong — most likely a transcript encoding problem — and it is far cheaper to
+find that now than after a training run.
+
+Split `filelist.txt` into train and validation lists (roughly 95/5).
+
+---
+
+## Phase 2 — Rent a GPU
+
+### 2.1 Pick a provider
+
+**RunPod** is the gentlest starting point: pick a PyTorch template, get a
+browser terminal, attach a persistent volume so nothing is lost if the pod
+stops. Vast.ai is cheaper and fiddlier. Lambda Labs is simpler and pricier.
+
+You need **12 GB VRAM** for `batch_size=4`. An RTX 4090 or A10 is plenty.
+
+### 2.2 Get the data onto the box
+
+Download Indic-TTS **directly on the pod** rather than uploading from your Mac
+— you only have ~21 GB free locally. Copy up just `filelist.txt` and your
+converted audio, or redo the conversion there.
+
+### 2.3 Set up
+
+```bash
+git clone --recurse-submodules https://github.com/semidark/kikiri-tts
+cd kikiri-tts
+uv sync
+```
+
+Forgetting `--recurse-submodules` leaves empty directories and confusing
+errors. If you did, run `git submodule update --init --recursive`.
+
+You also need the base Kokoro checkpoint converted to StyleTTS2 layout, the
+StyleTTS2 utility models (`Utils/JDC`, `Utils/ASR`, `Utils/PLBERT`), and the
+monotonic alignment extension built. The upstream `docs/TRAINING_GUIDE.md` has
+the exact commands — follow it rather than this file for those, since it
+changes.
+
+---
+
+## Phase 3 — Smoke test before spending money
+
+**Do not skip this.** The dangerous failures here are silent: they do not
+crash, they just train a broken model for hours.
+
+Run two training steps and stop. Then check:
+
+| check | healthy | broken |
+|---|---|---|
+| symbol map length | `178` | anything else |
+| Mel Loss, step 1 | 0.8–1.5 | **NaN → symbol mapping is wrong** |
+| Gen Loss | 3–6 | — |
+| Disc Loss | 4–6 | — |
+| Stage 2 Mel Loss at start | **~0.43** | ~7.5–8.0 → pretrained weights did not load |
+
+That Stage 2 number is the single most useful check in the whole process. 0.43
+means you are fine-tuning. 7.5 means you are training from scratch and wasting
+every hour that follows.
+
+---
+
+## Phase 4 — Train
+
+```bash
+cd StyleTTS2
+accelerate launch train_first.py  --config_path ../configs/config_hindi_ft.yml
+accelerate launch train_second.py --config_path ../configs/config_hindi_ft.yml
+```
+
+Healthy progression: Stage 1 Mel Loss 0.8 → 0.25 over ~10 epochs. Stage 2 Mel
+0.43 → 0.25, Dur 1.3 → 0.9, F0 4.1 → 1.8.
+
+If Stage 1 Mel plateaus above 0.4, stop and look at data quality or the phoneme
+mapping rather than training longer.
+
+**Config gotcha that costs people days:** `train_first.py` reads `batch_size`,
+`epochs_1st`, `save_freq`, `pretrained_model` and `load_only_params` from the
+**top level** of the YAML. Nest them under `training:` and they are silently
+ignored.
+
+Save checkpoints to the persistent volume. Pods can stop.
+
+---
+
+## Phase 5 — Extract voices and ship them here
+
+```bash
+python scripts/extract_voicepack.py --model <checkpoint> \
+  --audio-dir /data/hi_female/wav --output voices/hf_indic.pt
+python scripts/extract_voicepack.py --model <checkpoint> \
+  --audio-dir /data/hi_male/wav   --output voices/hm_indic.pt
+```
+
+You now have fine-tuned weights **and** two voice packs. `KokoroTTS(modelPath:)`
+already takes a path, so this package needs no changes to load them.
+
+---
+
+## Decide these before you train
+
+**Catastrophic forgetting.** Fine-tuning on Hindi alone degrades English. Either
+mix English data into the run, or accept a Hindi-specialised model and ship two
+model files. Decide up front — you cannot fix it afterwards without retraining.
+
+**Do not change the vocabulary.** Keep the 178-slot embedding and the 114
+symbols exactly as they are, or this package stops loading the result.
+
+**Latin text.** `kokoro-labels` sets those clips aside rather than guessing. If
+the rejection count is large, decide whether to transliterate or drop them.
+
+---
+
+## A realistic target
+
+Only two voices in all of Kokoro are graded A or A−, and **no non-English voice
+exceeds C** except French at B−. Reaching **B** for Hindi would make it the best
+non-English voice in the model. Aim there, not at A.

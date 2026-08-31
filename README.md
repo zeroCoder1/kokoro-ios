@@ -180,6 +180,22 @@ The report groups differences into stress-only, vowel-length-only, segmental,
 and espeak's own retroflex-flap artifact. espeak is **not** a runtime
 dependency — it is used offline, to check work.
 
+## Improving the Hindi Voices
+
+The bundled Hindi voices are Grade C, trained on 10–100 minutes each. That is a
+training limit, not something the phonemizer can fix. `docs/TRAINING.md` walks
+through fine-tuning Kokoro on a larger Hindi corpus to produce better male and
+female voices, including the two tools in this repo that prepare the data:
+
+```bash
+Tools/prepare-audio.sh <source-wav-dir> <output-dir>   # 24 kHz mono 16-bit
+swift run kokoro-labels --transcripts ... --speaker hi_female --output female.txt
+```
+
+`kokoro-labels` writes the phoneme column with this package's phonemizer rather
+than espeak, so a fine-tuned model learns the phonemes inference actually sends
+it — which removes the espeak divergence rather than working around it.
+
 ## G2P (Grapheme-to-Phoneme) Options
 
 - `.misaki` - MisakiSwift, the default English G2P processor
