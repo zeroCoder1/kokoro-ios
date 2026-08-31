@@ -41,39 +41,52 @@ Which is why step 1 uses `kokoro-labels` instead of the recipe's espeak step.
 
 ## Phase 1 — On your Mac, free
 
-### 1.1 Get the data
+### 1.1 Read the licence first
 
-[AI4Bharat Indic-TTS](https://github.com/AI4Bharat/Indic-TTS) — studio
-recordings, roughly 20 hours per language. Take **both** the Hindi male and
-female sets; both voices train in one run.
+The corpus is IIT Madras' Indic TTS database. Using it means agreeing to the
+**License For Use of Indic TTS** — read it before you build anything you intend
+to ship, not after. The terms are the deciding factor for a commercial product,
+and no amount of engineering downstream changes them.
 
-Check the licence before you publish anything built from it.
+- Dataset: [SPRINGLab/IndicTTS-Hindi](https://huggingface.co/datasets/SPRINGLab/IndicTTS-Hindi)
+  (the Hindi monolingual portion, ~10 h, one male and one female speaker)
+- Original: [IIT Madras Indic TTS database](https://www.iitm.ac.in/donlab/indictts/database)
 
-### 1.2 Convert the audio
+### 1.2 Extract and convert in one pass
 
-Indic-TTS ships 48 kHz; the trainer wants 24 kHz mono 16-bit, in 2–30 s clips.
+The HuggingFace copy is parquet with the audio embedded at 48 kHz. This streams
+it, resamples to 24 kHz mono 16-bit, splits by speaker, and writes the Festival
+transcript file that `kokoro-labels` reads:
 
 ```bash
-Tools/prepare-audio.sh /data/indic-tts/hindi_female/wav /data/hi_female/wav
-Tools/prepare-audio.sh /data/indic-tts/hindi_male/wav   /data/hi_male/wav
+uv venv .venv --python 3.11
+VIRTUAL_ENV=.venv uv pip install datasets soundfile soxr huggingface_hub
+
+# Look before you leap: duration spread, nothing written.
+.venv/bin/python Tools/extract-indictts.py --out /data/indictts --survey --limit 400
+
+.venv/bin/python Tools/extract-indictts.py --out /data/indictts
 ```
 
-Clips outside the duration window are reported, not converted — a too-short
-clip is usually a bad segmentation and will hurt alignment. Read
-`prepare-audio-report.tsv` before moving on.
+Streaming means the 8.2 GB of parquet is never all on disk; the written clips
+come to roughly 4 GB. Clips outside 2–30 s are skipped — on this corpus that is
+about 0.2%, because the clips average around eight seconds.
+
+`Tools/prepare-audio.sh` does the same conversion for a corpus that is already
+loose WAV files, if you take the original IIT Madras download instead.
 
 ### 1.3 Build the manifests
 
 ```bash
 swift run kokoro-labels \
-  --transcripts /data/indic-tts/hindi_female/txt.done.data \
-  --audio-dir /data/hi_female/wav \
+  --transcripts /data/indictts/hi_female/txt.done.data \
+  --audio-dir /data/indictts/hi_female/wav \
   --speaker hi_female \
   --output female.txt --rejections female_rejected.tsv
 
 swift run kokoro-labels \
-  --transcripts /data/indic-tts/hindi_male/txt.done.data \
-  --audio-dir /data/hi_male/wav \
+  --transcripts /data/indictts/hi_male/txt.done.data \
+  --audio-dir /data/indictts/hi_male/wav \
   --speaker hi_male \
   --output male.txt --rejections male_rejected.tsv
 
@@ -200,3 +213,10 @@ the rejection count is large, decide whether to transliterate or drop them.
 Only two voices in all of Kokoro are graded A or A−, and **no non-English voice
 exceeds C** except French at B−. Reaching **B** for Hindi would make it the best
 non-English voice in the model. Aim there, not at A.
+
+Be calibrated about what this corpus buys. It holds roughly five hours per
+speaker, against the 10–100 minutes the current Hindi voices were trained on —
+a large step up, and still short of the 10–100 hours behind the A− and B−
+English voices. Studio quality and accurate transcripts help the other two
+components of the grade. A move from C to somewhere around C+/B− is the
+sensible expectation; treat better than that as a bonus.
