@@ -124,7 +124,9 @@ style.sentencePause = 0.6    // and longer beats between items
 | `sentencePause` | silence between sentences in `generateContinuousAudio` |
 
 Values are clamped to ranges where the decoder stays believable, and unvoiced
-frames are left alone so silences do not ring.
+frames are left alone so silences do not ring. The clamping applies to this API
+only — `generateAudio(voice:language:text:speed:)` passes its `speed` through
+untouched, so existing callers are unaffected.
 
 This is prosody shaping, not learned emotion. It rescales the delivery a voice
 already has; it cannot give it a register it never had, and pushed hard it

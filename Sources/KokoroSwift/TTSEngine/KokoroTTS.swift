@@ -177,10 +177,12 @@ public final class KokoroTTS {
   /// - Throws: `KokoroTTSError.tooManyTokens` if text is too long,
   ///           or `G2PProcessorError` if G2P processing fails
   public func generateAudio(voice: MLXArray, language: Language, text: String, speed: Float = 1.0) throws -> ([Float], [MToken]?) {
-    try generateAudio(
-      voice: voice, language: language, text: text,
-      style: SpeechStyle(speed: speed)
-    )
+    // `speed` is passed through exactly as given. SpeechStyle clamps its own
+    // speed to a range the decoder stays believable across, but applying that
+    // here would silently change the output of callers who predate it, so this
+    // path stays byte-identical to what it produced before styles existed: no
+    // clamping, and the prosody curves untouched.
+    try synthesize(voice: voice, language: language, text: text, speed: speed, style: nil)
   }
 
   /// Generates audio with a delivery style: pace, pitch movement and emphasis.
@@ -204,6 +206,21 @@ public final class KokoroTTS {
     style: SpeechStyle
   ) throws -> ([Float], [MToken]?) {
     let style = style.clamped
+    return try synthesize(
+      voice: voice, language: language, text: text, speed: style.speed, style: style
+    )
+  }
+
+  /// The synthesis pipeline. `style` is `nil` on the legacy speed-only path,
+  /// which leaves the predicted prosody curves exactly as the model produced
+  /// them.
+  private func synthesize(
+    voice: MLXArray,
+    language: Language,
+    text: String,
+    speed: Float,
+    style: SpeechStyle?
+  ) throws -> ([Float], [MToken]?) {
     // Update language if it has changed
     try updateLanguageIfNeeded(language)
 
@@ -233,7 +250,7 @@ public final class KokoroTTS {
     let (predictedDurations, alignmentTarget) = predictDurations(
       features: durationFeatures,
       batchSize: paddedInputIds.shape[1],
-      speed: style.speed
+      speed: speed
     )
 
     // Step 6: Generate aligned encodings
@@ -241,7 +258,9 @@ public final class KokoroTTS {
 
     // Step 7: Predict prosody (F0, pitch), then reshape it to the style
     let (predictedF0, predictedN) = prosodyPredictor.F0NTrain(x: alignedEncoding, s: globalStyle)
-    let (f0Prediction, nPrediction) = reshape(f0: predictedF0, n: predictedN, to: style)
+    let (f0Prediction, nPrediction) = style.map {
+      reshape(f0: predictedF0, n: predictedN, to: $0)
+    } ?? (predictedF0, predictedN)
 
     // Step 8: Encode text for decoder
     let textEncoding = textEncoder(paddedInputIds, inputLengths: inputLengths, m: textMask)

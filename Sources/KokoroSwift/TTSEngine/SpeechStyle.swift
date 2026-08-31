@@ -86,6 +86,10 @@ public struct SpeechStyle: Sendable, Equatable {
   /// Ranges the decoder stays believable across. Values outside them are
   /// admitted but pulled back to the edge, so a caller cannot accidentally ask
   /// for something that only produces artifacts.
+  ///
+  /// These apply to the style API only. `generateAudio(voice:language:text:speed:)`
+  /// predates styles and passes its `speed` through unclamped, so its output is
+  /// unchanged by any of this.
   public enum Limits {
     public static let speed: ClosedRange<Float> = 0.5 ... 2.0
     public static let pitchShiftSemitones: ClosedRange<Float> = -6.0 ... 6.0
