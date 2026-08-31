@@ -177,6 +177,33 @@ public final class KokoroTTS {
   /// - Throws: `KokoroTTSError.tooManyTokens` if text is too long,
   ///           or `G2PProcessorError` if G2P processing fails
   public func generateAudio(voice: MLXArray, language: Language, text: String, speed: Float = 1.0) throws -> ([Float], [MToken]?) {
+    try generateAudio(
+      voice: voice, language: language, text: text,
+      style: SpeechStyle(speed: speed)
+    )
+  }
+
+  /// Generates audio with a delivery style: pace, pitch movement and emphasis.
+  ///
+  /// Kokoro predicts a pitch curve and an energy curve from the text and the
+  /// voice, then hands both to the decoder. `style` reshapes those curves in
+  /// between, which is where delivery lives. See `SpeechStyle` for what this
+  /// can and cannot do.
+  ///
+  /// - Parameters:
+  ///   - voice: Voice embedding array.
+  ///   - language: Target language for pronunciation.
+  ///   - text: Input text to synthesize.
+  ///   - style: How the line should be delivered. `.neutral` leaves the
+  ///     predicted curves exactly as the model produced them.
+  /// - Returns: Audio samples, and token timestamps when the G2P provides them.
+  public func generateAudio(
+    voice: MLXArray,
+    language: Language,
+    text: String,
+    style: SpeechStyle
+  ) throws -> ([Float], [MToken]?) {
+    let style = style.clamped
     // Update language if it has changed
     try updateLanguageIfNeeded(language)
 
@@ -206,14 +233,15 @@ public final class KokoroTTS {
     let (predictedDurations, alignmentTarget) = predictDurations(
       features: durationFeatures,
       batchSize: paddedInputIds.shape[1],
-      speed: speed
+      speed: style.speed
     )
 
     // Step 6: Generate aligned encodings
     let alignedEncoding = durationFeatures.transposed(0, 2, 1).matmul(alignmentTarget)
 
-    // Step 7: Predict prosody (F0, pitch)
-    let (f0Prediction, nPrediction) = prosodyPredictor.F0NTrain(x: alignedEncoding, s: globalStyle)
+    // Step 7: Predict prosody (F0, pitch), then reshape it to the style
+    let (predictedF0, predictedN) = prosodyPredictor.F0NTrain(x: alignedEncoding, s: globalStyle)
+    let (f0Prediction, nPrediction) = reshape(f0: predictedF0, n: predictedN, to: style)
 
     // Step 8: Encode text for decoder
     let textEncoding = textEncoder(paddedInputIds, inputLengths: inputLengths, m: textMask)
@@ -257,8 +285,8 @@ public final class KokoroTTS {
   ///   - voice: Voice embedding array.
   ///   - language: Target language for pronunciation.
   ///   - text: Input text, of any length.
-  ///   - speed: Speech speed multiplier.
-  ///   - sentencePause: Silence inserted between sentence groups, in seconds.
+  ///   - style: Delivery style. Its `sentencePause` sets the silence between
+  ///     sentence groups.
   ///   - targetLUFS: Integrated loudness to normalise the finished audio to,
   ///     or `nil` to leave the level alone. Normalisation is applied once over
   ///     the whole stream, so the balance between sentences is preserved.
@@ -269,10 +297,10 @@ public final class KokoroTTS {
     voice: MLXArray,
     language: Language,
     text: String,
-    speed: Float = 1.0,
-    sentencePause: TimeInterval = 0.35,
+    style: SpeechStyle = .neutral,
     targetLUFS: Double? = AudioLoudness.defaultTargetLUFS
   ) throws -> [Float] {
+    let style = style.clamped
     try updateLanguageIfNeeded(language)
 
     let sampleRate = Double(Constants.samplingRate)
@@ -287,12 +315,14 @@ public final class KokoroTTS {
     segments.reserveCapacity(chunks.count)
     for chunk in chunks {
       let (samples, _) = try generateAudio(
-        voice: voice, language: language, text: chunk, speed: speed
+        voice: voice, language: language, text: chunk, style: style
       )
       segments.append(AudioSegments.trimmingEdgeSilence(samples, sampleRate: sampleRate))
     }
 
-    let joined = AudioSegments.joined(segments, pause: sentencePause, sampleRate: sampleRate)
+    let joined = AudioSegments.joined(
+      segments, pause: style.sentencePause, sampleRate: sampleRate
+    )
     guard let targetLUFS else { return joined }
     return AudioLoudness.normalized(
       samples: joined, sampleRate: sampleRate, targetLUFS: targetLUFS
@@ -305,6 +335,35 @@ public final class KokoroTTS {
     let (phonemes, _) = try phonemizeText(text)
     return Tokenizer.tokenize(phonemizedText: phonemes).count
   }
+
+  /// Applies a `SpeechStyle` to the predicted pitch and energy curves.
+  ///
+  /// Pitch range scales each frame's distance from the curve's own mean, so the
+  /// shape of the intonation is kept and only its extent changes. The semitone
+  /// shift is then a plain frequency ratio, F0 being in Hz.
+  ///
+  /// Unvoiced frames are left exactly as they were. The decoder builds a
+  /// harmonic source from F0, so lifting a silent frame off zero would make it
+  /// ring where the voice should be producing no tone at all.
+  private func reshape(
+    f0: MLXArray, n: MLXArray, to style: SpeechStyle
+  ) -> (MLXArray, MLXArray) {
+    guard style.reshapesPitchOrEnergy else { return (f0, n) }
+
+    let voiced = (f0 .> voicingFloor).asType(Float.self)
+    let voicedFrames = MLX.maximum(MLX.sum(voiced), MLXArray(Float(1)))
+    let mean = MLX.sum(f0 * voiced) / voicedFrames
+
+    var shaped = (mean + (f0 - mean) * style.pitchRange) * style.pitchRatio
+    shaped = MLX.maximum(shaped, MLXArray(Float(0)))
+    // Put the unvoiced frames back untouched.
+    shaped = shaped * voiced + f0 * (1 - voiced)
+
+    return (shaped, n * style.energy)
+  }
+
+  /// Below this, in Hz, a frame is taken to be unvoiced.
+  private let voicingFloor = MLXArray(Float(1))
 
   /// Updates the G2P language if it differs from the current language.
   private func updateLanguageIfNeeded(_ language: Language) throws {

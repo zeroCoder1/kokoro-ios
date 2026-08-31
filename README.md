@@ -91,6 +91,46 @@ it also handles the things that show up in real Hindi text:
 Any other Latin text embedded in Hindi still routes through the local Misaki
 English processor.
 
+## Delivery Styles
+
+Kokoro predicts a pitch curve and an energy curve from the text and the voice,
+then hands both to the decoder. Those curves are where delivery lives, and
+`SpeechStyle` reshapes them on the way through:
+
+```swift
+let audio = try tts.generateAudio(
+    voice: voiceEmbedding,
+    language: .enUS,
+    text: "And then, all at once, the lights went out.",
+    style: .storyteller
+)
+```
+
+Presets: `.neutral`, `.newsreader`, `.storyteller`, `.excited`, `.calm`. Each is
+an ordinary value you can start from and adjust:
+
+```swift
+var style = SpeechStyle.newsreader
+style.pitchRange = 1.15      // a little more movement than a straight bulletin
+style.sentencePause = 0.6    // and longer beats between items
+```
+
+| knob | effect |
+|---|---|
+| `speed` | speaking rate |
+| `pitchShiftSemitones` | shifts the whole contour; F0 is in Hz, so this is a true transposition |
+| `pitchRange` | scales pitch travel around its own mean — above 1 more sung, below 1 flatter |
+| `energy` | scales the energy contour, heard as emphasis |
+| `sentencePause` | silence between sentences in `generateContinuousAudio` |
+
+Values are clamped to ranges where the decoder stays believable, and unvoiced
+frames are left alone so silences do not ring.
+
+This is prosody shaping, not learned emotion. It rescales the delivery a voice
+already has; it cannot give it a register it never had, and pushed hard it
+sounds artificial rather than expressive. Voices graded A and B respond
+noticeably better than Grade C ones, so it does more for English than for Hindi.
+
 ## Long Text, Pauses and Loudness
 
 `generateAudio` takes at most 510 tokens and throws above that, and it leaves
@@ -104,7 +144,7 @@ let audio = try tts.generateContinuousAudio(
     voice: voiceEmbedding,
     language: .hi,
     text: bulletin,          // any length
-    sentencePause: 0.35,     // seconds of silence between sentences
+    style: .newsreader,      // sets pace, pitch movement and the pause
     targetLUFS: -16          // or nil to leave the level alone
 )
 ```
