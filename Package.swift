@@ -10,6 +10,8 @@ let package = Package(
   products: [
     // Keep MLX in the host process instead of creating a second dynamic copy.
     .library(name: "KokoroSwift", targets: ["KokoroSwift"]),
+    // Builds StyleTTS2 training manifests for fine-tuning Kokoro on Hindi.
+    .executable(name: "kokoro-labels", targets: ["kokoro-labels"]),
   ],
   dependencies: [
     .package(url: "https://github.com/ml-explore/mlx-swift", exact: "0.31.6"),
@@ -33,6 +35,10 @@ let package = Package(
       resources: [
         .copy("../../Resources"),
       ]
+    ),
+    .executableTarget(
+      name: "kokoro-labels",
+      dependencies: ["KokoroSwift"]
     ),
     .testTarget(
       name: "KokoroSwiftTests",

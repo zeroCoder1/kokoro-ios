@@ -62,7 +62,9 @@ func hindiRetroflexFlapsEmitNoSentenceBreak(word: String) {
 /// as nasalization on the vowel before it — वारांसी. The name has four
 /// syllables, so the schwa is spelled out.
 @Test func hindiKeepsTheSchwaInVaranasi() {
-  #expect(HindiPhonemizer.phonemize("वाराणसी") == "ʋaːɾˈaːɳəsiː")
+  // The override is written out, so it has to honour the final-vowel rule
+  // itself: espeak ends this on a short i and so do we.
+  #expect(HindiPhonemizer.phonemize("वाराणसी") == "ʋaːɾˈaːɳəsi")
 }
 
 // MARK: - Rules verified against espeak-ng
