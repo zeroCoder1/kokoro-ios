@@ -7,8 +7,51 @@ package closes it — it is a training problem.
 
 This is the path from here to two better Hindi voices, male and female.
 
-**You do not need a GPU of your own.** You rent one for the training run and
-delete it afterwards. Everything else happens on your Mac.
+**You do not need a GPU of your own.** Option B below needs no GPU at all;
+Option A needs one only for the training run, rented and then deleted.
+
+---
+
+## First decide: may English change?
+
+Kokoro shares one set of weights across every language — `bert`,
+`bert_encoder`, `predictor`, `text_encoder`, `decoder`. There is no Hindi-only
+subnetwork, so fine-tuning on Hindi moves the weights English depends on. That
+cannot be avoided, only measured afterwards.
+
+If English must not degrade, that rules out fine-tuning a single shared model,
+and leaves two options that guarantee it:
+
+### Option B — a new voice pack, weights untouched
+
+Fit a new Hindi style vector against the existing model. English is unchanged
+because the model is unchanged: the same file, byte for byte.
+
+- No GPU. `extract_voicepack.py` is pure inference and takes `--device cpu`
+- One model file, no app changes
+- Uses only a few hundred clips, so the corpus can be small
+
+The ceiling is lower: it improves the speaker identity and how prosody is
+conditioned, not the base model's grasp of Hindi phonemes. But it costs almost
+nothing and it answers a question you cannot otherwise answer — how much of the
+gap is the voice pack, and how much is the model underneath.
+
+**Start here.**
+
+### Option A — fine-tune, and ship two model files
+
+If B is not enough: fine-tune on Hindi, and keep the original weights for
+English. English stays bit-identical because it uses a different file.
+
+The costs are real — roughly double the model payload, and an app change, since
+today one `KokoroTTS` serves both languages while two models means two
+instances or a reload on language switch.
+
+If you get here, decide by measuring rather than assuming: run a fixed English
+set through both checkpoints and compare. Ship one model if English holds, two
+if it does not.
+
+Phases 1 and 5 are shared. Phases 2–4 are Option A only.
 
 ---
 
@@ -101,7 +144,50 @@ Split `filelist.txt` into train and validation lists (roughly 95/5).
 
 ---
 
-## Phase 2 — Rent a GPU
+## Phase 1b — Option B: extract a voice pack
+
+No GPU, no training, nothing about the model changes.
+
+`extract_voicepack.py` runs each clip through two style encoders — one for
+timbre, one for prosody — and averages the result into a `[510, 1, 256]`
+tensor. It samples about 200 clips by default, so **you do not need the whole
+corpus here**; a few hundred per speaker is the whole job. If disk is tight,
+keep a subset and delete the rest.
+
+Those encoders are not in this Swift package, which holds only the inference
+path, so this step needs PyTorch. CPU is fine — it is inference.
+
+```bash
+VIRTUAL_ENV=.venv uv pip install torch          # CPU build, ~2-3 GB
+
+git clone --recurse-submodules https://github.com/semidark/kikiri-tts
+# Fetch kokoro-v1_0.pth and convert it to StyleTTS2 layout — see the upstream
+# TRAINING_GUIDE.md for the exact conversion snippet.
+
+python scripts/extract_voicepack.py --device cpu \
+  --model kokoro_base.pth \
+  --audio-dir /data/indictts/hi_female/wav \
+  --output voices/hf_indic.pt
+```
+
+Then convert it into something this package loads:
+
+```bash
+.venv/bin/python Tools/voicepack-to-mlx.py \
+  --input voices/hf_indic.pt --output voices/hf_indic.npz
+```
+
+That step also checks the layout, because a wrong voice pack does not fail
+loudly — it synthesizes something that merely sounds off. `KokoroTTS` reads
+dimensions 0–127 as the acoustic half and 128–255 as the prosodic half, so a
+pack with a swapped or short layout is rejected there rather than at synthesis.
+
+Load the `.npz` with `MLX.loadArrays(url:)` and pass the array as `voice`.
+Listen. If it is enough, you are done and English never moved.
+
+---
+
+## Phase 2 — Rent a GPU (Option A only)
 
 ### 2.1 Pick a provider
 
@@ -195,10 +281,6 @@ already takes a path, so this package needs no changes to load them.
 ---
 
 ## Decide these before you train
-
-**Catastrophic forgetting.** Fine-tuning on Hindi alone degrades English. Either
-mix English data into the run, or accept a Hindi-specialised model and ship two
-model files. Decide up front — you cannot fix it afterwards without retraining.
 
 **Do not change the vocabulary.** Keep the 178-slot embedding and the 114
 symbols exactly as they are, or this package stops loading the result.
