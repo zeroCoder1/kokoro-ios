@@ -1,0 +1,135 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Kokoro Hindi — Stage 1 only, for Option B2
+# ─────────────────────────────────────────────────────────────────────────────
+# Adapted from config_german_ft.yml. The goal here is NOT a fine-tuned model:
+# it is a checkpoint that contains a trained `style_encoder`, because Kokoro's
+# released weights have none and a voice pack cannot be extracted without one.
+# The trained weights are then thrown away and the released model is shipped
+# with the extracted pack, so English never moves.
+#
+# That inverts the usual objective. Longer training gives a better style
+# encoder but also drifts it further from the weights the pack will actually be
+# used with. save_freq is 1 so every epoch is kept and several packs can be
+# extracted and compared by ear.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Read from the TOP LEVEL by train_first.py. Nesting these under `training:`
+# means they are silently ignored.
+batch_size: 4                       # 12 GB VRAM. Raise if the card is bigger.
+epochs: 5
+epochs_1st: 5
+epochs_2nd: 0                       # Stage 2 is not run for B2
+save_freq: 1                        # keep every epoch to compare packs
+pretrained_model: "../prep/kokoro_base.pth"
+first_stage_path: "first_stage.pth"
+load_only_params: true
+second_stage_load_pretrained: false
+
+log_dir: "logs/kokoro-hindi"
+
+data_params:
+  train_data: "../prep/train_list.txt"
+  val_data: "../prep/val_list.txt"
+  root_path: "../audio"             # manifest paths are relative to this
+  OOD_data: "../prep/OOD_texts.txt"
+  min_length: 50
+  num_workers: 8
+
+preprocess_params:
+  sr: 24000
+  spect_params:
+    n_fft: 2048
+    win_length: 1200
+    hop_length: 300
+    n_mels: 80
+    fmin: 0
+    fmax: 8000
+
+model_params:
+  dim_in: 64
+  n_token: 178
+  hidden_dim: 512
+  style_dim: 128
+  max_dur: 50
+  # Kokoro's own config.json says multispeaker: true, and this corpus has two
+  # speakers. The German config used false because it was one speaker; leaving
+  # it false here would build an architecture the released weights do not fit,
+  # and strict=False would hide that rather than report it.
+  multispeaker: true
+  n_mels: 80
+  dropout: 0.2
+  n_layer: 3
+  text_encoder_kernel_size: 5
+
+  decoder:
+    type: istftnet
+    upsample_rates: [10, 6]
+    upsample_kernel_sizes: [20, 12]
+    upsample_initial_channel: 512
+    resblock_kernel_sizes: [3, 7, 11]
+    resblock_dilation_sizes: [[1, 3, 5], [1, 3, 5], [1, 3, 5]]
+    gen_istft_n_fft: 20
+    gen_istft_hop_size: 5
+
+  diffusion:
+    embedding_mask_proba: 0.1
+    transformer:
+      num_layers: 3
+      num_heads: 8
+      head_features: 64
+      multiplier: 2
+    dist:
+      sigma_data: 0.2
+      estimate_sigma_data: true
+      mean: -3.0
+      std: 1.0
+
+  plbert:
+    hidden_size: 768
+    num_attention_heads: 12
+    intermediate_size: 2048
+    max_position_embeddings: 512
+    num_hidden_layers: 12
+    dropout: 0.1
+
+  slm:
+    model: "microsoft/wavlm-base-plus"
+    sr: 16000
+    hidden: 768
+    nlayers: 13
+    initial_channel: 64
+
+loss_params:
+  lambda_gen: 1.0
+  lambda_mel: 5.0
+  lambda_dur: 1.0
+  lambda_ce: 20.0
+  lambda_F0: 1.0
+  lambda_norm: 1.0
+  lambda_s2s: 1.0
+  lambda_mono: 1.0
+  lambda_slm: 0.0                   # Stage 2 only
+  lambda_diff: 0.0                  # Kokoro has no diffusion
+  lambda_sty: 0.0
+  TMA_epoch: 0
+  diff_epoch: 999
+  joint_epoch: 999                  # never reached; Stage 2 is not run
+
+optimizer_params:
+  lr: 0.0001
+  bert_lr: 0.00001
+  ft_lr: 0.0001
+
+F0_path: "Utils/JDC/bst.t7"
+ASR_config: "Utils/ASR/config.yml"
+ASR_path: "Utils/ASR/epoch_00080.pth"
+PLBERT_dir: "Utils/PLBERT/"
+
+slmadv_params:
+  min_len: 100
+  max_len: 500
+  batch_percentage: 0.5
+  iter: 10
+  thresh: 5
+  scale: 0.01
+  sig: 1.5

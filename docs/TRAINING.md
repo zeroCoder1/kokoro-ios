@@ -199,6 +199,99 @@ Listen. If it is enough, you are done and English never moved.
 
 ---
 
+## Phase 1c — Option B2 local prep (done on the Mac, verified)
+
+Everything below runs without a GPU and was checked on an M1 before renting
+anything. `training/config_hindi_ft.yml` in this repo is the result.
+
+```bash
+VIRTUAL_ENV=.venv uv pip install torch torchaudio librosa munch pyyaml \
+  transformers einops einops_exts monotonic_align pytest
+git clone --recurse-submodules --depth 1 https://github.com/semidark/kikiri-tts
+```
+
+The StyleTTS2 utility models (`Utils/ASR`, `Utils/JDC`, `Utils/PLBERT`) ship
+inside that clone, so there is nothing else to download for them.
+
+**Convert the base checkpoint** to StyleTTS2 layout — five components, no style
+encoder, which is the whole reason B2 needs a training run:
+
+```python
+raw = torch.load("kokoro-v1_0.pth", map_location="cpu", weights_only=False)
+strip = lambda sd: {k.replace("module.", ""): v for k, v in sd.items()}
+net = {k: strip(raw[k]) for k in
+       ("bert", "bert_encoder", "predictor", "text_encoder", "decoder")}
+torch.save({"net": net}, "prep/kokoro_base.pth")
+```
+
+**Build the file lists** with relative audio paths, so they still resolve on
+the rented box, and set `root_path` to the audio root:
+
+```bash
+swift run kokoro-labels --transcripts <data>/hi_female/txt.done.data \
+  --audio-dir "hi_female/wav" --speaker hi_female --output prep/hi_female.txt
+```
+
+Shuffle both speakers together into `train_list.txt` and `val_list.txt`, and
+write an `OOD_texts.txt` — Stage 1 still constructs the dataset that reads it.
+
+### Three checks worth doing before you pay for anything
+
+**1. Every phoneme maps.** The guide warns that a symbol mismatch does not
+error, it silently corrupts embeddings and shows up later as NaN Mel Loss.
+
+```python
+from kokoro_symbols import symbols, dicts
+assert len(symbols) == 178 and dicts["ç"] == 78
+# then check every phoneme column in the manifests against `dicts`
+```
+
+On this corpus: **0 unmapped characters in 11,626 lines.** German needed a
+remap for `ʏ`; Hindi needs none, because `kokoro-labels` already validates
+against the same vocabulary.
+
+**2. The released weights fit the model your config builds.** Build the model
+and load each component with `strict=False`, then count what did not match:
+
+```
+  bert           ok
+  bert_encoder   ok
+  predictor      ok
+  text_encoder   ok
+  decoder        ok
+```
+
+Zero missing, zero unexpected. This is also what catches `multispeaker`:
+Kokoro's own config.json says `true` and this corpus has two speakers, so the
+German config's `false` would build an architecture the weights do not fit —
+and `strict=False` would hide it rather than report it.
+
+**3. Note what trains from scratch.** `style_encoder`, `predictor_encoder`,
+`text_aligner`, `pitch_extractor`, `mpd`, `msd`, `wd`, `diffusion`. The first
+of those is the one B2 exists to obtain.
+
+### A gotcha on torch 2.6+
+
+`torch.load` now defaults to `weights_only=True`, and the StyleTTS2 utility
+checkpoints do not load under it. Anything reading them needs
+`weights_only=False` explicitly.
+
+### Then, on the rented GPU
+
+```bash
+cd StyleTTS2
+accelerate launch train_first.py --config_path ../prep/config_hindi_ft.yml
+```
+
+`save_freq: 1` keeps every epoch. That is deliberate: for B2 more training
+gives a better style encoder but drifts it further from the weights the pack
+will be used with, so extract packs from several epochs and pick by ear rather
+than assuming the last one is best.
+
+Then Phase 5 to extract and convert.
+
+---
+
 ## Phase 2 — Rent a GPU (Option A only)
 
 ### 2.1 Pick a provider
