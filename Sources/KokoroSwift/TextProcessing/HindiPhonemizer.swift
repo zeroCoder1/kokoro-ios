@@ -146,6 +146,19 @@ enum HindiPhonemizer {
   /// Word-final long high vowels are written long but transcribed short.
   private static let finalHighVowels = ["iː": "i", "uː": "u"]
 
+  /// The punctuation Kokoro actually has tokens for. Anything else is dropped
+  /// rather than passed through: the tokenizer would discard it silently, and
+  /// a training label built from it is rejected outright. Hyphens and en
+  /// dashes are the ones that turn up in real Hindi copy.
+  private static let emittablePunctuation: Set<Character> = [
+    ";", ":", ",", ".", "!", "?", "—", "…", "\"", "(", ")", "\u{201C}", "\u{201D}",
+  ]
+
+  /// A hyphen written tight between two word characters joins them with no
+  /// separator at all: espeak reads साथ-साथ as /sˈaːtʰsˈaːtʰ/. Spaced hyphens
+  /// and en dashes are ordinary word breaks, and none of them is ever spoken.
+  private static let joiningHyphen: Character = "-"
+
   static func phonemize(_ text: String) -> String {
     let normalized = text.precomposedStringWithCanonicalMapping
       .replacingOccurrences(of: "॥", with: ".")
@@ -156,25 +169,51 @@ enum HindiPhonemizer {
     func flushWord() {
       guard !word.isEmpty else { return }
       let phonemes = phonemizeWord(word)
-      if !phonemes.isEmpty { result.append(phonemes) }
       word.removeAll(keepingCapacity: true)
+      guard !phonemes.isEmpty else { return }
+      if joinToPrevious, !result.isEmpty {
+        result[result.count - 1] += phonemes
+        joinToPrevious = false
+      } else {
+        result.append(phonemes)
+      }
     }
 
-    for character in normalized {
-      if character.unicodeScalars.allSatisfy({ isHindiWordScalar($0) }) {
+    let characters = Array(normalized)
+    // Set when a tight hyphen has just been seen, so the word after it is
+    // appended to the one before rather than separated by a space.
+    var joinToPrevious = false
+
+    func isWordCharacter(_ character: Character) -> Bool {
+      character.unicodeScalars.allSatisfy { isHindiWordScalar($0) }
+    }
+
+    for (offset, character) in characters.enumerated() {
+      if isWordCharacter(character) {
         word.append(character)
+        continue
+      }
+
+      let hadPendingWord = !word.isEmpty
+      flushWord()
+
+      if character == joiningHyphen,
+         hadPendingWord || joinToPrevious,
+         offset + 1 < characters.count, isWordCharacter(characters[offset + 1]),
+         offset > 0, isWordCharacter(characters[offset - 1]) {
+        joinToPrevious = true
+        continue
+      }
+      joinToPrevious = false
+
+      // Attach punctuation to the phoneme before it. Joining it as its own
+      // element left a space in front of it, and that space is token 16 —
+      // a pause the model never saw before a sentence break in training.
+      guard emittablePunctuation.contains(character) else { continue }
+      if result.isEmpty {
+        result.append(String(character))
       } else {
-        flushWord()
-        if character.isPunctuation {
-          // Attach punctuation to the phoneme before it. Joining it as its own
-          // element left a space in front of it, and that space is token 16 —
-          // a pause the model never saw before a sentence break in training.
-          if result.isEmpty {
-            result.append(String(character))
-          } else {
-            result[result.count - 1].append(character)
-          }
-        }
+        result[result.count - 1].append(character)
       }
     }
     flushWord()

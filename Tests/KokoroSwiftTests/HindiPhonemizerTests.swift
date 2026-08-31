@@ -109,6 +109,39 @@ func hindiRetroflexFlapsEmitNoSentenceBreak(word: String) {
   #expect(HindiPhonemizer.phonemize("रवाना") == "ɾəʋˈaːnaː")
 }
 
+/// A hyphen written tight between two words joins them with nothing between:
+/// espeak reads साथ-साथ as one run, not two words with a pause. A space there
+/// is token 16, which the model never saw at that spot.
+@Test func hindiTightHyphensJoinWithoutASpace() {
+  #expect(HindiPhonemizer.phonemize("साथ-साथ") == "sˈaːtʰsˈaːtʰ")
+  #expect(HindiPhonemizer.phonemize("भारत-चीन") == "bʰˈaːɾətcˈiːn")
+  #expect(HindiPhonemizer.phonemize("आना-जाना") == "ˈaːnaːɟˈaːnaː")
+}
+
+/// A hyphen with space around it, or an en dash, is an ordinary word break.
+@Test func hindiSpacedHyphensAndEnDashesStayWordBreaks() {
+  #expect(HindiPhonemizer.phonemize("अपने- अपने") == "ˈʌpneː ˈʌpneː")
+  #expect(HindiPhonemizer.phonemize("अलग - अलग") == "ˈʌləɡ ˈʌləɡ")
+  #expect(HindiPhonemizer.phonemize("भारत–चीन") == "bʰˈaːɾət cˈiːn")
+  #expect(HindiPhonemizer.phonemize("यह -") == "jˈʌh")
+}
+
+/// Punctuation with no Kokoro token is dropped rather than passed through. The
+/// tokenizer would discard it anyway, but emitting it makes a training label
+/// unusable and hides the real word boundary.
+@Test func hindiEmitsOnlyPunctuationKokoroHasTokensFor() throws {
+  let vocab = try KokoroConfig.loadConfig().vocab
+  let awkward = "यह — ठीक है… \"हाँ\" (शायद); नहीं: बस, अलग-अलग ~ ठीक * है #1"
+
+  let phonemes = HindiPhonemizer.phonemize(awkward)
+  let unsupported = phonemes.unicodeScalars.filter { vocab[String($0)] == nil }
+
+  #expect(unsupported.isEmpty, "\(phonemes)")
+  // The punctuation Kokoro does have still survives.
+  #expect(phonemes.contains("…"))
+  #expect(phonemes.contains(","))
+}
+
 /// A Devanagari-spelled acronym is a sequence of letter names, not one word.
 @Test func hindiDevanagariAcronymsAreReadLetterByLetter() {
   #expect(HindiPhonemizer.phonemize("एनडीआरएफ") == "ˈeːn ɖˈi ˈaːɾ ˈeːf")
