@@ -16,11 +16,11 @@ import Testing
   let decomposed = HindiPhonemizer.phonemize("पढ़ना")
   let precomposed = HindiPhonemizer.phonemize("पढ़ना")
 
-  #expect(decomposed == "pˈʌɽʰənˌaː")
+  #expect(decomposed == "pˈʌrhənˌaː")
   #expect(precomposed == decomposed)
   #expect(HindiPhonemizer.phonemize("ढंग") == "ɖʰˈʌŋɡ")
-  #expect(HindiPhonemizer.phonemize("बढ़िया") == "bˈʌɽʰɪjˌaː")
-  #expect(HindiPhonemizer.phonemize("लड़का") == "lˈʌɽkaː")
+  #expect(HindiPhonemizer.phonemize("बढ़िया") == "bˈʌrhɪjˌaː")
+  #expect(HindiPhonemizer.phonemize("लड़का") == "lˈʌrkaː")
 }
 
 @Test func hindiPhonemizerKeepsHindiConsonantFamiliesDistinct() {
@@ -102,7 +102,7 @@ import Testing
   पढ़ना ढंग क़ानून ख़बर ग़लत ज़िला फ़ैसला मुख्यमंत्री राष्ट्रपति \
   विश्वविद्यालय स्वतंत्रता श्रद्धा ज्ञान क्षेत्र हिंदी महिला कहना ॐ
   """
-  let allowed = Set(". abcdefhijklmnopqrstuvxyzəɛɪʊɔɟɡɣŋɲɳɖɾɽʂʃʈʋʌʰˈˌː\u{0303}".unicodeScalars)
+  let allowed = Set(". abcdefhijklmnopqrstuvxyzəɛɪʊɔɟɡɣŋɲɳɖɾʂʃʈʋʌʰˈˌː\u{0303}".unicodeScalars)
   let output = HindiPhonemizer.phonemize(corpus)
   let unsupported = Set(output.unicodeScalars).subtracting(allowed)
 

@@ -36,9 +36,15 @@ enum HindiPhonemizer {
   /// These values follow the Hindi eSpeak IPA stream used to train Kokoro,
   /// rather than substituting similar English phonemes. In particular,
   /// Hindi च/छ and ज/झ are palatal stops (`c`/`ɟ`), while the dotted
-  /// retroflex consonants are the flap `ɽ` and its aspirate `ɽʰ`.
-  /// Those are real Kokoro tokens; eSpeak's ASCII mnemonics `r.`/`r.h` are
-  /// not, and the `.` in them was tokenized as a mid-word sentence break.
+  /// dotted retroflex consonants are `r` and `rh`.
+  ///
+  /// espeak has no IPA mapping for the retroflex flap and leaks its internal
+  /// mnemonics `r.` and `r.h`, so Kokoro's Hindi was trained with a literal
+  /// `r` in these positions — and with a `.`, a sentence break, in the middle
+  /// of the word. Dropping the `.` removes that break; keeping the `r` keeps
+  /// the token the model actually associates with these letters. espeak emits
+  /// `ɽ` for no Kokoro language, so that embedding has almost certainly
+  /// never been trained — being in the vocabulary is not being learned.
   private static let consonants: [UnicodeScalar: String] = [
     "क": "k", "ख": "kʰ", "ग": "ɡ", "घ": "ɡʰ", "ङ": "ŋ",
     "च": "c", "छ": "cʰ", "ज": "ɟ", "झ": "ɟʰ", "ञ": "ɲ",
@@ -47,12 +53,12 @@ enum HindiPhonemizer {
     "प": "p", "फ": "pʰ", "ब": "b", "भ": "bʰ", "म": "m",
     "य": "j", "र": "ɾ", "ल": "l", "व": "ʋ", "श": "ʃ", "ष": "ʂ",
     "स": "s", "ह": "h", "ऩ": "n", "ऱ": "ɾ", "ळ": "l", "ऴ": "l",
-    "क़": "q", "ख़": "x", "ग़": "ɣ", "ज़": "z", "ड़": "ɽ", "ढ़": "ɽʰ",
+    "क़": "q", "ख़": "x", "ग़": "ɣ", "ज़": "z", "ड़": "r", "ढ़": "rh",
     "फ़": "f", "य़": "j",
   ]
 
   private static let nuktaConsonants: [UnicodeScalar: String] = [
-    "क": "q", "ख": "x", "ग": "ɣ", "ज": "z", "ड": "ɽ", "ढ": "ɽʰ",
+    "क": "q", "ख": "x", "ग": "ɣ", "ज": "z", "ड": "r", "ढ": "rh",
     "फ": "f", "य": "j",
   ]
 
@@ -412,8 +418,8 @@ enum HindiPhonemizer {
 
       // The inherent vowel after an aspirated flap stays audible before
       // another consonant in words such as पढ़ना, बढ़ना and गढ़वाल.
-      // Deleting it makes Kokoro receive the clipped sequence `ɽʰn`/`ɽʰʋ`.
-      if units[candidate].onset == "ɽʰ" { continue }
+      // Deleting it makes Kokoro receive the clipped sequence `rhn`/`rhʋ`.
+      if units[candidate].onset == "rh" { continue }
 
       // Preserve the vowel after an explicit conjunct. It is required in
       // words such as मुख्य, विश्व and स्वतंत्रता. The old broad deletion
