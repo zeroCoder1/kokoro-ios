@@ -22,21 +22,44 @@ cannot be avoided, only measured afterwards.
 If English must not degrade, that rules out fine-tuning a single shared model,
 and leaves two options that guarantee it:
 
-### Option B — a new voice pack, weights untouched
+### Option B — a new voice pack with no training at all: **not possible**
 
-Fit a new Hindi style vector against the existing model. English is unchanged
-because the model is unchanged: the same file, byte for byte.
+The obvious cheap path would be to fit a new style vector against the released
+model and never touch the weights. It cannot be done, and it is worth knowing
+why before anyone tries.
 
-- No GPU. `extract_voicepack.py` is pure inference and takes `--device cpu`
-- One model file, no app changes
-- Uses only a few hundred clips, so the corpus can be small
+`extract_voicepack.py` runs two style encoders over the audio, and requires
+`net["style_encoder"]` in the checkpoint. Kokoro's release does not have it:
 
-The ceiling is lower: it improves the speaker identity and how prosody is
-conditioned, not the base model's grasp of Hindi phonemes. But it costs almost
-nothing and it answers a question you cannot otherwise answer — how much of the
-gap is the voice pack, and how much is the model underneath.
+```
+$ python -c "import torch; print(list(torch.load('kokoro-v1_0.pth').keys()))"
+['bert', 'bert_encoder', 'predictor', 'decoder', 'text_encoder']
+```
 
-**Start here.**
+`kokoro-v1_0.pth` is the only checkpoint published; everything else in the repo
+is the 54 precomputed voice packs. What was released is **inference weights**.
+The encoders that *produce* style vectors live only in StyleTTS2 training
+checkpoints, which is why every example in the upstream recipe points at
+`StyleTTS2/logs/.../epoch_1st_*.pth` rather than at the base model.
+
+So a voice pack cannot be made without training something first.
+
+### Option B2 — train to get an encoder, then ship the original weights
+
+A middle path that still guarantees English. Run **Stage 1 only** on the Hindi
+data, which trains the style encoder alongside everything else. Extract the
+voice pack from that checkpoint. Then **discard the trained weights** and ship
+the original model with the new pack.
+
+English is untouched because the shipped weights are the released ones.
+
+The risk is real and unverified: the style encoder drifted along with the model
+during Stage 1, so a pack extracted from it is fitted to slightly different
+weights than the ones it will be used with. After a short Stage 1 the drift
+should be small, but nobody has measured it. Listen before trusting it.
+
+This still needs a GPU, though only for a short Stage 1 rather than the full
+two-stage run.
 
 ### Option A — fine-tune, and ship two model files
 
@@ -51,7 +74,7 @@ If you get here, decide by measuring rather than assuming: run a fixed English
 set through both checkpoints and compare. Ship one model if English holds, two
 if it does not.
 
-Phases 1 and 5 are shared. Phases 2–4 are Option A only.
+Phase 1 is shared by every path. Phases 2–4 need a GPU.
 
 ---
 
@@ -144,31 +167,20 @@ Split `filelist.txt` into train and validation lists (roughly 95/5).
 
 ---
 
-## Phase 1b — Option B: extract a voice pack
+## Phase 5 — Extract the voice packs and bring them back
 
-No GPU, no training, nothing about the model changes.
-
-`extract_voicepack.py` runs each clip through two style encoders — one for
-timbre, one for prosody — and averages the result into a `[510, 1, 256]`
-tensor. It samples about 200 clips by default, so **you do not need the whole
-corpus here**; a few hundred per speaker is the whole job. If disk is tight,
-keep a subset and delete the rest.
-
-Those encoders are not in this Swift package, which holds only the inference
-path, so this step needs PyTorch. CPU is fine — it is inference.
+Once you have a checkpoint that contains a trained `style_encoder` — from a
+full fine-tune (Option A) or a Stage 1 run (Option B2) — extraction itself is
+pure inference and runs on CPU:
 
 ```bash
-VIRTUAL_ENV=.venv uv pip install torch          # CPU build, ~2-3 GB
-
-git clone --recurse-submodules https://github.com/semidark/kikiri-tts
-# Fetch kokoro-v1_0.pth and convert it to StyleTTS2 layout — see the upstream
-# TRAINING_GUIDE.md for the exact conversion snippet.
-
 python scripts/extract_voicepack.py --device cpu \
-  --model kokoro_base.pth \
+  --model StyleTTS2/logs/<run>/epoch_1st_00002.pth \
   --audio-dir /data/indictts/hi_female/wav \
   --output voices/hf_indic.pt
 ```
+
+It samples about 200 clips by default, so the whole corpus is not needed here.
 
 Then convert it into something this package loads:
 
