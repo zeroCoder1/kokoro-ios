@@ -304,3 +304,44 @@ func hindiG2PLatinRenderingsAreAllKokoroVocabulary(word: String) throws {
   )
 }
 #endif
+
+#if canImport(MisakiSwift)
+/// The danda ends a Hindi sentence and Kokoro has no token for it. It is
+/// neutral to the run splitter, so it flushed straight to the output without
+/// passing through HindiPhonemizer's own conversion, and the tokenizer then
+/// dropped it — taking the sentence break with it. This is what made a
+/// headline run into the line after it.
+@Test(arguments: [
+  "राहत की उड़ान नेपाल रवाना। उन्होंने कहा।",
+  "यह ठीक है॥",
+  "BJP और IPL की खबर।",
+  "एनडीआरएफ की टीम पहुँची।",
+])
+func hindiG2PTurnsTheDandaIntoASentenceBreak(sentence: String) throws {
+  let vocab = try KokoroConfig.loadConfig().vocab
+  let processor = HindiG2PProcessor()
+  try processor.setLanguage(.hi)
+
+  let phonemes = try processor.process(input: sentence).0
+
+  #expect(phonemes.contains("."), "no sentence break in \(phonemes)")
+  #expect(!phonemes.contains("।"), "danda survived into \(phonemes)")
+  #expect(!phonemes.contains("॥"), "double danda survived into \(phonemes)")
+  let unsupported = phonemes.unicodeScalars.filter { vocab[String($0)] == nil }
+  #expect(unsupported.isEmpty, "\(phonemes)")
+}
+
+/// Nothing the run splitter flushes may be a character Kokoro cannot tokenize.
+@Test func hindiG2POnlyEmitsPunctuationKokoroHasTokensFor() throws {
+  let vocab = try KokoroConfig.loadConfig().vocab
+  let processor = HindiG2PProcessor()
+  try processor.setLanguage(.hi)
+
+  let phonemes = try processor.process(
+    input: "यह — ठीक है… «शायद» ‹हाँ› अलग-अलग। बस॥"
+  ).0
+  let unsupported = phonemes.unicodeScalars.filter { vocab[String($0)] == nil }
+
+  #expect(unsupported.isEmpty, "\(phonemes)")
+}
+#endif

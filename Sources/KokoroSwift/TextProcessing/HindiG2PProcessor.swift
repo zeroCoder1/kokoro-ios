@@ -82,8 +82,14 @@ final class HindiG2PProcessor: G2PProcessor {
     }
 
     // Numbers first, so a digit run becomes Devanagari words and joins the
-    // Hindi run instead of being read out in American English.
-    let prepared = droppingUnmappedSymbols(HindiNumbers.expand(input))
+    // Hindi run instead of being read out in American English. The danda is
+    // normalised here rather than only inside HindiPhonemizer: it is neutral
+    // to the run splitter, so it flushes straight to the output and never
+    // reaches the phonemizer's own conversion. U+0964 has no Kokoro token, so
+    // it was dropped at tokenization and the sentence break vanished with it.
+    let prepared = droppingUnmappedSymbols(
+      HindiNumbers.expand(normalizingDanda(input))
+    )
 
     var output = ""
     var run = ""
@@ -114,7 +120,7 @@ final class HindiG2PProcessor: G2PProcessor {
       for character in neutrals {
         if character.isWhitespace {
           if !output.isEmpty, !output.hasSuffix(" ") { output.append(" ") }
-        } else {
+        } else if Self.emittablePunctuation.contains(character) {
           if output.hasSuffix(" ") { output.removeLast() }
           output.append(character)
         }
@@ -218,6 +224,21 @@ final class HindiG2PProcessor: G2PProcessor {
     }
     return (leading, String(core), trailing)
   }
+
+  /// `।` and `॥` end a Hindi sentence, and Kokoro has no token for either.
+  /// `.` is the sentence break it was trained on.
+  private func normalizingDanda(_ text: String) -> String {
+    guard text.contains("।") || text.contains("॥") else { return text }
+    return text
+      .replacingOccurrences(of: "॥", with: ".")
+      .replacingOccurrences(of: "।", with: ".")
+  }
+
+  /// The punctuation Kokoro has tokens for. Anything else reaching the output
+  /// is dropped at tokenization anyway, and loses the break it stood for.
+  private static let emittablePunctuation: Set<Character> = [
+    ";", ":", ",", ".", "!", "?", "—", "…", "\"", "(", ")", "\u{201C}", "\u{201D}",
+  ]
 
   private func isNeutral(_ character: Character) -> Bool {
     character.unicodeScalars.allSatisfy {
