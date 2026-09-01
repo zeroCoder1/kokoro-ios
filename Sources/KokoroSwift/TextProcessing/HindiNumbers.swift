@@ -57,6 +57,19 @@ enum HindiNumbers {
     var index = 0
 
     while index < characters.count {
+      // Digits welded to Latin letters are part of a term, not a quantity: the
+      // 20 in G20, the 5 in 5G, the 19 in COVID-19. HindiG2PProcessor reads
+      // those with English number names — "जी ट्वेंटी", "फ़ाइव जी" — so the
+      // whole run is copied through untouched. Skipping only the first digit
+      // would leave the rest to be read as a quantity: G20 became "G2 शून्य".
+      if isDigit(characters[index]),
+         isBoundToLatinLetter(characters, digitsBeginningAt: index) {
+        while index < characters.count, isDigit(characters[index]) {
+          output.append(characters[index])
+          index += 1
+        }
+        continue
+      }
       guard let match = number(in: characters, at: index) else {
         output.append(characters[index])
         index += 1
@@ -215,6 +228,24 @@ enum HindiNumbers {
       if !isGroupingComma { result.append(character) }
     }
     return result
+  }
+
+  /// Whether the digit run starting at `index` touches ASCII letters on either
+  /// side, directly or across a single joining hyphen as in COVID-19.
+  private static func isBoundToLatinLetter(
+    _ characters: [Character], digitsBeginningAt index: Int
+  ) -> Bool {
+    func isLetter(_ offset: Int) -> Bool {
+      characters.indices.contains(offset)
+        && characters[offset].isASCII && characters[offset].isLetter
+    }
+    if isLetter(index - 1) { return true }
+    if characters.indices.contains(index - 1), characters[index - 1] == "-",
+       isLetter(index - 2) { return true }
+
+    var after = index
+    while after < characters.count, isDigit(characters[after]) { after += 1 }
+    return isLetter(after)
   }
 
   private static func isDigit(_ character: Character) -> Bool {
