@@ -151,16 +151,32 @@ enum HindiPhonemizer {
     "सीएम": ["सी", "एम"],
   ]
 
-  /// Hindi publishing commonly omits the nukta from Persian and English
-  /// loanwords even though speakers retain /f/. This deliberately small news
-  /// lexicon restores that sound without turning native फल, फूल or फिर into
-  /// /f/ words. Stems cover ordinary inflections such as फैसले and फिल्मों.
+  /// LINGUISTIC_G2P_RULE, and a deliberate divergence from espeak.
+  ///
+  /// फ is the aspirated stop pʰ and फ़ is the fricative f, and that contrast
+  /// is real: फल, फूल, फिर, फेंकना, फटना and सफल all keep pʰ. But Hindi
+  /// publishing routinely drops the nukta from Perso-Arabic and English
+  /// loanwords while speakers keep saying /f/, so फिल्म and फोन are written
+  /// with plain फ and still pronounced with f. espeak reads every plain फ as
+  /// pʰ — फिल्म comes out /pʰˈɪlmə/ — which is why this list exists.
+  ///
+  /// These are stems, not whole words, and they match anywhere in the word so
+  /// one entry covers inflections and compounds alike: फोन reaches टेलीफोन
+  /// and माइक्रोफोन, फैसल reaches फैसला and फैसले. Keep it a list of stems.
+  /// Adding whole words instead makes it grow without bound.
   private static let labiodentalFStems = [
-    "फैसल", "फोन", "फिल्म", "फोटो", "फाइल", "फाइनल", "फाइनेंस",
-    "फेसबुक", "फीस", "फीफा", "फर्ज", "फर्जी", "फंड", "फॉर्म",
-    "फ्रांस", "फ्रेंच", "फौज", "फायद", "फैक्टर", "फैक्टरी",
-    "फार्म", "फारसी", "फरवरी", "फैशन", "फर्नीचर", "फसल",
-    "फतवा", "फरार", "अफसर", "ऑफिस", "कॉफी", "सॉफ्ट", "टॉफी",
+    // Media and technology
+    "फिल्म", "फोन", "फोटो", "फाइल", "फॉर्म", "फीचर", "फोकस", "फ्लाइट",
+    "फेसबुक", "फ्रेम", "फाइबर", "फॉन्ट", "फोल्डर",
+    // Finance and administration
+    "फंड", "फाइनेंस", "फीस", "फर्म", "फार्म", "फैक्टर", "फैक्टरी",
+    "फॉर्मूला", "फर्नीचर", "अफसर", "ऑफिस", "फाइनल",
+    // Perso-Arabic vocabulary that kept its f
+    "फैसल", "फर्ज", "फर्जी", "फौज", "फायद", "फतवा", "फरार", "फसल",
+    "फारसी", "फरवरी", "फैशन", "फकीर", "फुर्सत", "फितरत",
+    "सफेद", "मुफ्त", "तूफान", "हफ्त", "माफ", "वफा", "सफर", "मुसाफिर",
+    // Proper nouns and sport
+    "फीफा", "फ्रांस", "फ्रेंच", "कॉफी", "सॉफ्ट", "टॉफी",
   ]
 
   /// Word-final long high vowels are written long but transcribed short.
@@ -268,11 +284,12 @@ enum HindiPhonemizer {
     let scalars = Array(word.unicodeScalars.filter {
       $0.value != 0x200C && $0.value != 0x200D
     })
-    // Compare scalars because a following vowel sign belongs to the same Swift
-    // grapheme as the stem's final consonant ("फैसल" is therefore not a
-    // Character-prefix of "फैसला").
+    // Matched over scalars, because a following vowel sign joins the stem's
+    // final consonant into one Swift Character ("फैसल" is therefore not a
+    // Character-prefix of "फैसला"), and anywhere in the word rather than only
+    // at the front, so one stem also covers टेलीफोन and माइक्रोफोन.
     let usesLabiodentalF = labiodentalFStems.contains {
-      word.unicodeScalars.starts(with: $0.unicodeScalars)
+      containsScalars(of: $0, in: word)
     }
     var units: [Akshara] = []
     var index = 0
@@ -578,6 +595,18 @@ enum HindiPhonemizer {
     case 0x092F:          return "ɲ"          // य, palatal like the च series
     default:              return "n"
     }
+  }
+
+  /// Scalar-level substring search, so a vowel sign attached to the stem's
+  /// last consonant does not hide the match the way Character comparison does.
+  private static func containsScalars(of stem: String, in word: String) -> Bool {
+    let needle = Array(stem.unicodeScalars)
+    let haystack = Array(word.unicodeScalars)
+    guard !needle.isEmpty, haystack.count >= needle.count else { return false }
+    for start in 0 ... (haystack.count - needle.count) {
+      if Array(haystack[start ..< start + needle.count]) == needle { return true }
+    }
+    return false
   }
 
   private static func isDevanagari(_ scalar: UnicodeScalar) -> Bool {
