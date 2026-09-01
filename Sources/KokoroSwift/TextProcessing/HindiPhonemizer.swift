@@ -36,15 +36,24 @@ enum HindiPhonemizer {
   /// These values follow the Hindi eSpeak IPA stream used to train Kokoro,
   /// rather than substituting similar English phonemes. In particular,
   /// Hindi च/छ and ज/झ are palatal stops (`c`/`ɟ`), while the dotted
-  /// dotted retroflex consonants are `r` and `rh`.
+  /// dotted retroflex consonants are the stops `ɖ` and `ɖʰ`, as ड and ढ are.
   ///
-  /// espeak has no IPA mapping for the retroflex flap and leaks its internal
-  /// mnemonics `r.` and `r.h`, so Kokoro's Hindi was trained with a literal
-  /// `r` in these positions — and with a `.`, a sentence break, in the middle
-  /// of the word. Dropping the `.` removes that break; keeping the `r` keeps
-  /// the token the model actually associates with these letters. espeak emits
-  /// `ɽ` for no Kokoro language, so that embedding has almost certainly
-  /// never been trained — being in the vocabulary is not being learned.
+  /// Settled by ear, after three mappings that read well on paper. Speakers
+  /// hear this letter as d-like rather than r-like: बड़ा is "bada" against
+  /// बरा "bara", करोड़ ends like "road", and पढ़ना is "padhna". `ɖ` and `ɖʰ`
+  /// give exactly that, and are among the best-trained consonants in the voice
+  /// because ड and ढ are common.
+  ///
+  /// What was tried before, and why each failed: `ɽ` is the accurate IPA, but
+  /// espeak emits it for no language Kokoro supports, so the embedding is
+  /// untrained and it was heard as nasalization. A literal `r` is what espeak's
+  /// `r.` mnemonic leaves in the labels, but only ever followed by the `.`, and
+  /// without it the model renders something else. `ɾ` is the well-trained
+  /// rhotic, but it is a rhotic, and this letter is not heard as one — it also
+  /// merged ड़ with र, which Hindi distinguishes.
+  ///
+  /// The merger that remains is ड़ with ड, which costs far less: ड़ never
+  /// begins a word, so the pair barely contrasts outside spelling.
   private static let consonants: [UnicodeScalar: String] = [
     "क": "k", "ख": "kʰ", "ग": "ɡ", "घ": "ɡʰ", "ङ": "ŋ",
     "च": "c", "छ": "cʰ", "ज": "ɟ", "झ": "ɟʰ", "ञ": "ɲ",
@@ -53,12 +62,12 @@ enum HindiPhonemizer {
     "प": "p", "फ": "pʰ", "ब": "b", "भ": "bʰ", "म": "m",
     "य": "j", "र": "ɾ", "ल": "l", "व": "ʋ", "श": "ʃ", "ष": "ʂ",
     "स": "s", "ह": "h", "ऩ": "n", "ऱ": "ɾ", "ळ": "l", "ऴ": "l",
-    "क़": "q", "ख़": "x", "ग़": "ɣ", "ज़": "z", "ड़": "ɾ", "ढ़": "ɾh",
+    "क़": "q", "ख़": "x", "ग़": "ɣ", "ज़": "z", "ड़": "ɖ", "ढ़": "ɖʰ",
     "फ़": "f", "य़": "j",
   ]
 
   private static let nuktaConsonants: [UnicodeScalar: String] = [
-    "क": "q", "ख": "x", "ग": "ɣ", "ज": "z", "ड": "ɾ", "ढ": "ɾh",
+    "क": "q", "ख": "x", "ग": "ɣ", "ज": "z", "ड": "ɖ", "ढ": "ɖʰ",
     "फ": "f", "य": "j",
   ]
 
@@ -415,11 +424,6 @@ enum HindiPhonemizer {
       guard units[candidate].hasInherentSchwa,
             units[..<candidate].contains(where: \.isVocalic)
       else { continue }
-
-      // The inherent vowel after an aspirated flap stays audible before
-      // another consonant in words such as पढ़ना, बढ़ना and गढ़वाल.
-      // Deleting it makes Kokoro receive the clipped sequence `ɾhn`/`ɾhʋ`.
-      if units[candidate].onset == "ɾh" { continue }
 
       // Preserve the vowel after an explicit conjunct. It is required in
       // words such as मुख्य, विश्व and स्वतंत्रता. The old broad deletion

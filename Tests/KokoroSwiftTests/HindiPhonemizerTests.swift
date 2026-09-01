@@ -33,13 +33,13 @@ func hindiRetroflexFlapsEmitNoSentenceBreak(word: String) {
   let phonemes = HindiPhonemizer.phonemize(word)
 
   #expect(!phonemes.contains("."), "\(word) -> \(phonemes)")
-  #expect(phonemes.contains("ɾ"), "\(word) -> \(phonemes)")
+  #expect(phonemes.contains("ɖ"), "\(word) -> \(phonemes)")
 }
 
 @Test func hindiRetroflexFlapsUseKokoroTokens() {
-  #expect(HindiPhonemizer.phonemize("बड़ा") == "bˈʌɾaː")
-  #expect(HindiPhonemizer.phonemize("थोड़ा") == "tʰˈoːɾaː")
-  #expect(HindiPhonemizer.phonemize("पढ़ना") == "pˈʌɾhənˌaː")
+  #expect(HindiPhonemizer.phonemize("बड़ा") == "bˈʌɖaː")
+  #expect(HindiPhonemizer.phonemize("थोड़ा") == "tʰˈoːɖaː")
+  #expect(HindiPhonemizer.phonemize("पढ़ना") == "pˈʌɖʰnaː")
   // The nukta may be written precomposed or decomposed; both are one flap.
   #expect(HindiPhonemizer.phonemize("पढ़ना") == HindiPhonemizer.phonemize("पढ़ना"))
 }
@@ -347,3 +347,15 @@ func hindiG2PTurnsTheDandaIntoASentenceBreak(sentence: String) throws {
   #expect(unsupported.isEmpty, "\(phonemes)")
 }
 #endif
+
+/// ड़ and र are different letters and must not collapse into one sound:
+/// बड़ा is "bada", बरा is "bara".
+@Test func hindiKeepsTheDottedRetroflexApartFromR() {
+  #expect(HindiPhonemizer.phonemize("बड़ा") != HindiPhonemizer.phonemize("बरा"))
+  #expect(HindiPhonemizer.phonemize("बड़ा") == "bˈʌɖaː")
+  #expect(HindiPhonemizer.phonemize("बरा") == "bˈʌɾaː")
+
+  // And र itself is untouched — सरकार still ends in the flap.
+  #expect(HindiPhonemizer.phonemize("सरकार") == "səɾkˈaːɾ")
+  #expect(HindiPhonemizer.phonemize("करोड़") == "kəɾˈoːɖ")
+}
