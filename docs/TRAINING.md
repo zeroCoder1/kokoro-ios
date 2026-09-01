@@ -186,15 +186,18 @@ Then convert it into something this package loads:
 
 ```bash
 .venv/bin/python Tools/voicepack-to-mlx.py \
-  --input voices/hf_indic.pt --output voices/hf_indic.npz
+  --input voices/hf_indic.pt --output voices/hf_indic.safetensors
 ```
+
+mlx-swift reads `.safetensors` and `.npy`, and rejects `.npz` outright, so the
+output has to be one of the first two.
 
 That step also checks the layout, because a wrong voice pack does not fail
 loudly — it synthesizes something that merely sounds off. `KokoroTTS` reads
 dimensions 0–127 as the acoustic half and 128–255 as the prosodic half, so a
 pack with a swapped or short layout is rejected there rather than at synthesis.
 
-Load the `.npz` with `MLX.loadArrays(url:)` and pass the array as `voice`.
+Load it with `MLX.loadArrays(url:)["voice"]` and pass the array as `voice`.
 Listen. If it is enough, you are done and English never moved.
 
 ---

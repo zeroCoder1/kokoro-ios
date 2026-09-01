@@ -259,7 +259,7 @@ public final class KokoroTTS {
     // Step 7: Predict prosody (F0, pitch), then reshape it to the style
     let (predictedF0, predictedN) = prosodyPredictor.F0NTrain(x: alignedEncoding, s: globalStyle)
     let (f0Prediction, nPrediction) = style.map {
-      reshape(f0: predictedF0, n: predictedN, to: $0)
+      ProsodyReshaper.reshape(f0: predictedF0, n: predictedN, to: $0)
     } ?? (predictedF0, predictedN)
 
     // Step 8: Encode text for decoder
@@ -354,35 +354,6 @@ public final class KokoroTTS {
     let (phonemes, _) = try phonemizeText(text)
     return Tokenizer.tokenize(phonemizedText: phonemes).count
   }
-
-  /// Applies a `SpeechStyle` to the predicted pitch and energy curves.
-  ///
-  /// Pitch range scales each frame's distance from the curve's own mean, so the
-  /// shape of the intonation is kept and only its extent changes. The semitone
-  /// shift is then a plain frequency ratio, F0 being in Hz.
-  ///
-  /// Unvoiced frames are left exactly as they were. The decoder builds a
-  /// harmonic source from F0, so lifting a silent frame off zero would make it
-  /// ring where the voice should be producing no tone at all.
-  private func reshape(
-    f0: MLXArray, n: MLXArray, to style: SpeechStyle
-  ) -> (MLXArray, MLXArray) {
-    guard style.reshapesPitchOrEnergy else { return (f0, n) }
-
-    let voiced = (f0 .> voicingFloor).asType(Float.self)
-    let voicedFrames = MLX.maximum(MLX.sum(voiced), MLXArray(Float(1)))
-    let mean = MLX.sum(f0 * voiced) / voicedFrames
-
-    var shaped = (mean + (f0 - mean) * style.pitchRange) * style.pitchRatio
-    shaped = MLX.maximum(shaped, MLXArray(Float(0)))
-    // Put the unvoiced frames back untouched.
-    shaped = shaped * voiced + f0 * (1 - voiced)
-
-    return (shaped, n * style.energy)
-  }
-
-  /// Below this, in Hz, a frame is taken to be unvoiced.
-  private let voicingFloor = MLXArray(Float(1))
 
   /// Updates the G2P language if it differs from the current language.
   private func updateLanguageIfNeeded(_ language: Language) throws {

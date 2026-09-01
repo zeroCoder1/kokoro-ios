@@ -198,6 +198,19 @@ swift run kokoro-labels --transcripts ... --speaker hi_female --output female.tx
 than espeak, so a fine-tuned model learns the phonemes inference actually sends
 it — which removes the espeak divergence rather than working around it.
 
+## Running the Tests
+
+Most of the suite is plain Swift and runs with `swift test`. The tests that
+touch MLX need a Metal device, and SwiftPM cannot compile Metal shaders, so
+`swift build` never produces mlx-swift's `default.metallib`. Install it once:
+
+```bash
+Tools/install-metallib.sh
+```
+
+It builds via `xcodebuild` (which can compile the shaders) and drops the
+result beside the test binary. Re-run after `swift package clean`.
+
 ## G2P (Grapheme-to-Phoneme) Options
 
 - `.misaki` - MisakiSwift, the default English G2P processor

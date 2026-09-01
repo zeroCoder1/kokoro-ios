@@ -2,8 +2,10 @@
 """Convert a StyleTTS2 voicepack into something KokoroSwift can load.
 
 `extract_voicepack.py` writes a PyTorch `.pt` holding a [510, 1, 256] float32
-tensor. KokoroSwift takes voices as an MLXArray, loaded from `.npz` or
-`.safetensors`, so this rewrites the tensor without changing a number.
+tensor. KokoroSwift takes voices as an MLXArray, and mlx-swift reads only
+`.safetensors` (via `loadArrays`) and `.npy` (via `loadArray`) — it rejects
+`.npz` outright with `unknownExtension`. This rewrites the tensor into one of
+the two it accepts, without changing a number.
 
 It also checks the layout, because a wrong voicepack does not fail loudly — it
 synthesizes something that merely sounds off. KokoroTTS reads the acoustic half
@@ -15,7 +17,7 @@ from dimensions 0-127 and the prosodic half from 128-255:
 so a pack whose halves are swapped or whose length is not 510 is rejected here
 rather than at synthesis.
 
-    python3 Tools/voicepack-to-mlx.py --input voices/hf_indic.pt --output hf_indic.npz
+    python3 Tools/voicepack-to-mlx.py --input voices/hf_indic.pt --output hf_indic.safetensors
 """
 import argparse
 import os
@@ -77,14 +79,36 @@ def describe(pack):
     return "\n".join(lines), warnings
 
 
+def write_safetensors(path, key, array):
+    """Writes a single tensor as safetensors.
+
+    The format is an 8-byte little-endian header length, a JSON header, then
+    the raw buffer — small enough to write directly rather than take on a
+    dependency for one array.
+    """
+    import json
+
+    data = array.tobytes()
+    header = {key: {"dtype": "F32", "shape": list(array.shape),
+                    "data_offsets": [0, len(data)]}}
+    encoded = json.dumps(header, separators=(",", ":")).encode("utf-8")
+    # The buffer is expected to start 8-byte aligned.
+    encoded += b" " * ((8 - len(encoded) % 8) % 8)
+    with open(path, "wb") as handle:
+        handle.write(len(encoded).to_bytes(8, "little"))
+        handle.write(encoded)
+        handle.write(data)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("--input", required=True, help=".pt, .npy or .npz voicepack")
-    parser.add_argument("--output", required=True, help=".npz to write")
+    parser.add_argument("--output", required=True,
+                        help=".safetensors (default) or .npy to write")
     parser.add_argument("--key", default="voice",
-                        help="array name inside the .npz (default: voice)")
+                        help="array name inside the .safetensors (default: voice)")
     parser.add_argument("--force", action="store_true",
                         help="write even if the layout checks fail")
     args = parser.parse_args()
@@ -109,14 +133,20 @@ def main():
             sys.exit("\nrefusing to write. Re-run with --force if you are sure.")
         print("\n--force given, writing anyway.")
 
-    if not args.output.endswith(".npz"):
-        args.output += ".npz"
+    if not args.output.endswith((".safetensors", ".npy")):
+        args.output += ".safetensors"
     directory = os.path.dirname(os.path.abspath(args.output))
     os.makedirs(directory, exist_ok=True)
-    np.savez(args.output, **{args.key: pack})
 
-    print(f"\nwrote {args.output}  (array name: {args.key!r})")
-    print("Load it in Swift with MLX.loadArrays(url:) and pass the array as `voice`.")
+    if args.output.endswith(".npy"):
+        np.save(args.output, pack)
+        print(f"\nwrote {args.output}")
+        print("Load it in Swift with MLX.loadArray(url:) and pass it as `voice`.")
+    else:
+        write_safetensors(args.output, args.key, pack)
+        print(f"\nwrote {args.output}  (array name: {args.key!r})")
+        print("Load it in Swift with MLX.loadArrays(url:)[\"%s\"] and pass it as `voice`."
+              % args.key)
 
 
 if __name__ == "__main__":
