@@ -23,22 +23,23 @@ private let commonHindiWords: [String] = [
     "बात", "कहानी", "गाना", "खेल", "फ़िल्म", "ख़बर", "अख़बार", "तस्वीर",
 ]
 
-/// Regression guard for the ड़ / ढ़ mapping. espeak leaks its internal
-/// mnemonics `r.` and `r.h` here, so Kokoro's Hindi was trained with a literal
-/// `r` in these positions and a `.` — a sentence break — in the middle of the
-/// word. We keep the `r` the model was trained on and drop the break.
+/// Regression guard for the ड़ / ढ़ mapping, which must never reintroduce the
+/// `.` that espeak's `r.` mnemonic leaks — a sentence break mid-word. The flap
+/// itself was settled by ear: `ɽ` is the accurate IPA but is untrained here,
+/// a literal `r` renders stop-like without the `.` that always followed it in
+/// training, and `ɾ` is the rhotic every र already uses.
 @Test(arguments: ["बड़ा", "पढ़ना", "थोड़ा", "लड़की", "सड़क", "बढ़ना", "लड़का", "बढ़िया"])
 func hindiRetroflexFlapsEmitNoSentenceBreak(word: String) {
   let phonemes = HindiPhonemizer.phonemize(word)
 
   #expect(!phonemes.contains("."), "\(word) -> \(phonemes)")
-  #expect(phonemes.contains("r"), "\(word) -> \(phonemes)")
+  #expect(phonemes.contains("ɾ"), "\(word) -> \(phonemes)")
 }
 
 @Test func hindiRetroflexFlapsUseKokoroTokens() {
-  #expect(HindiPhonemizer.phonemize("बड़ा") == "bˈʌraː")
-  #expect(HindiPhonemizer.phonemize("थोड़ा") == "tʰˈoːraː")
-  #expect(HindiPhonemizer.phonemize("पढ़ना") == "pˈʌrhənˌaː")
+  #expect(HindiPhonemizer.phonemize("बड़ा") == "bˈʌɾaː")
+  #expect(HindiPhonemizer.phonemize("थोड़ा") == "tʰˈoːɾaː")
+  #expect(HindiPhonemizer.phonemize("पढ़ना") == "pˈʌɾhənˌaː")
   // The nukta may be written precomposed or decomposed; both are one flap.
   #expect(HindiPhonemizer.phonemize("पढ़ना") == HindiPhonemizer.phonemize("पढ़ना"))
 }

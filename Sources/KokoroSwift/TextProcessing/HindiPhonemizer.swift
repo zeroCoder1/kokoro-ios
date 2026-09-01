@@ -53,12 +53,12 @@ enum HindiPhonemizer {
     "प": "p", "फ": "pʰ", "ब": "b", "भ": "bʰ", "म": "m",
     "य": "j", "र": "ɾ", "ल": "l", "व": "ʋ", "श": "ʃ", "ष": "ʂ",
     "स": "s", "ह": "h", "ऩ": "n", "ऱ": "ɾ", "ळ": "l", "ऴ": "l",
-    "क़": "q", "ख़": "x", "ग़": "ɣ", "ज़": "z", "ड़": "r", "ढ़": "rh",
+    "क़": "q", "ख़": "x", "ग़": "ɣ", "ज़": "z", "ड़": "ɾ", "ढ़": "ɾh",
     "फ़": "f", "य़": "j",
   ]
 
   private static let nuktaConsonants: [UnicodeScalar: String] = [
-    "क": "q", "ख": "x", "ग": "ɣ", "ज": "z", "ड": "r", "ढ": "rh",
+    "क": "q", "ख": "x", "ग": "ɣ", "ज": "z", "ड": "ɾ", "ढ": "ɾh",
     "फ": "f", "य": "j",
   ]
 
@@ -418,8 +418,8 @@ enum HindiPhonemizer {
 
       // The inherent vowel after an aspirated flap stays audible before
       // another consonant in words such as पढ़ना, बढ़ना and गढ़वाल.
-      // Deleting it makes Kokoro receive the clipped sequence `rhn`/`rhʋ`.
-      if units[candidate].onset == "rh" { continue }
+      // Deleting it makes Kokoro receive the clipped sequence `ɾhn`/`ɾhʋ`.
+      if units[candidate].onset == "ɾh" { continue }
 
       // Preserve the vowel after an explicit conjunct. It is required in
       // words such as मुख्य, विश्व and स्वतंत्रता. The old broad deletion

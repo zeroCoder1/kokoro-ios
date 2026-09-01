@@ -16,11 +16,11 @@ import Testing
   let decomposed = HindiPhonemizer.phonemize("पढ़ना")
   let precomposed = HindiPhonemizer.phonemize("पढ़ना")
 
-  #expect(decomposed == "pˈʌrhənˌaː")
+  #expect(decomposed == "pˈʌɾhənˌaː")
   #expect(precomposed == decomposed)
   #expect(HindiPhonemizer.phonemize("ढंग") == "ɖʰˈʌŋɡ")
-  #expect(HindiPhonemizer.phonemize("बढ़िया") == "bˈʌrhɪjˌaː")
-  #expect(HindiPhonemizer.phonemize("लड़का") == "lˈʌrkaː")
+  #expect(HindiPhonemizer.phonemize("बढ़िया") == "bˈʌɾhɪjˌaː")
+  #expect(HindiPhonemizer.phonemize("लड़का") == "lˈʌɾkaː")
 }
 
 @Test func hindiPhonemizerKeepsHindiConsonantFamiliesDistinct() {
