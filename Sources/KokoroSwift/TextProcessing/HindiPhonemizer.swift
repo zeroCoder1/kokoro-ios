@@ -84,23 +84,28 @@ enum HindiPhonemizer {
   /// Small, independent corrections for very common words where spelling
   /// alone does not expose the learned stress pattern reliably. These are
   /// authored phonemes, not copied eSpeak rules or data.
+  /// Words the general rules cannot reach. Deliberately tiny: a systematic
+  /// failure means a rule is wrong, and belongs in the rule rather than here.
+  /// Each entry says why normal G2P cannot handle it.
+  ///
+  /// Six entries were removed once the anusvara rules were corrected —
+  /// में, मे, मुंबई, मुम्बई, दुनिया and यह are all produced correctly by the
+  /// general path now, and are covered by regression tests instead.
   private static let pronunciationOverrides: [String: String] = [
-    "दुनिया": "dˈʊnɪjˌaː",
-    // Kokoro needs the learned stress marker to hold these short words
-    // clearly; the generic unstressed path reduced or swallowed their vowel.
-    "यह": "jˈʌh",
-    "मैं": "mˈɛ\u{0303}ː",
-    "में": "mˈe\u{0303}ː",
-    "मे": "mˈeː",
-    // Treat both common spellings as the same three-syllable place name.
-    // Generic anusvara assimilation reduced मुंबई to a clipped /mumbiː/.
-    "मुंबई": "mˈʊmbəˌi",
-    "मुम्बई": "mˈʊmbəˌi",
-    // Generic schwa deletion strands the ɳ in the coda, where it is heard as
-    // nasalization on the preceding vowel rather than as its own syllable:
-    // /ʋaːɾˈaːɳsiː/ comes out as वारांसी. The name has four syllables.
+    // Not a spelling the akshara parser can read: ॐ is a single ligature
+    // scalar with no consonant or vowel parts, so without an entry it
+    // phonemizes to nothing at all.
+    "ॐ": "ˈo\u{0303}m",
+    // MODEL_COMPATIBILITY. espeak deletes this schwa and so does our rule,
+    // but the current voices render the stranded ɳ as nasalization on the
+    // vowel before it, so the name was heard as वारांसी. Reported by ear.
+    // Revisit if a Hindi voice is ever trained on labels from this
+    // phonemizer, where the deleted form may render correctly.
     "वाराणसी": "ʋaːɾˈaːɳəsi",
-    "ॐ": "ˈoːm",
+    // A one-syllable function word that still carries stress in espeak, and
+    // loses its vowel entirely without it. `unstressedWords` is right for
+    // the postpositions but wrong for this pronoun.
+    "मैं": "mˈɛ\u{0303}",
   ]
 
   /// Orthography alone does not expose morpheme boundaries, yet those
@@ -160,6 +165,23 @@ enum HindiPhonemizer {
 
   /// Word-final long high vowels are written long but transcribed short.
   private static let finalHighVowels = ["iː": "i", "uː": "u"]
+
+  /// What a vowel becomes when an anusvara or chandrabindu nasalizes it.
+  ///
+  /// Nasalization collapses length and tenses the lax vowels, so चांद is
+  /// /cˈãd/ rather than /cãːd/, and नींद and बिंदु both give ĩ rather than
+  /// ɪ̃. `eː` is the one vowel that keeps its length: केंद्र is /kˈẽːdɾə/.
+  /// Appending a tilde to whatever was there produced ãː, ɪ̃ and ʊ̃, which
+  /// espeak emits for no Hindi word and the voices were never trained on.
+  private static let nasalVowels = [
+    "aː": "a\u{0303}", "a": "a\u{0303}",
+    "ɪ": "i\u{0303}", "iː": "i\u{0303}", "i": "i\u{0303}",
+    "ʊ": "u\u{0303}", "uː": "u\u{0303}", "u": "u\u{0303}",
+    "eː": "e\u{0303}ː", "e": "e\u{0303}",
+    "ɛː": "ɛ\u{0303}", "ɛ": "ɛ\u{0303}",
+    "oː": "o\u{0303}", "o": "o\u{0303}",
+    "ɔː": "ɔ\u{0303}", "ɔ": "ɔ\u{0303}",
+  ]
 
   /// The punctuation Kokoro actually has tokens for. Anything else is dropped
   /// rather than passed through: the tokenizer would discard it silently, and
@@ -349,7 +371,10 @@ enum HindiPhonemizer {
         stress = ""
       }
       if unit.nasalized && unit.isVocalic {
-        if vowel.hasSuffix("ː") {
+        if let nasalized = nasalVowels[vowel] {
+          vowel = nasalized
+        } else if vowel.hasSuffix("ː") {
+          // Anything the table does not name keeps the older behaviour.
           vowel.removeLast()
           vowel += "\u{0303}ː"
         } else {
@@ -370,13 +395,28 @@ enum HindiPhonemizer {
     guard !units.isEmpty else { return }
     switch scalar {
     case "ं":
-      if let nasal = assimilatedNasal(before: following) {
-        units[units.count - 1].coda += nasal
+      // Which of the two realizations applies is decided by the vowel the
+      // anusvara sits on, not by what follows it. On the short central vowel —
+      // the inherent schwa, or a word-initial अ — it is a consonant nasal that
+      // assimilates to the following place: संसद is /sˈʌnsəd/, संकट /sˈʌŋkəʈ/.
+      // On any other vowel it nasalizes that vowel and adds no consonant, and
+      // that holds even before a stop: दांत is /dˈãt/, सांप /sˈãp/, बिंदु
+      // /bˈĩdʊ/. Reading every non-stop context as bare nasalization was why
+      // संसद, संविधान, संस्कृति and the rest of the सं- news vocabulary lost
+      // their nasal consonant.
+      if carriesShortCentralVowel(units[units.count - 1]) {
+        units[units.count - 1].coda += assimilatedNasal(before: following)
       } else {
         units[units.count - 1].nasalized = true
       }
     case "ँ":
-      units[units.count - 1].nasalized = true
+      // The chandrabindu behaves like the anusvara: on a schwa it is still a
+      // consonant, which is why अँधेरा is /ʌndʰˈeːɾaː/ and not /ə̃dʰeːɾaː/.
+      if carriesShortCentralVowel(units[units.count - 1]) {
+        units[units.count - 1].coda += assimilatedNasal(before: following)
+      } else {
+        units[units.count - 1].nasalized = true
+      }
     case "ः":
       units[units.count - 1].coda += "h"
     case "ऽ":
@@ -513,15 +553,30 @@ enum HindiPhonemizer {
     scalars.dropFirst(index + 1).first(where: { consonants[$0] != nil })
   }
 
-  private static func assimilatedNasal(before scalar: UnicodeScalar?) -> String? {
-    guard let scalar else { return nil }
+  /// True when the akshara's vowel is the short central one — the inherent
+  /// schwa, or the `ʌ` a word-initial अ is read as. Only there does the
+  /// anusvara surface as its own consonant.
+  private static func carriesShortCentralVowel(_ unit: Akshara) -> Bool {
+    unit.vowel == "ə" || unit.vowel == "ʌ"
+  }
+
+  /// The nasal an anusvara becomes, assimilated to the place of what follows.
+  ///
+  /// The five stop series are homorganic. य is palatal too, so संयुक्त is
+  /// /səɲjˈʊkt/ rather than /sənjukt/. Everything else — the fricatives स श ष
+  /// ह and the approximants र ल व — takes the dental n, which is what espeak
+  /// produces and therefore what the current voices were trained on: संसद,
+  /// संहार, संरचना, संलग्न, संवाद.
+  private static func assimilatedNasal(before scalar: UnicodeScalar?) -> String {
+    guard let scalar else { return "n" }
     switch scalar.value {
-    case 0x0915...0x0919: return "ŋ"
-    case 0x091A...0x091E: return "ɲ"
-    case 0x091F...0x0923: return "ɳ"
-    case 0x0924...0x0928: return "n"
-    case 0x092A...0x092E: return "m"
-    default: return nil
+    case 0x0915...0x0919: return "ŋ"          // क ख ग घ ङ
+    case 0x091A...0x091E: return "ɲ"          // च छ ज झ ञ
+    case 0x091F...0x0923: return "ɳ"          // ट ठ ड ढ ण
+    case 0x0924...0x0928: return "n"          // त थ द ध न
+    case 0x092A...0x092E: return "m"          // प फ ब भ म
+    case 0x092F:          return "ɲ"          // य, palatal like the च series
+    default:              return "n"
     }
   }
 

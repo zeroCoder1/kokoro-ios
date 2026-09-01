@@ -5,10 +5,12 @@ import Testing
   #expect(HindiPhonemizer.phonemize("नमस्ते") == "nəmˈʌsteː")
   #expect(HindiPhonemizer.phonemize("दुनिया") == "dˈʊnɪjˌaː")
   #expect(HindiPhonemizer.phonemize("यह") == "jˈʌh")
-  #expect(HindiPhonemizer.phonemize("मैं") == "mˈɛ\u{0303}ː")
+  #expect(HindiPhonemizer.phonemize("मैं") == "mˈɛ\u{0303}")
   #expect(HindiPhonemizer.phonemize("में") == "mˈe\u{0303}ː")
   #expect(HindiPhonemizer.phonemize("मे") == "mˈeː")
-  #expect(HindiPhonemizer.phonemize("मुंबई") == "mˈʊmbəˌi")
+  // The anusvara now nasalizes the vowel instead of assimilating to a
+  // consonant, which is what espeak does: /mˈũbi/, not /mʊmbəi/.
+  #expect(HindiPhonemizer.phonemize("मुंबई") == "mˈu\u{0303}bi")
   #expect(HindiPhonemizer.phonemize("मुम्बई") == "mˈʊmbəˌi")
 }
 
