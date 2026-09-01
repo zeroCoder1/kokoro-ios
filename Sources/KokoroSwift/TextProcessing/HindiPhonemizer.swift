@@ -466,14 +466,11 @@ enum HindiPhonemizer {
   private static func applySchwaDeletion(to units: inout [Akshara]) {
     guard units.count > 1 else { return }
     let final = units.count - 1
-    // A य or र completing a written conjunct keeps its schwa: मुख्य /mukʰjə/,
-    // योग्य /joːɡjə/, वाक्य /ʋaːkjə/, and राष्ट्र /ɾaːʂʈɾə/, क्षेत्र /kʃeːtɾə/,
-    // केंद्र /kẽːdɾə/, मित्र /mɪtɾə/. व does not — विश्व is /ʋɪʃʋ/ and तत्व
-    // /tʌtʋ/ — so the glides are named rather than testing for any conjunct.
-    // Treating these like an ordinary final consonant clips the word.
-    let finalCompletesGlideConjunct = ["j", "ɾ"].contains(units[final].onset)
-      && units[final - 1].vowel == nil
-    if units[final].hasInherentSchwa, !finalCompletesGlideConjunct {
+    let keepsFinalSchwa = units[final - 1].vowel == nil
+      && preservesFinalConjunctSchwa(
+        final: units[final].onset, after: units[final - 1].onset
+      )
+    if units[final].hasInherentSchwa, !keepsFinalSchwa {
       units[units.count - 1].vowel = nil
       units[units.count - 1].hasInherentSchwa = false
     }
@@ -501,6 +498,55 @@ enum HindiPhonemizer {
 
       units[candidate].vowel = nil
       units[candidate].hasInherentSchwa = false
+    }
+  }
+
+  /// Whether a consonant closing a written conjunct keeps the inherent schwa
+  /// after it.
+  ///
+  /// LINGUISTIC_G2P_RULE, and it agrees with espeak on every case tested.
+  ///
+  /// The two are kept apart in the tests — `र` and `य` conjuncts have their own
+  /// groups — but they turned out to be one phenomenon rather than two, so
+  /// they share one rule here. What decides it is sonority: a cluster that
+  /// *rises* into its last consonant cannot be released without a vowel, and
+  /// Hindi supplies one.
+  ///
+  ///     rising, so the schwa stays
+  ///       त्र  t→ɾ   मित्र, पत्र, राष्ट्र, क्षेत्र, केंद्र
+  ///       श्न  ʃ→n   प्रश्न, and त्न in यत्न, रत्न, स्वप्न
+  ///       क्ल  k→l   शुक्ल, and म्ल in अम्ल
+  ///       द्म  d→m   पद्म, and ष्म in ग्रीष्म
+  ///       ख्य  kʰ→j  मुख्य, योग्य, राज्य, स्वास्थ्य, and र्य in कार्य
+  ///
+  ///     level or falling, so it goes
+  ///       ल्क  l→k   शुल्क
+  ///       न्म  n→m   जन्म
+  ///       र्म  ɾ→m   कर्म, धर्म
+  ///
+  /// व is the exception and takes no schwa whatever precedes it: विश्व is
+  /// /ʋɪʃʋ/ and तत्व /tʌtʋ/, though both clusters rise. Named rather than
+  /// explained, because the data says so and a tidier story would be invented.
+  ///
+  /// An earlier version of this rule listed only `j` and `ɾ`, which covered
+  /// the conjuncts that had been noticed and clipped प्रश्न, यत्न, रत्न,
+  /// स्वप्न, चिह्न, शुक्ल, अम्ल, पद्म, रश्म and ग्रीष्म by a syllable.
+  private static func preservesFinalConjunctSchwa(
+    final: String, after preceding: String
+  ) -> Bool {
+    guard final != "ʋ" else { return false }
+    return sonority(of: final) > sonority(of: preceding)
+  }
+
+  /// Sonority class, low to high. Only the ordering matters.
+  private static func sonority(of onset: String) -> Int {
+    guard let first = onset.unicodeScalars.first else { return 0 }
+    switch first {
+    case "j": return 5                                   // glide
+    case "l", "ɾ", "r", "ɽ": return 4                    // liquid
+    case "m", "n", "ɳ", "ŋ", "ɲ": return 3               // nasal
+    case "s", "ʃ", "ʂ", "h", "x", "ɣ", "z", "f", "ʋ": return 2  // fricative
+    default: return 1                                    // stop
     }
   }
 
