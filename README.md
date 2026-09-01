@@ -209,7 +209,23 @@ Tools/install-metallib.sh
 ```
 
 It builds via `xcodebuild` (which can compile the shaders) and drops the
-result beside the test binary. Re-run after `swift package clean`.
+result both beside the test binary and in the working directory, since the
+first copy is wiped whenever the test bundle is relinked.
+
+Two things the suite deliberately does not do:
+
+- **It never invokes Misaki.** MLX is linked into both the test binary and
+  `libMisakiSwift`, and calling into Misaki crashes the test process at
+  teardown — one such test is enough to turn a green run into exit 1. Tests
+  covering mixed Hindi/English text check that each token is *routed* to the
+  right processor rather than running the English one. Misaki works normally at
+  runtime; this is a test-linkage problem, not a functional one.
+- **It does not chase espeak agreement.** `Tools/espeak-diff.py` reports how far
+  the Hindi phonemizer sits from espeak, which is what the current voices were
+  trained on, so it is useful evidence. It is not the target: a change that
+  lowers agreement and sounds better through the current voice is still the
+  right change. Decide by listening — `Tools/hindi-listening-corpus.txt` exists
+  for exactly that, and `Tools/hindi-inspect.sh` shows what the phonemes did.
 
 ## G2P (Grapheme-to-Phoneme) Options
 

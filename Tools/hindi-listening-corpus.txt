@@ -1,0 +1,77 @@
+# Hindi listening corpus.
+#
+# For generating audio and listening, not for automated assertions. Short lines,
+# each targeting one thing, so a change can be heard rather than argued about.
+#
+# Synthesize the whole file before and after a pronunciation change and compare
+# the same line in both. Tools/hindi-inspect.sh shows what the phonemes did;
+# this is for deciding whether it sounds right.
+#
+# A test does read this file, but only to check every line still phonemizes
+# inside the Kokoro vocabulary. Nothing here asserts how it should sound.
+
+## final र clusters — the rule under review
+भारत मेरा मित्र है।
+मेरे मित्र ने मुझे पत्र भेजा।
+पत्र में एक चित्र था।
+यह चित्र बहुत सुंदर है।
+मंत्री ने नया मंत्र दिया।
+यह एक आधुनिक यंत्र है।
+राष्ट्र की सुरक्षा महत्वपूर्ण है।
+यह क्षेत्र बहुत बड़ा है।
+केंद्र सरकार ने फैसला किया।
+यह प्राचीन शास्त्र है।
+
+## the same clusters with morphology continuing
+मित्रता का रिश्ता गहरा है।
+चित्रकार ने नई तस्वीर बनाई।
+पत्रकार ने सवाल पूछा।
+मंत्रालय ने आदेश जारी किया।
+राष्ट्रीय स्तर पर चर्चा हुई।
+
+## other rising clusters — न, ल, म finals
+यह एक कठिन प्रश्न है।
+हर यत्न सफल नहीं होता।
+यह रत्न बहुत कीमती है।
+उसने एक स्वप्न देखा।
+
+## level and falling clusters — no schwa
+यह विश्व बहुत बड़ा है।
+हर तत्व महत्वपूर्ण है।
+कर्म ही धर्म है।
+
+## final य clusters
+यह मुख्य समस्या है।
+मुख्यमंत्री ने बैठक की।
+वह इस काम के योग्य है।
+यह वाक्य सही है।
+राज्य सरकार ने घोषणा की।
+स्वास्थ्य विभाग ने चेतावनी जारी की।
+
+## nasal regression
+संसद में संविधान संशोधन पर चर्चा हुई।
+संयुक्त राष्ट्र ने बयान जारी किया।
+संस्था ने संसाधनों के संरक्षण की बात कही।
+संगठन ने संबंधित विभाग से संपर्क किया।
+
+## फ / फ़ regression
+बाजार में फल और फूल बिक रहे हैं।
+फिल्म का फाइनल ट्रेलर जारी हुआ।
+फोन में नया फीचर जोड़ा गया।
+फीफा का फाइनल रविवार को होगा।
+टीम सफल रही।
+
+## mixed Hindi and English
+OpenAI ने नया AI मॉडल लॉन्च किया।
+Apple ने नया iPhone पेश किया।
+Google ने Android अपडेट जारी किया।
+भारत में 5G नेटवर्क तेजी से बढ़ रहा है।
+G20 सम्मेलन में कई देशों ने हिस्सा लिया।
+NDRF की टीम मौके पर पहुंची।
+RBI ने नई रिपोर्ट जारी की।
+भारत ने FIFA मैच जीत लिया।
+
+## numbers in running copy
+साल 2026 में भारत की GDP 7.2 प्रतिशत बढ़ी।
+कंपनी ने ₹1,500 करोड़ निवेश किए।
+मैच शाम 7:30 बजे शुरू होगा।

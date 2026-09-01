@@ -28,8 +28,12 @@ swift build --build-tests >/dev/null
 xctest=$(find .build -maxdepth 3 -name '*.xctest' | head -1)
 [[ -n "$xctest" ]] || { echo "no test bundle; run 'swift build --build-tests'" >&2; exit 1; }
 
-# MLX tries a colocated mlx.metallib before anything else.
+# MLX tries a colocated mlx.metallib first and a default.metallib in the
+# working directory last. The colocated copy is wiped whenever the test bundle
+# is relinked, so both are installed and the cwd one survives a rebuild.
 install -m 644 "$metallib" "$xctest/Contents/MacOS/mlx.metallib"
+install -m 644 "$metallib" ./default.metallib
 echo "installed -> $xctest/Contents/MacOS/mlx.metallib"
+echo "installed -> ./default.metallib (gitignored; survives a relink)"
 echo "MLX-backed tests will now run. Verify with:"
 echo "  swift test --filter unvoicedFramesAreNeverLiftedOffZero"

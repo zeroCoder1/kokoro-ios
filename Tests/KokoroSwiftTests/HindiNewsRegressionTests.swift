@@ -12,10 +12,12 @@ import Testing
 // path — and pin the individual words that have regressed before.
 
 private func processor() throws -> HindiG2PProcessor {
-  let processor = HindiG2PProcessor()
-  try processor.setLanguage(.hi)
-  return processor
+  try HindiTestSupport.processor()
 }
+
+/// Lines that stay on the native path. The mixed ones are checked by routing
+/// instead — see HindiTestSupport for why Misaki is not invoked here.
+private let nativeNewsSentences = newsSentences.filter(HindiTestSupport.avoidsMisaki)
 
 private let newsSentences = [
   // Government and politics
@@ -58,7 +60,7 @@ private let newsSentences = [
 
 /// Nothing may reach the model that it has no token for. A dropped scalar is
 /// silent at runtime and shows up only as a word that sounds wrong.
-@Test(arguments: newsSentences)
+@Test(arguments: nativeNewsSentences)
 func newsSentencesEmitOnlyKokoroVocabulary(sentence: String) throws {
   let vocab = try KokoroConfig.loadConfig().vocab
   let phonemes = try processor().process(input: sentence).0
@@ -71,7 +73,7 @@ func newsSentencesEmitOnlyKokoroVocabulary(sentence: String) throws {
 
 /// Space is a token. A doubled one, or one in front of punctuation, is a pause
 /// the model was never trained to produce there.
-@Test(arguments: newsSentences)
+@Test(arguments: nativeNewsSentences)
 func newsSentencesHaveNoSpuriousPauses(sentence: String) throws {
   let phonemes = try processor().process(input: sentence).0
 
@@ -84,7 +86,7 @@ func newsSentencesHaveNoSpuriousPauses(sentence: String) throws {
 
 /// Every one of these ends in a danda, which has no Kokoro token of its own
 /// and must become the sentence break the model does know.
-@Test(arguments: newsSentences)
+@Test(arguments: nativeNewsSentences)
 func newsSentencesEndInASentenceBreak(sentence: String) throws {
   let phonemes = try processor().process(input: sentence).0
 
@@ -130,6 +132,12 @@ func newsSentencesEndInASentenceBreak(sentence: String) throws {
 
   let alphanumeric = try processor().process(input: "5G नेटवर्क का विस्तार हुआ।").0
   #expect(alphanumeric.contains("fˈaːɪʋ ɟˈi"), "5G: \(alphanumeric)")
+}
+
+/// The sentences with English in them are checked by routing.
+@Test(arguments: newsSentences.filter { !HindiTestSupport.avoidsMisaki($0) })
+func mixedNewsSentencesRouteEveryToken(sentence: String) {
+  HindiTestSupport.routesEveryToken(sentence)
 }
 
 /// Amount, scale word, then currency — "पंद्रह सौ करोड़ रुपये". The currency

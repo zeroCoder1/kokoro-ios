@@ -410,6 +410,74 @@ final class HindiG2PProcessor: G2PProcessor {
   ///       AI      SPELLED_ACRONYM -> ˈeː ˈaːi
   ///
   /// DEBUG only, and deliberately not part of the shipped API.
+  /// Per-token report, one block each, for pasting into a bug note.
+  ///
+  ///     TOKEN        G20
+  ///       classification  ALPHANUMERIC_ACRONYM
+  ///       processor       HindiPhonemizer
+  ///       normalized      जी ट्वेंटी
+  ///       phonemes        ɟˈi ʈʋˈẽːʈi
+  ///
+  /// eSpeak is deliberately absent: it is a development reference, not a
+  /// runtime dependency, and comparing against it belongs in
+  /// Tools/hindi-inspect.sh.
+  func report(_ input: String) throws -> String {
+    let prepared = droppingUnmappedSymbols(HindiNumbers.expand(normalizingDanda(input)))
+    var lines = ["INPUT", "  \(input)", ""]
+    if prepared != input { lines += ["NORMALIZED", "  \(prepared)", ""] }
+
+    for token in prepared.split(whereSeparator: \.isWhitespace) {
+      let word = String(token)
+      lines.append("TOKEN        \(word)")
+      let isDevanagari = word.unicodeScalars.contains { (0x0900...0x097F).contains($0.value) }
+      if isDevanagari {
+        lines.append("  classification  HINDI")
+        lines.append("  processor       HindiPhonemizer")
+        lines.append("  phonemes        \(HindiPhonemizer.phonemize(word))")
+        if let note = conjunctNote(for: word) { lines.append("  note            \(note)") }
+      } else {
+        let (_, core, _) = splitOffPunctuation(word)
+        let kind = Self.classify(core)
+        lines.append("  classification  \(kind.rawValue)")
+        if let devanagari = Self.hindiRendering(of: core) {
+          lines.append("  processor       HindiPhonemizer")
+          lines.append("  normalized      \(devanagari)")
+          lines.append("  phonemes        \(HindiPhonemizer.phonemize(devanagari))")
+        } else {
+          lines.append("  processor       Misaki")
+        }
+      }
+      lines.append("")
+    }
+    lines += ["FINAL", "  \(try process(input: input).0)"]
+    return lines.joined(separator: "\n")
+  }
+
+  /// Flags the rules that are still under review, so a trace says which words
+  /// in a line are the ones worth listening to.
+  private func conjunctNote(for word: String) -> String? {
+    let phonemes = HindiPhonemizer.phonemize(word)
+    guard phonemes.hasSuffix("ə") else { return nil }
+    return "final-conjunct-schwa (see preservesFinalConjunctSchwa)"
+  }
+
+  /// Alternative readings for a word, so both can be synthesized and compared
+  /// by ear. Only the rules genuinely in doubt are offered.
+  ///
+  ///     मित्र
+  ///       CURRENT              mˈɪtɾə
+  ///       WITHOUT_FINAL_SCHWA  mˈɪtɾ
+  ///
+  /// A development aid. Nothing in the package reads these.
+  static func alternatives(for word: String) -> [(label: String, phonemes: String)] {
+    let current = HindiPhonemizer.phonemize(word)
+    var options = [(label: "CURRENT", phonemes: current)]
+    if current.hasSuffix("ə") {
+      options.append((label: "WITHOUT_FINAL_SCHWA", phonemes: String(current.dropLast())))
+    }
+    return options
+  }
+
   func trace(_ input: String) throws -> String {
     let prepared = droppingUnmappedSymbols(HindiNumbers.expand(normalizingDanda(input)))
     var lines = ["INPUT:      \(input)"]

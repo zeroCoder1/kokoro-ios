@@ -85,26 +85,36 @@ enum HindiPhonemizer {
   /// alone does not expose the learned stress pattern reliably. These are
   /// authored phonemes, not copied eSpeak rules or data.
   /// Words the general rules cannot reach. Deliberately tiny: a systematic
-  /// failure means a rule is wrong, and belongs in the rule rather than here.
-  /// Each entry says why normal G2P cannot handle it.
+  /// failure means a rule is wrong and belongs in the rule, not here.
   ///
-  /// Six entries were removed once the anusvara rules were corrected —
-  /// में, मे, मुंबई, मुम्बई, दुनिया and यह are all produced correctly by the
-  /// general path now, and are covered by regression tests instead.
+  /// Each entry carries one of three classifications, so it is clear which
+  /// could ever be retired and on what evidence:
+  ///
+  ///   GENUINE_LEXICAL_EXCEPTION      the word is irregular; no rule reaches it
+  ///   CURRENT_MODEL_COMPATIBILITY    the rule is right, the voice renders it
+  ///                                  badly; revisit with a retrained model
+  ///   LEGACY_WORKAROUND              superseded by a rule; remove on proof
+  ///
+  /// There are no LEGACY_WORKAROUND entries left. Six were removed when the
+  /// anusvara rules were corrected — में, मे, मुंबई, मुम्बई, दुनिया and यह —
+  /// and each is covered by regression tests now. All three below were
+  /// re-checked against the general path after the final-conjunct work and are
+  /// still required.
   private static let pronunciationOverrides: [String: String] = [
-    // Not a spelling the akshara parser can read: ॐ is a single ligature
-    // scalar with no consonant or vowel parts, so without an entry it
-    // phonemizes to nothing at all.
+    // GENUINE_LEXICAL_EXCEPTION. ॐ is one ligature scalar with no consonant or
+    // vowel parts for the akshara parser to read, so without an entry it
+    // phonemizes to nothing at all. Verified: the general path returns "".
     "ॐ": "ˈo\u{0303}m",
-    // MODEL_COMPATIBILITY. espeak deletes this schwa and so does our rule,
-    // but the current voices render the stranded ɳ as nasalization on the
-    // vowel before it, so the name was heard as वारांसी. Reported by ear.
-    // Revisit if a Hindi voice is ever trained on labels from this
-    // phonemizer, where the deleted form may render correctly.
+    // CURRENT_MODEL_COMPATIBILITY. The general rule deletes this schwa and
+    // espeak agrees — /ʋaːɾˈaːɳsi/ — but the current voices render the
+    // stranded ɳ as nasalization on the vowel before it, so the name was heard
+    // as वारांसी. Reported by ear. Retire this if a Hindi voice is trained on
+    // labels from this phonemizer, where the deleted form may render properly.
     "वाराणसी": "ʋaːɾˈaːɳəsi",
-    // A one-syllable function word that still carries stress in espeak, and
-    // loses its vowel entirely without it. `unstressedWords` is right for
-    // the postpositions but wrong for this pronoun.
+    // GENUINE_LEXICAL_EXCEPTION. A one-syllable pronoun that espeak stresses
+    // but `unstressedWords` does not, because that class is right for the
+    // postpositions and wrong for this. Without the entry the vowel is lost:
+    // the general path gives /mɛ̃/ against espeak's /mˈɛ̃/.
     "मैं": "mˈɛ\u{0303}",
   ]
 
@@ -179,6 +189,10 @@ enum HindiPhonemizer {
     "फीफा", "फ्रांस", "फ्रेंच", "कॉफी", "सॉफ्ट", "टॉफी",
   ]
 
+  /// MODEL_COMPATIBILITY. espeak never ends a Hindi word on a long high
+  /// vowel, so the current voices never heard one there — पानी is /pˈaːni/,
+  /// भेजी /bʰˈeːɟi/. Careful Hindi arguably keeps the length. Isolated here so
+  /// a model trained on labels from this phonemizer can drop the rule.
   /// Word-final long high vowels are written long but transcribed short.
   private static let finalHighVowels = ["iː": "i", "uː": "u"]
 
@@ -297,6 +311,7 @@ enum HindiPhonemizer {
     while index < scalars.count {
       let scalar = scalars[index]
       if let vowel = independentVowels[scalar] {
+        // MODEL_COMPATIBILITY.
         // espeak opens a word written with अ on ʌ rather than ə, whether or
         // not the syllable carries stress: अदालत is /ʌdˈaːlət/, अस्पताल is
         // /ˌʌspətˈaːl/. Reading it as ə is why अंतर was heard as इंतर.
