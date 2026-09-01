@@ -400,6 +400,43 @@ final class HindiG2PProcessor: G2PProcessor {
     ))
   }
 
+#if DEBUG
+  /// A per-token account of how a line was read, for diagnosing pronunciation
+  /// without listening to a sample of every change.
+  ///
+  ///     OpenAI ने नया AI मॉडल लॉन्च किया।
+  ///       OpenAI  ENGLISH_NATIVE  -> (Misaki)
+  ///       ने      HINDI           -> neː
+  ///       AI      SPELLED_ACRONYM -> ˈeː ˈaːi
+  ///
+  /// DEBUG only, and deliberately not part of the shipped API.
+  func trace(_ input: String) throws -> String {
+    let prepared = droppingUnmappedSymbols(HindiNumbers.expand(normalizingDanda(input)))
+    var lines = ["INPUT:      \(input)"]
+    if prepared != input { lines.append("NORMALIZED: \(prepared)") }
+    lines.append("TOKENS:")
+
+    for token in prepared.split(whereSeparator: \.isWhitespace) {
+      let word = String(token)
+      let isDevanagari = word.unicodeScalars.contains { (0x0900...0x097F).contains($0.value) }
+      if isDevanagari {
+        lines.append("  \(word)\t HINDI\t-> \(HindiPhonemizer.phonemize(word))")
+        continue
+      }
+      let (leading, core, trailing) = splitOffPunctuation(word)
+      let kind = Self.classify(core)
+      if let devanagari = Self.hindiRendering(of: core) {
+        let phonemes = HindiPhonemizer.phonemize(devanagari)
+        lines.append("  \(word)\t \(kind.rawValue)\t-> \(devanagari)\t\(leading)\(phonemes)\(trailing)")
+      } else {
+        lines.append("  \(word)\t \(kind.rawValue)\t-> (Misaki)")
+      }
+    }
+    lines.append("FINAL:      \(try process(input: input).0)")
+    return lines.joined(separator: "\n")
+  }
+#endif
+
   private func processEnglish(
     _ input: String,
     language: Language

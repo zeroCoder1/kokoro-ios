@@ -104,6 +104,7 @@ enum HindiNumbers {
 
     var groups = [digits(in: characters, from: &index)]
     var fraction: String?
+    var clockMinutes: String?
     var isGrouped = false
 
     if index + 1 < characters.count,
@@ -113,6 +114,14 @@ enum HindiNumbers {
       // ends a sentence stays a sentence break.
       index += 1
       fraction = digits(in: characters, from: &index)
+    } else if index + 1 < characters.count,
+              characters[index] == ":",
+              isDigit(characters[index + 1]) {
+      // A clock time. The colon is a Kokoro token, so leaving it in puts a
+      // pause in the middle of "7:30". Read the parts as numbers instead:
+      // "सात तीस", with the बजे that follows in the copy doing the rest.
+      index += 1
+      clockMinutes = digits(in: characters, from: &index)
     } else {
       // `98765-43210` is a phone number, not two quantities.
       while index + 1 < characters.count,
@@ -129,16 +138,55 @@ enum HindiNumbers {
       index += 1
     }
 
+    // A scale word written after the digits belongs between the amount and the
+    // currency: "₹1,500 करोड़" is पंद्रह सौ करोड़ रुपये, not पंद्रह सौ रुपये
+    // करोड़. Consume it here so it lands in the right place.
+    var scaleWord: String?
+    if !trailingWords.isEmpty, let found = writtenScale(in: characters, at: index) {
+      scaleWord = found.word
+      index = found.end
+    }
+
     var words: [String]
     if isGrouped {
       words = groups.map(spelledOut)
     } else if let fraction {
       words = [read(groups[0]), decimalPoint, spelledOut(fraction)]
+    } else if let clockMinutes {
+      words = [read(groups[0]), read(clockMinutes)]
     } else {
       words = [read(groups[0])]
     }
+    if let scaleWord { words.append(scaleWord) }
     words.append(contentsOf: trailingWords)
     return (words.joined(separator: " "), index)
+  }
+
+  /// Scale words that may follow the digits in ordinary copy, longest first so
+  /// a longer one is not cut short by a shorter prefix.
+  private static let writtenScales = [
+    "करोड़", "करोड़",
+    "लाख",
+    "हज़ार", "हज़ार",
+    "अरब",
+  ]
+
+  /// Matches a written scale word at `index`, skipping the space before it.
+  private static func writtenScale(
+    in characters: [Character], at index: Int
+  ) -> (word: String, end: Int)? {
+    var start = index
+    while start < characters.count, characters[start] == " " { start += 1 }
+    guard start > index || start < characters.count else { return nil }
+    for scale in writtenScales {
+      let scalars = Array(scale.unicodeScalars)
+      let tail = Array(String(characters[start...]).unicodeScalars)
+      guard tail.count >= scalars.count,
+            Array(tail[0 ..< scalars.count]) == scalars
+      else { continue }
+      return (scale, start + scale.count)
+    }
+    return nil
   }
 
   private static func digits(

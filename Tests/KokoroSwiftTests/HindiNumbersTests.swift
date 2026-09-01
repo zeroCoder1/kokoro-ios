@@ -114,3 +114,77 @@ func hindiNumbersMatchTheSpecification(input: String, expected: String) {
     #expect(!HindiNumbers.expand(String(value)).isEmpty, "\(value)")
   }
 }
+
+// MARK: - Phase 8 regression corpus
+
+/// The full required ladder, so a change to the scale logic shows up here
+/// rather than in a sentence test.
+@Test(arguments: [
+  ("0", "शून्य"), ("1", "एक"), ("10", "दस"), ("11", "ग्यारह"),
+  ("19", "उन्नीस"), ("20", "बीस"), ("21", "इक्कीस"), ("50", "पचास"),
+  ("99", "निन्यानवे"), ("100", "एक सौ"), ("101", "एक सौ एक"),
+  ("110", "एक सौ दस"), ("125", "एक सौ पच्चीस"), ("1000", "एक हज़ार"),
+  ("1947", "उन्नीस सौ सैंतालीस"), ("1999", "उन्नीस सौ निन्यानवे"),
+  ("2000", "दो हज़ार"), ("2001", "दो हज़ार एक"),
+  ("2024", "दो हज़ार चौबीस"), ("2026", "दो हज़ार छब्बीस"),
+  ("10000", "दस हज़ार"), ("100000", "एक लाख"),
+  ("150000", "एक लाख पचास हज़ार"), ("1,50,000", "एक लाख पचास हज़ार"),
+  ("10,00,000", "दस लाख"), ("1,00,00,000", "एक करोड़"),
+])
+func hindiNumberLadder(input: String, expected: String) {
+  #expect(HindiNumbers.expand(input) == expected, "\(input)")
+}
+
+@Test(arguments: [
+  ("3.5", "तीन दशमलव पाँच"),
+  ("7.25", "सात दशमलव दो पाँच"),
+  ("50%", "पचास प्रतिशत"),
+  ("7%", "सात प्रतिशत"),
+  ("₹100", "एक सौ रुपये"),
+  ("₹1,500", "पंद्रह सौ रुपये"),
+  ("$100", "एक सौ डॉलर"),
+])
+func hindiNumberDecimalsAndSymbols(input: String, expected: String) {
+  #expect(HindiNumbers.expand(input) == expected, "\(input)")
+}
+
+/// Devanagari digits are the same numbers.
+@Test(arguments: [("२०२६", "दो हज़ार छब्बीस"), ("१००", "एक सौ"), ("५०", "पचास")])
+func hindiNumberDevanagariDigits(input: String, expected: String) {
+  #expect(HindiNumbers.expand(input) == expected, "\(input)")
+}
+
+/// A scale word written after the digits goes between the amount and the
+/// currency, which is the order Hindi uses.
+@Test func hindiNumberCurrencyFollowsTheScaleWord() {
+  #expect(HindiNumbers.expand("₹1,500 करोड़") == "पंद्रह सौ करोड़ रुपये")
+  #expect(HindiNumbers.expand("₹1.5 लाख") == "एक दशमलव पाँच लाख रुपये")
+  #expect(HindiNumbers.expand("₹2 हज़ार") == "दो हज़ार रुपये")
+  // Without a currency the scale word is just the next word.
+  #expect(HindiNumbers.expand("1,500 करोड़") == "पंद्रह सौ करोड़")
+}
+
+/// `:` is a Kokoro token, so leaving it inside a time puts a pause in the
+/// middle of it.
+@Test func hindiNumberClockTimes() {
+  #expect(HindiNumbers.expand("7:30") == "सात तीस")
+  #expect(HindiNumbers.expand("10:45") == "दस पैंतालीस")
+  #expect(HindiNumbers.expand("मैच शाम 7:30 बजे शुरू होगा।")
+    == "मैच शाम सात तीस बजे शुरू होगा।")
+  // A colon that is ordinary punctuation is left alone.
+  #expect(HindiNumbers.expand("समय: 5 बजे") == "समय: पाँच बजे")
+}
+
+/// Digits welded to Latin letters are part of a term, not a quantity, and are
+/// read by HindiG2PProcessor with English number names instead.
+@Test(arguments: ["G20", "5G", "4G", "U19", "COVID-19", "H1N1", "B2B", "Web3"])
+func hindiNumberLeavesAlphanumericTermsAlone(term: String) {
+  #expect(HindiNumbers.expand(term) == term)
+}
+
+/// News lines end to end.
+@Test func hindiNumberNewsSentences() {
+  #expect(HindiNumbers.expand("साल 2026 में") == "साल दो हज़ार छब्बीस में")
+  #expect(HindiNumbers.expand("भारत की GDP 7.2% बढ़ी।")
+    == "भारत की GDP सात दशमलव दो प्रतिशत बढ़ी।")
+}
