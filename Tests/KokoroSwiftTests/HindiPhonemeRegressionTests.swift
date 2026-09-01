@@ -156,7 +156,7 @@ private let schwaPreservation: [HindiWordCase] = [
     ("योग्य", "jˈoːɡjə"),
     ("वाक्य", "ʋˈaːkjə"),
     ("विश्व", "ʋˈɪʃʋ"),
-    ("स्वतंत्र", "sʋətˈʌntɾ"),
+    ("स्वतंत्र", "sʋətˈʌntɾə"),
     ("स्वतंत्रता", "sʋətˈʌntɾətˌaː"),
     ("राष्ट्रीय", "ɾaːʂʈɾˈiːj"),
 ]
@@ -196,7 +196,7 @@ private let anusvaraOnWrittenVowel: [HindiWordCase] = [
     ("हिंसा", "hˈi\u{0303}saː"),
     ("सिंह", "sˈi\u{0303}h"),
     ("बिंदु", "bˈi\u{0303}dʊ"),
-    ("केंद्र", "kˈe\u{0303}ːdɾ"),
+    ("केंद्र", "kˈe\u{0303}ːdɾə"),
     ("चांद", "cˈa\u{0303}d"),
     ("नींद", "nˈi\u{0303}d"),
     ("बैंक", "bˈɛ\u{0303}k"),
@@ -241,7 +241,7 @@ private let dottedRetroflex: [HindiWordCase] = [
 private let newsCompounds: [HindiWordCase] = [
     ("प्रधानमंत्री", "pɾədʰˈaːn mˈʌntɾi"),
     ("मुख्यमंत्री", "mˈʊkʰjə mˈʌntɾi"),
-    ("राष्ट्रपति", "ɾˈaːʂʈɾ pˈʌtɪ"),
+    ("राष्ट्रपति", "ɾˈaːʂʈɾə pˈʌtɪ"),
     ("लोकसभा", "lˈoːk sˈʌbʰaː"),
     ("राज्यसभा", "ɾˈaːɟjə sˈʌbʰaː"),
 ]

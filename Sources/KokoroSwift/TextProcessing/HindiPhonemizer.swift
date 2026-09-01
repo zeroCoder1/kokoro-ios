@@ -466,12 +466,14 @@ enum HindiPhonemizer {
   private static func applySchwaDeletion(to units: inout [Akshara]) {
     guard units.count > 1 else { return }
     let final = units.count - 1
-    // A final य that completes a written conjunct normally keeps its schwa:
-    // मुख्य /mukʰjə/, योग्य /joːɡjə/, वाक्य /ʋaːkjə/. Treating it like an
-    // ordinary final consonant produces the clipped pronunciation users hear.
-    let finalCompletesYaConjunct = units[final].onset == "j"
+    // A य or र completing a written conjunct keeps its schwa: मुख्य /mukʰjə/,
+    // योग्य /joːɡjə/, वाक्य /ʋaːkjə/, and राष्ट्र /ɾaːʂʈɾə/, क्षेत्र /kʃeːtɾə/,
+    // केंद्र /kẽːdɾə/, मित्र /mɪtɾə/. व does not — विश्व is /ʋɪʃʋ/ and तत्व
+    // /tʌtʋ/ — so the glides are named rather than testing for any conjunct.
+    // Treating these like an ordinary final consonant clips the word.
+    let finalCompletesGlideConjunct = ["j", "ɾ"].contains(units[final].onset)
       && units[final - 1].vowel == nil
-    if units[final].hasInherentSchwa, !finalCompletesYaConjunct {
+    if units[final].hasInherentSchwa, !finalCompletesGlideConjunct {
       units[units.count - 1].vowel = nil
       units[units.count - 1].hasInherentSchwa = false
     }
