@@ -1,0 +1,77 @@
+input	normalized	canonical	phonological	kokoro_phonemes	status	notes
+धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।	धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।	Darmakzetre kurukzetre samavetA yuyutsavaH |	Darmakzetre kurukzetre samavetA yuyutsavaha |	dʰaɾmakʂeːtɾeː kuɾukʂeːtɾeː samaʋeːtaː jujutsaʋaha,	REFERENCE_AGREEMENT	BG 1.1a. Canonical form matches Vagdhenu exactly.; canonical matches Vagdhenu
+मामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ॥	मामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ॥	mAmakAH pARqavAScEva kimakurvata saYjaya ||	mAmakAh pARqavAScEva kimakurvata saYjaya ||	maːmakaːh paːɳɖaʋaːʃcaɪʋa kimakuɾʋata saɲɟaja.	REFERENCE_AGREEMENT	BG 1.1b. Verse-final double danda.; canonical matches Vagdhenu
+कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ।	कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ।	karmaRyevADikAraste mA Palezu kadAcana |	karmaRyevADikAraste mA Palezu kadAcana |	kaɾmaɳjeːʋaːdʰikaːɾasteː maː pʰaleːʂu kadaːcana,	REFERENCE_AGREEMENT	BG 2.47a.; canonical matches Vagdhenu
+मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ॥	मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ॥	mA karmaPalaheturBUrmA te saNgo'stvakarmaRi ||	mA karmaPalaheturBUrmA te saNgo'stvakarmaRi ||	maː kaɾmapʰalaheːtuɾbʰuːɾmaː teː saŋɡoːstʋakaɾmaɳi.	REFERENCE_AGREEMENT	BG 2.47b. Avagraha inside the pada.; canonical matches Vagdhenu
+यदा यदा हि धर्मस्य ग्लानिर्भवति भारत ।	यदा यदा हि धर्मस्य ग्लानिर्भवति भारत ।	yadA yadA hi Darmasya glAnirBavati BArata |	yadA yadA hi Darmasya glAnirBavati BArata |	jadaː jadaː hi dʰaɾmasja ɡlaːniɾbʰaʋati bʰaːɾata,	REFERENCE_AGREEMENT	BG 4.7a.; canonical matches Vagdhenu
+अभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम् ॥	अभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम् ॥	aByutTAnamaDarmasya tadAtmAnaM sfjAmyaham ||	aByutTAnamaDarmasya tadAtmAna~ sfjAmyaham ||	abʰjuttʰaːnamadʰaɾmasja tadaːtmaːnã sɾɪɟaːmjaham.	KOKORO_APPROXIMATION	BG 4.7b. Word-final anusvara before a sibilant across a word boundary.; KOKORO_APPROXIMATION: anusvāra before a continuant → vowel nasalisation (Kokoro cannot spell a nasalised approximant) | KOKORO_APPROXIMATION: vocalic ṛ (ऋ) → ɾɪ (no syllabic diacritic in the Kokoro vocabulary)
+वासांसि जीर्णानि यथा विहाय	वासांसि जीर्णानि यथा विहाय	vAsAMsi jIrRAni yaTA vihAya	vAsA~si jIrRAni yaTA vihAya	ʋaːsãːsi ɟiːɾɳaːni jatʰaː ʋihaːja	KOKORO_APPROXIMATION	BG 2.22a. Anusvara before a sibilant, word-internal.; canonical matches Vagdhenu; KOKORO_APPROXIMATION: anusvāra before a continuant → vowel nasalisation (Kokoro cannot spell a nasalised approximant)
+न जायते म्रियते वा कदाचिन्	न जायते म्रियते वा कदाचिन्	na jAyate mriyate vA kadAcin	na jAyate mriyate vA kadAcin	na ɟaːjateː mɾijateː ʋaː kadaːcin	REFERENCE_AGREEMENT	BG 2.20a. Word-final virama.; canonical matches Vagdhenu
+कर्म	कर्म	karma	karma	kaɾma	REFERENCE_AGREEMENT	The inherent vowel is kept at word end. Hindi deletes it.; canonical matches Vagdhenu
+धर्म	धर्म	Darma	Darma	dʰaɾma	REFERENCE_AGREEMENT	As above.; canonical matches Vagdhenu
+योग	योग	yoga	yoga	joːɡa	REFERENCE_AGREEMENT	As above.; canonical matches Vagdhenu
+अर्जुन	अर्जुन	arjuna	arjuna	aɾɟuna	REFERENCE_AGREEMENT	As above.; canonical matches Vagdhenu
+कृष्ण	कृष्ण	kfzRa	kfzRa	kɾɪʂɳa	KOKORO_APPROXIMATION	Vocalic r.; canonical matches Vagdhenu; KOKORO_APPROXIMATION: vocalic ṛ (ऋ) → ɾɪ (no syllabic diacritic in the Kokoro vocabulary)
+अत्र	अत्र	atra	atra	atɾa	REFERENCE_AGREEMENT	Short a.; canonical matches Vagdhenu
+आत्मा	आत्मा	AtmA	AtmA	aːtmaː	REFERENCE_AGREEMENT	Long a. Must not merge with the short.; canonical matches Vagdhenu
+दिन	दिन	dina	dina	dina	REFERENCE_AGREEMENT	Short i.; canonical matches Vagdhenu
+दीन	दीन	dIna	dIna	diːna	REFERENCE_AGREEMENT	Long i. Must not merge with the short.; canonical matches Vagdhenu
+सुत	सुत	suta	suta	suta	REFERENCE_AGREEMENT	Short u.; canonical matches Vagdhenu
+सूत	सूत	sUta	sUta	suːta	REFERENCE_AGREEMENT	Long u. Must not merge with the short.; canonical matches Vagdhenu
+एव	एव	eva	eva	eːʋa	REFERENCE_AGREEMENT	e is always long in Sanskrit; EdgeSanskrit writes it short.; canonical matches Vagdhenu
+योगः	योगः	yogaH	yogaha	joːɡaha	REFERENCE_AGREEMENT	o is always long. Visarga echo at pause.; canonical matches Vagdhenu
+ऐश्वर्य	ऐश्वर्य	ESvarya	ESvarya	aɪʃʋaɾja	REVIEW_REQUIRED	Vrddhi diphthong.; canonical matches Vagdhenu
+औषध	औषध	OzaDa	OzaDa	aʊʂadʰa	REVIEW_REQUIRED	Vrddhi diphthong.; canonical matches Vagdhenu
+ऋषि	ऋषि	fzi	fzi	ɾɪʂi	KOKORO_APPROXIMATION	Vocalic r. No syllabic diacritic exists in the Kokoro vocabulary.; canonical matches Vagdhenu; KOKORO_APPROXIMATION: vocalic ṛ (ऋ) → ɾɪ (no syllabic diacritic in the Kokoro vocabulary)
+ॠकार	ॠकार	FkAra	FkAra	ɾiːkaːɾa	KOKORO_APPROXIMATION	Long vocalic r.; canonical matches Vagdhenu; KOKORO_APPROXIMATION: long vocalic ṝ (ॠ) → ɾiː (no syllabic diacritic in the Kokoro vocabulary)
+ऌकार	ऌकार	xkAra	xkAra	lɪkaːɾa	KOKORO_APPROXIMATION	Vocalic l.; canonical matches Vagdhenu; KOKORO_APPROXIMATION: vocalic ḷ (ऌ) → lɪ (no syllabic diacritic in the Kokoro vocabulary)
+ॡकार	ॡकार	XkAra	XkAra	liːkaːɾa	KOKORO_APPROXIMATION	Long vocalic l. EdgeSanskrit drops this vowel entirely.; canonical matches Vagdhenu; KOKORO_APPROXIMATION: long vocalic ḹ (ॡ) → liː (no syllabic diacritic in the Kokoro vocabulary)
+क्	क्	k	k	k	REFERENCE_AGREEMENT	Bare virama: consonant with no vowel.; canonical matches Vagdhenu
+भगवान्	भगवान्	BagavAn	BagavAn	bʰaɡaʋaːn	REFERENCE_AGREEMENT	Word-final virama.; canonical matches Vagdhenu
+क्ष	क्ष	kza	kza	kʂa	REFERENCE_AGREEMENT	Compositional k+s.retroflex, not the Hindi ksh.; canonical matches Vagdhenu
+ज्ञ	ज्ञ	jYa	jYa	ɟɲa	REFERENCE_AGREEMENT	Compositional j+n.palatal, not the Hindi gy.; canonical matches Vagdhenu
+क्त्व	क्त्व	ktva	ktva	ktʋa	REFERENCE_AGREEMENT	Three-consonant cluster in one akshara.; canonical matches Vagdhenu
+त्त्व	त्त्व	ttva	ttva	ttʋa	REFERENCE_AGREEMENT	Geminate plus semivowel.; canonical matches Vagdhenu
+ह्म	ह्म	hma	hma	hma	REFERENCE_AGREEMENT	h-initial cluster.; canonical matches Vagdhenu
+क्षेत्रज्ञ	क्षेत्रज्ञ	kzetrajYa	kzetrajYa	kʂeːtɾaɟɲa	REFERENCE_AGREEMENT	Two hard conjuncts in one word.; canonical matches Vagdhenu
+अश्वत्थामा	अश्वत्थामा	aSvatTAmA	aSvatTAmA	aʃʋattʰaːmaː	REFERENCE_AGREEMENT	Aspirate inside a cluster.; canonical matches Vagdhenu
+धृतराष्ट्र	धृतराष्ट्र	DftarAzwra	DftarAzwra	dʰɾɪtaɾaːʂʈɾa	KOKORO_APPROXIMATION	Vocalic r plus a retroflex cluster.; canonical matches Vagdhenu; KOKORO_APPROXIMATION: vocalic ṛ (ऋ) → ɾɪ (no syllabic diacritic in the Kokoro vocabulary)
+प्रज्ञा	प्रज्ञा	prajYA	prajYA	pɾaɟɲaː	REFERENCE_AGREEMENT	canonical matches Vagdhenu
+श्रद्धा	श्रद्धा	SradDA	SradDA	ʃɾaddʰaː	REFERENCE_AGREEMENT	canonical matches Vagdhenu
+कर	कर	kara	kara	kaɾa	REFERENCE_AGREEMENT	Unaspirated velar.; canonical matches Vagdhenu
+खर	खर	Kara	Kara	kʰaɾa	REFERENCE_AGREEMENT	Aspirated velar. Must not merge with the unaspirated.; canonical matches Vagdhenu
+तप	तप	tapa	tapa	tapa	REFERENCE_AGREEMENT	Dental.; canonical matches Vagdhenu
+टप	टप	wapa	wapa	ʈapa	REFERENCE_AGREEMENT	Retroflex. Must not merge with the dental.; canonical matches Vagdhenu
+शर	शर	Sara	Sara	ʃaɾa	REFERENCE_AGREEMENT	Palatal sibilant.; canonical matches Vagdhenu
+षड	षड	zaqa	zaqa	ʂaɖa	REFERENCE_AGREEMENT	Retroflex sibilant.; canonical matches Vagdhenu
+सर	सर	sara	sara	saɾa	REFERENCE_AGREEMENT	Dental sibilant. All three must stay distinct.; canonical matches Vagdhenu
+अङ्ग	अङ्ग	aNga	aNga	aŋɡa	REFERENCE_AGREEMENT	Velar nasal.; canonical matches Vagdhenu
+पञ्च	पञ्च	paYca	paYca	paɲca	REVIEW_REQUIRED	Palatal nasal.; canonical matches Vagdhenu
+अण्ड	अण्ड	aRqa	aRqa	aɳɖa	REFERENCE_AGREEMENT	Retroflex nasal.; canonical matches Vagdhenu
+अन्त	अन्त	anta	anta	anta	REFERENCE_AGREEMENT	Dental nasal.; canonical matches Vagdhenu
+अम्ब	अम्ब	amba	amba	amba	REFERENCE_AGREEMENT	Labial nasal.; canonical matches Vagdhenu
+संकल्प	संकल्प	saMkalpa	saNkalpa	saŋkalpa	CONFIRMED	Anusvara before a velar.
+संचय	संचय	saMcaya	saYcaya	saɲcaja	REVIEW_REQUIRED	Anusvara before a palatal.
+कुंठित	कुंठित	kuMWita	kuRWita	kuɳʈʰita	CONFIRMED	Anusvara before a retroflex.
+संतोष	संतोष	saMtoza	santoza	santoːʂa	CONFIRMED	Anusvara before a dental.
+संपत्	संपत्	saMpat	sampat	sampat	CONFIRMED	Anusvara before a labial.
+संयोग	संयोग	saMyoga	sa~yoga	sãjoːɡa	KOKORO_APPROXIMATION	Anusvara before a semivowel. Vagdhenu keeps a nasal continuant; EdgeSanskrit forces m.; KOKORO_APPROXIMATION: anusvāra before a continuant → vowel nasalisation (Kokoro cannot spell a nasalised approximant)
+संस्कृत	संस्कृत	saMskfta	sa~skfta	sãskɾɪta	KOKORO_APPROXIMATION	Anusvara before a sibilant. Same disagreement.; canonical matches Vagdhenu; KOKORO_APPROXIMATION: anusvāra before a continuant → vowel nasalisation (Kokoro cannot spell a nasalised approximant) | KOKORO_APPROXIMATION: vocalic ṛ (ऋ) → ɾɪ (no syllabic diacritic in the Kokoro vocabulary)
+संहार	संहार	saMhAra	sa~hAra	sãhaːɾa	KOKORO_APPROXIMATION	Anusvara before h.; canonical matches Vagdhenu; KOKORO_APPROXIMATION: anusvāra before a continuant → vowel nasalisation (Kokoro cannot spell a nasalised approximant)
+अहं	अहं	ahaM	aham	aham	CONFIRMED	Word-final anusvara.
+रामः	रामः	rAmaH	rAmaha	ɾaːmaha	REFERENCE_AGREEMENT	Visarga at pause, after a.; canonical matches Vagdhenu
+हरिः	हरिः	hariH	harihi	haɾihi	REFERENCE_AGREEMENT	Visarga at pause, after i.; canonical matches Vagdhenu
+गुरुः	गुरुः	guruH	guruhu	ɡuɾuhu	REFERENCE_AGREEMENT	Visarga at pause, after u.; canonical matches Vagdhenu
+देवैः	देवैः	devEH	devEhi	deːʋaɪhi	REFERENCE_AGREEMENT	Visarga at pause, after a diphthong.; canonical matches Vagdhenu
+दुःख	दुःख	duHKa	duhKa	duhkʰa	REVIEW_REQUIRED	Word-internal visarga. EdgeSanskrit adds an echo vowel here and makes it three syllables.
+निःशेष	निःशेष	niHSeza	nihSeza	nihʃeːʂa	REVIEW_REQUIRED	Word-internal visarga before a sibilant.; canonical matches Vagdhenu
+रामः करोति	रामः करोति	rAmaH karoti	rAmah karoti	ɾaːmah kaɾoːti	REVIEW_REQUIRED	Visarga before another word: a plain h, not an echo.; canonical matches Vagdhenu
+हुँ	हुँ	hu~	hu~	hũ	REFERENCE_AGREEMENT	Chandrabindu. EdgeSanskrit drops it entirely.; canonical matches Vagdhenu
+सोऽहम्	सोऽहम्	so'ham	so'ham	soːham	REFERENCE_AGREEMENT	Avagraha is silent, not a length mark.; canonical matches Vagdhenu
+नरोऽपराणि	नरोऽपराणि	naro'parARi	naro'parARi	naɾoːpaɾaːɳi	REFERENCE_AGREEMENT	Avagraha inside a Gita pada.; canonical matches Vagdhenu
+अस्ति । नास्ति ॥	अस्ति । नास्ति ॥	asti | nAsti ||	asti | nAsti ||	asti, naːsti.	REFERENCE_AGREEMENT	Danda and double danda as two pause strengths.; canonical matches Vagdhenu
+ॐ	ओम्	om	om	oːm	REFERENCE_AGREEMENT	One ligature scalar. EdgeSanskrit produces nothing for it.; canonical matches Vagdhenu
+ॐ नमः शिवाय	ओम् नमः शिवाय	om namaH SivAya	om namah SivAya	oːm namah ʃiʋaːja	REFERENCE_AGREEMENT	canonical matches Vagdhenu
+ळ	ळ	La	La	la	KOKORO_APPROXIMATION	The one letter Kokoro cannot say.; canonical matches Vagdhenu; KOKORO_UNSUPPORTED: ḷa (ळ) — ɭ (U+026D) is not in the Kokoro vocabulary; read as l
+धर्म dharma	धर्म dharma	Darma	Darma	dʰaɾma	CONFIRMED	Mixed script: the Latin is dropped with a warning.; UNKNOWN_SCALAR: 'dharma' is not Devanagari; dropped
+अध्याय १	अध्याय १	aDyAya	aDyAya	adʰjaːja	REFERENCE_AGREEMENT	Digits are not spoken in recitation.; canonical matches Vagdhenu; UNKNOWN_SCALAR: '१' is not Devanagari; dropped
