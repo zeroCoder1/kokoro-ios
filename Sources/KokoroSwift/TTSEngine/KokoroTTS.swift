@@ -211,6 +211,58 @@ public final class KokoroTTS {
     )
   }
 
+  /// Generates Sanskrit recitation: pāda pauses, recitation pace, and the
+  /// duration repair that keeps a visarga-final syllable its proper length.
+  ///
+  /// **Use this rather than `generateAudio(voice:language:.sa,text:)` for
+  /// Sanskrit.** That method still works and still produces correct phonemes,
+  /// but it is the plain single-call path: no daṇḍa pauses, no recitation
+  /// pace, and no duration repair, because Kokoro's punctuation does not
+  /// deliver a differentiated pause and its duration predictor under-realises
+  /// a visarga-final syllable. Both of those are supplied here.
+  ///
+  ///     let audio = try tts.generateSanskritAudio(voice: voice, text: verse)
+  ///     let slower = try tts.generateSanskritAudio(
+  ///       voice: voice, text: verse, delivery: .learning
+  ///     )
+  ///
+  /// Nothing here changes a phoneme. The verse is split at its own daṇḍas,
+  /// each stretch is synthesized from exactly the phonemes
+  /// `SanskritPhonemizer` produces for it, and the pauses are real silence
+  /// between them. See docs/SANSKRIT.md and docs/SANSKRIT_KOKORO_PROSODY.md.
+  ///
+  /// - Parameters:
+  ///   - voice: Voice embedding array.
+  ///   - text: Devanagari. Non-Devanagari is dropped with a warning.
+  ///   - delivery: Pace and pause lengths. `.recitation` by default;
+  ///     `.learning` is slower with longer breaks, `.fast` is the voice's own
+  ///     pace, and `.unshaped` is the model's raw timing for comparison.
+  /// - Returns: Audio samples at `Constants.samplingRate`.
+  public func generateSanskritAudio(
+    voice: MLXArray,
+    text: String,
+    delivery: SanskritDelivery = .recitation
+  ) throws -> [Float] {
+    let sampleRate = Double(Constants.samplingRate)
+    var audio: [Float] = []
+    for segment in SanskritProsody.segments(for: text, configuration: delivery.prosody) {
+      // Derived per segment so the multiplier lines up with that call's own
+      // tokens rather than the whole verse's.
+      let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
+        segment.phonemes, intent: delivery.intent
+      )
+      let piece = try generateAudio(
+        voice: voice, phonemes: segment.phonemes,
+        speed: delivery.speed, durationScale: scale
+      )
+      audio += AudioSegments.trimmingEdgeSilence(piece, sampleRate: sampleRate)
+      // A slower delivery wants proportionally longer breaks.
+      let pause = segment.pauseAfter / Double(delivery.speed)
+      audio += [Float](repeating: 0, count: Int(pause * sampleRate))
+    }
+    return audio
+  }
+
   /// Generates audio from a phoneme string, skipping G2P entirely.
   ///
   /// A diagnostic entry point. Comparing two phoneme sequences acoustically —

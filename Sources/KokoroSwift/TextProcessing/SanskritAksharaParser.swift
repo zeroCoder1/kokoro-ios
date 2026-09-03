@@ -3,7 +3,7 @@ import Foundation
 /// A prosodic boundary in the source. Kept structured rather than collapsed
 /// to punctuation, because the daṇḍa distinction is richer than Kokoro's
 /// token stream can carry and a later prosody-aware path will want it.
-enum SanskritBoundary: Equatable {
+enum SanskritBoundary: Equatable, @unchecked Sendable {
   /// A space between words.
   case word
   /// `।` — a pāda or half-verse break. A moderate pause.

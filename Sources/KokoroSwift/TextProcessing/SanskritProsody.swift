@@ -28,18 +28,18 @@ import Foundation
 /// `wordBoundary` defaults to zero: the space token measurably does its job,
 /// and pausing between every word would sound like dictation rather than
 /// recitation.
-struct SanskritProsodyConfiguration: Equatable {
+public struct SanskritProsodyConfiguration: Equatable, Sendable {
   /// Extra silence at an ordinary word boundary. Zero by default — the space
   /// token already separates words.
-  var wordBoundary: TimeInterval
+  public var wordBoundary: TimeInterval
   /// `।` — a pāda or half-verse break.
-  var padaPause: TimeInterval
+  public var padaPause: TimeInterval
   /// `॥` — the end of a verse.
-  var versePause: TimeInterval
+  public var versePause: TimeInterval
   /// Sentence punctuation carried over from the source.
-  var sentencePause: TimeInterval
+  public var sentencePause: TimeInterval
 
-  init(
+  public init(
     wordBoundary: TimeInterval = 0.0,
     padaPause: TimeInterval = 0.50,
     versePause: TimeInterval = 1.00,
@@ -52,11 +52,11 @@ struct SanskritProsodyConfiguration: Equatable {
   }
 
   /// Recitation pacing: a clear half-verse break and a longer verse break.
-  static let `default` = SanskritProsodyConfiguration()
+  public static let `default` = SanskritProsodyConfiguration()
 
   /// No added silence at all — one call, exactly the previous behaviour.
   /// Use this to hear what the model does on its own.
-  static let none = SanskritProsodyConfiguration(
+  public static let none = SanskritProsodyConfiguration(
     wordBoundary: 0, padaPause: 0, versePause: 0, sentencePause: 0
   )
 
@@ -97,9 +97,9 @@ struct SanskritProsodyConfiguration: Equatable {
 ///
 /// This measures articulation, not beauty. Treat the values as a starting
 /// point for listening rather than a settled answer.
-struct SanskritDelivery: Equatable {
-  var speed: Float
-  var prosody: SanskritProsodyConfiguration
+public struct SanskritDelivery: Equatable, Sendable {
+  public var speed: Float
+  public var prosody: SanskritProsodyConfiguration
   /// Per-token duration intent applied on top of the model's own prediction.
   ///
   /// Defaults to `.visargaLengthOnly` rather than the fuller `.recitation`,
@@ -110,8 +110,21 @@ struct SanskritDelivery: Equatable {
   /// otherwise.
   var intent: SanskritProsodyIntent = .visargaLengthOnly
 
+  /// A delivery with the standard Sanskrit duration intent.
+  public init(speed: Float, prosody: SanskritProsodyConfiguration) {
+    self.speed = speed
+    self.prosody = prosody
+    self.intent = .visargaLengthOnly
+  }
+
+  init(speed: Float, prosody: SanskritProsodyConfiguration, intent: SanskritProsodyIntent) {
+    self.speed = speed
+    self.prosody = prosody
+    self.intent = intent
+  }
+
   /// Deliberate pace for following along word by word, with long pauses.
-  static let learning = SanskritDelivery(
+  public static let learning = SanskritDelivery(
     speed: 0.76,
     prosody: SanskritProsodyConfiguration(padaPause: 0.70, versePause: 1.30),
     intent: .visargaLengthOnly
@@ -119,7 +132,7 @@ struct SanskritDelivery: Equatable {
 
   /// The default for recitation. The slowest rate at which every syllable
   /// still resolves separately, without sounding laboured.
-  static let recitation = SanskritDelivery(
+  public static let recitation = SanskritDelivery(
     speed: 0.80,
     prosody: SanskritProsodyConfiguration(padaPause: 0.50, versePause: 1.00),
     intent: .visargaLengthOnly
@@ -128,14 +141,14 @@ struct SanskritDelivery: Equatable {
   /// The voice's own pace. Measurably degraded — BG 2.47's first pāda loses
   /// eight of its eighteen syllables here. Kept for review and for callers who
   /// ask for it; not recommended for recitation.
-  static let fast = SanskritDelivery(
+  public static let fast = SanskritDelivery(
     speed: 1.0,
     prosody: SanskritProsodyConfiguration(padaPause: 0.40, versePause: 0.80),
     intent: .visargaLengthOnly
   )
 
   /// Exactly the model's own timing, for A/B against any of the above.
-  static let unshaped = SanskritDelivery(
+  public static let unshaped = SanskritDelivery(
     speed: 0.80,
     prosody: SanskritProsodyConfiguration(padaPause: 0.50, versePause: 1.00),
     intent: .neutral

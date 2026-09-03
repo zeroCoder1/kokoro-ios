@@ -17,7 +17,7 @@ import Foundation
 // (man-tra). Both are printed by the diagnostics, deliberately.
 
 /// गुरु / लघु.
-enum SanskritSyllableWeight: Equatable {
+enum SanskritSyllableWeight: Equatable, Sendable {
   /// Light: ends in a short vowel, nothing after it. One mātrā.
   case laghu
   /// Heavy: a long vowel, or closed by a consonant, anusvāra or visarga.
@@ -29,7 +29,7 @@ enum SanskritSyllableWeight: Equatable {
 
 /// Why a syllable is heavy. Recorded so a diagnostic can explain the weight
 /// rather than just assert it.
-enum SanskritWeightReason: Equatable {
+enum SanskritWeightReason: Equatable, Sendable {
   case shortOpenSyllable
   case longVowel
   case closedByConsonant
@@ -39,7 +39,7 @@ enum SanskritWeightReason: Equatable {
 }
 
 /// One phonological syllable.
-struct SanskritSyllable: Equatable {
+struct SanskritSyllable: Equatable, Sendable {
   /// Consonants before the nucleus.
   var onset: [SanskritConsonant] = []
   /// The vowel. Every syllable has exactly one — "a syllable must have one,

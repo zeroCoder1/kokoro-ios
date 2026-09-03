@@ -18,7 +18,7 @@ import Foundation
 // syllables comparatively light, and the phrase still continuous.
 
 /// One syllable's prosodic intent.
-struct SanskritProsodicUnit: Equatable {
+struct SanskritProsodicUnit: Equatable, Sendable {
   var syllable: SanskritSyllable
   var matras: Int
   var weight: SanskritSyllableWeight
@@ -37,7 +37,7 @@ struct SanskritProsodicUnit: Equatable {
 /// ignorant of length — it produced 1.40× for भू against भु unprompted — so
 /// this corrects a tendency rather than dictating a timing grid. Pushed hard
 /// it would sound metronomic, which is the failure mode the brief names.
-struct SanskritProsodyIntent: Equatable {
+struct SanskritProsodyIntent: Equatable, Sendable {
   /// Multiplier for the vowel of a guru syllable.
   var guruVowelScale: Float
   /// Multiplier for the vowel of a laghu syllable.

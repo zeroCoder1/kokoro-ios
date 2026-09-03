@@ -66,7 +66,7 @@ enum SanskritPlace {
 /// The fourteen Classical vowels. Raw values are SLP1, which gives one ASCII
 /// character per phoneme and makes the canonical form directly comparable
 /// against Vagdhenu's output.
-enum SanskritVowel: String, CaseIterable {
+enum SanskritVowel: String, CaseIterable, Sendable {
   case a = "a", aa = "A"
   case i = "i", ii = "I"
   case u = "u", uu = "U"
@@ -102,7 +102,7 @@ enum SanskritVowel: String, CaseIterable {
 
 /// The 33 Classical consonants, plus ळ and the two visarga allophones.
 /// Raw values are SLP1.
-enum SanskritConsonant: String, CaseIterable {
+enum SanskritConsonant: String, CaseIterable, Sendable {
   case ka = "k", kha = "K", ga = "g", gha = "G", nga = "N"
   case ca = "c", cha = "C", ja = "j", jha = "J", nya = "Y"
   case tta = "w", ttha = "W", dda = "q", ddha = "Q", nna = "R"
