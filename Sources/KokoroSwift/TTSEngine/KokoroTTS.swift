@@ -517,14 +517,24 @@ public final class KokoroTTS {
     // nothing else — not the tokens, not their order, not their identity. The
     // phoneme sequence the model receives is byte-identical either way.
     //
-    // A count mismatch is ignored rather than applied partially, because a
-    // scale silently sliding one token out of step would be worse than none.
+    // The caller supplies one entry per *phoneme* token. `prepareInputTensors`
+    // wraps the sequence in a padding token at each end, so the padding is
+    // given a neutral 1.0 here rather than being the caller's problem — an
+    // off-by-two that silently slid every scale one token out of step is
+    // exactly the failure this arrangement avoids.
     if let durationScale {
       let count = durationSigmoid.shape.last ?? 0
-      if durationScale.count == count {
-        durationSigmoid = durationSigmoid * MLXArray(durationScale).reshaped([1, count])
+      let padded: [Float]?
+      switch durationScale.count {
+      case count: padded = durationScale
+      case count - 2: padded = [1.0] + durationScale + [1.0]
+      default: padded = nil
+      }
+      if let padded {
+        durationSigmoid = durationSigmoid * MLXArray(padded).reshaped([1, count])
       } else {
-        print("[KokoroTTS] duration scale has \(durationScale.count) entries for \(count) tokens; ignored")
+        print("[KokoroTTS] duration scale has \(durationScale.count) entries for "
+          + "\(count) tokens (\(count - 2) phonemes); ignored")
       }
     }
     let predictedDurations = MLX.clip(durationSigmoid.round(), min: 1).asType(.int32)[0]

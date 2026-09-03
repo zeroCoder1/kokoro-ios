@@ -378,3 +378,61 @@ private func division(_ text: String) -> String {
     }
   }
 }
+
+// MARK: - Visarga length repair
+
+/// A visarga-final syllable is guru — a long vowel *and* a closing visarga —
+/// but the model gives it barely more time than a light one. Measured on
+/// मामकाः at 0.80: 330 ms for the short-vowel `maːmaka`, 390 ms for the long
+/// `maːmakaː`, and 360 ms for our `maːmakaːh`. काः was arriving barely longer
+/// than क, which is why it was heard as मामक.
+@Test func visargaFinalSyllableIsLengthenedNotRespelled() {
+  for word in ["मामकाः", "रामः", "युयुत्सवः", "पाण्डवाः", "योगः"] {
+    let phonemes = SanskritPhonemizer.phonemize(word)
+    let plain = SanskritProsodyPlanner.durationScaleForPhonemes(phonemes, intent: .neutral)
+    let repaired = SanskritProsodyPlanner.durationScaleForPhonemes(
+      phonemes, intent: .visargaLengthOnly
+    )
+    #expect(plain == nil, "the neutral intent must stay a no-op")
+    let scale = try? #require(repaired)
+    #expect(scale?.count == SanskritTokenAudit.audit(text: word).tokenIDs.count)
+
+    // The last tokens — the visarga and the vowel it closes — are scaled up,
+    // and nothing earlier in the word is touched.
+    if let scale, scale.count >= 3 {
+      #expect(scale[scale.count - 1] > 1.0, "\(word): the visarga was not lengthened")
+      #expect(scale[scale.count - 2] > 1.0, "\(word): its vowel was not lengthened")
+      #expect(scale.prefix(scale.count - 3).allSatisfy { $0 == 1.0 } || scale.count < 4,
+              "\(word): the repair reached earlier syllables")
+    }
+    // And the phonemes are untouched — this is duration, not respelling.
+    #expect(SanskritPhonemizer.phonemize(word) == phonemes)
+  }
+  // A word with no visarga gets no repair at all.
+  let noVisarga = SanskritProsodyPlanner.durationScaleForPhonemes(
+    SanskritPhonemizer.phonemize("कर्म"), intent: .visargaLengthOnly
+  )
+  #expect(noVisarga?.allSatisfy { $0 == 1.0 } == true)
+}
+
+/// `prepareInputTensors` wraps the token sequence in a padding token at each
+/// end, so the duration tensor is two longer than the phoneme count. A scale
+/// built per phoneme must still line up.
+///
+/// This is a regression test: the first version of the duration control was
+/// silently ignored for every input, because the caller supplied one entry per
+/// phoneme and the check demanded one per padded token.
+@Test func durationScaleIsSizedForPhonemesNotPaddedTokens() {
+  for word in ["मामकाः", "धर्मक्षेत्रे", "अभ्युत्थानम्"] {
+    let phonemes = SanskritPhonemizer.phonemize(word)
+    let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
+      phonemes, intent: .recitation
+    )
+    let tokens = Tokenizer.tokenize(phonemizedText: phonemes)
+    #expect(scale?.count == tokens.count,
+            "\(word): scale is \(scale?.count ?? -1) for \(tokens.count) phoneme tokens")
+    // The model pads to tokens.count + 2; the mismatch must not be the
+    // caller's to reconcile.
+    #expect(scale?.count != tokens.count + 2)
+  }
+}

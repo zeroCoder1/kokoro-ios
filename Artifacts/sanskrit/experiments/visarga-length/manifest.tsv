@@ -1,0 +1,5 @@
+filename	id	input	canonical	desired_ipa	kokoro_phonemes	token_ids	voice	speed	warnings
+a_heard_short_hf_alpha_s0.80.wav	a_heard_short	maːmaka	(raw phonemes)	maːmaka	maːmaka	55 43 158 55 43 53 43	hf_alpha	0.8	
+b_no_visarga_hf_alpha_s0.80.wav	b_no_visarga	maːmakaː	(raw phonemes)	maːmakaː	maːmakaː	55 43 158 55 43 53 43 158	hf_alpha	0.8	
+c_current_hf_alpha_s0.80.wav	c_current	maːmakaːh	(raw phonemes)	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hf_alpha	0.8	
+d_ka_short_hf_alpha_s0.80.wav	d_ka_short	maːmakah	(raw phonemes)	maːmakah	maːmakah	55 43 158 55 43 53 43 50	hf_alpha	0.8	

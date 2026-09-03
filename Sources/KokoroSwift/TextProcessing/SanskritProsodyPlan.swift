@@ -49,12 +49,30 @@ struct SanskritProsodyIntent: Equatable {
   /// Multiplier for the aspiration mark, so an aspirated stop keeps its
   /// release.
   var aspirationScale: Float
+  /// Multiplier for a syllable closed by a visarga.
+  ///
+  /// This one is not a preference, it is a repair. A visarga-final syllable is
+  /// guru — a long vowel *and* a closing visarga — yet the model gives it
+  /// barely more time than a light one. Measured on मामकाः at 0.80:
+  ///
+  ///     maːmaka   (short a)            330 ms
+  ///     maːmakaː  (long ā)             390 ms
+  ///     maːmakaːh (ours)               360 ms   ← 9% over the *short* form
+  ///     maːmakaːh + 1.25×              450 ms
+  ///
+  /// So काः was arriving barely longer than क, which is why it is heard as
+  /// मामक. Scaling restores the duration the phonology already specifies; it
+  /// adds no phoneme and changes no token. It does **not** make the visarga
+  /// audible — that is a separate, unfixable limitation — so the result is a
+  /// correctly long final syllable rather than a correctly pronounced one.
+  var visargaSyllableScale: Float
 
   /// No opinion at all: every scale is 1.0, so the model's own prediction
   /// stands untouched. This is what production uses until listening says
   /// otherwise.
   static let neutral = SanskritProsodyIntent(
-    guruVowelScale: 1.0, laghuVowelScale: 1.0, heldCodaScale: 1.0, aspirationScale: 1.0
+    guruVowelScale: 1.0, laghuVowelScale: 1.0, heldCodaScale: 1.0,
+    aspirationScale: 1.0, visargaSyllableScale: 1.0
   )
 
   /// The experimental setting. Guru vowels get a little more time, laghu
@@ -62,7 +80,15 @@ struct SanskritProsodyIntent: Equatable {
   /// contrast between guru and laghu widens by about 25% without either
   /// leaving the range the model already produces.
   static let recitation = SanskritProsodyIntent(
-    guruVowelScale: 1.15, laghuVowelScale: 0.92, heldCodaScale: 1.20, aspirationScale: 1.15
+    guruVowelScale: 1.15, laghuVowelScale: 0.92, heldCodaScale: 1.20,
+    aspirationScale: 1.15, visargaSyllableScale: 1.30
+  )
+
+  /// The visarga repair on its own, with every other scale neutral. Isolates
+  /// the one change with a measured before-and-after.
+  static let visargaLengthOnly = SanskritProsodyIntent(
+    guruVowelScale: 1.0, laghuVowelScale: 1.0, heldCodaScale: 1.0,
+    aspirationScale: 1.0, visargaSyllableScale: 1.30
   )
 }
 
@@ -126,7 +152,29 @@ enum SanskritProsodyPlanner {
     let vocab = (try? KokoroConfig.loadConfig().vocab) ?? [:]
     var scale: [Float] = []
     var previousWasVowel = false
+    // Positions of every `h` that closes a word — a visarga, since Sanskrit ह
+    // never ends a word. Its syllable is the vowel run just before it.
+    let kept = phonemes.unicodeScalars.filter { vocab[String($0)] != nil }
+    var visargaPositions: Set<Int> = []
+    for (index, scalar) in kept.enumerated() where scalar == "h" {
+      let next = index + 1 < kept.count ? kept[kept.index(kept.startIndex, offsetBy: index + 1)] : " "
+      guard next == " " || ",.;:!?".unicodeScalars.contains(next) || index == kept.count - 1
+      else { continue }
+      visargaPositions.insert(index)
+      // ...and the vowel (plus its length mark) immediately before it.
+      var back = index - 1
+      while back >= 0 {
+        let previous = kept[kept.index(kept.startIndex, offsetBy: back)]
+        let isVowelish = "aeiouɑɐɒæɔəɛɜɨɪɯøœʊʌɤː".unicodeScalars.contains(previous)
+        if !isVowelish { break }
+        visargaPositions.insert(back)
+        back -= 1
+      }
+    }
+
+    var position = -1
     for scalar in phonemes.unicodeScalars where vocab[String(scalar)] != nil {
+      position += 1
       let isVowel = "aeiouɑɐɒæɔəɛɜɨɪɯøœʊʌɤ".unicodeScalars.contains(scalar)
       if isVowel {
         // Weight is not known from the phoneme string alone, so the vowel's
@@ -136,7 +184,11 @@ enum SanskritProsodyPlanner {
         scale.append(intent.laghuVowelScale)
       } else if scalar == "ː" {
         // Promote the vowel this lengthens, and itself, to the guru scale.
-        if let last = scale.indices.last { scale[last] = intent.guruVowelScale }
+        // Multiplied rather than assigned: assigning would clobber a visarga
+        // multiplier already applied to that same vowel.
+        let promotion = intent.laghuVowelScale == 0
+          ? 1 : intent.guruVowelScale / intent.laghuVowelScale
+        if let last = scale.indices.last { scale[last] *= promotion }
         scale.append(intent.guruVowelScale)
       } else if scalar == "ʰ" {
         scale.append(intent.aspirationScale)
@@ -148,6 +200,9 @@ enum SanskritProsodyPlanner {
         scale.append(1.0)
       }
       previousWasVowel = isVowel
+      if visargaPositions.contains(position), let last = scale.indices.last {
+        scale[last] *= intent.visargaSyllableScale
+      }
     }
     return scale.count == tokens.count ? scale : nil
   }
