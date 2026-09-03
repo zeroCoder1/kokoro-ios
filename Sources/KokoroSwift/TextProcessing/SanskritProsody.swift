@@ -3,21 +3,27 @@ import Foundation
 /// How long a pause each Sanskrit boundary is worth.
 ///
 /// **These are seconds of real silence, and they are not part of G2P.** They
-/// exist because Kokoro's punctuation tokens do not deliver a usable pause.
-/// Measured on this model, between two words, with everything else identical:
+/// exist because Kokoro's punctuation does not deliver a *differentiated*
+/// pause. Measured on this model at verse length, with the same phonemes and
+/// only the separator changed:
 ///
-///     separator   total span   internal silence
-///     none           865 ms      25 ms
-///     space          995 ms      35 ms
-///     `,`  (daṇḍa)  1040 ms      30 ms
-///     `.`  (verse)   970 ms      30 ms
+///     separator between the two pādas   longest internal silence
+///     none (plain space)                   350 ms
+///     `,`  (daṇḍa)                         385 ms
+///     `.`  (double daṇḍa)                  355 ms
 ///
-/// The punctuation is indistinguishable from a plain space, and `।` from `॥`.
-/// So the phoneme stream still carries `,` and `.` — the model does use them
-/// for phrasing and intonation — and this layer supplies the *duration* the
-/// model will not, by synthesizing each stretch separately and joining with
-/// silence. That is the same mechanism `generateContinuousAudio` already uses
-/// between sentences.
+/// The model does insert a substantial gap on its own — about 350 ms — but it
+/// inserts roughly the same one whether the punctuation is there or not, and
+/// `।` and `॥` come out identical. So the phoneme stream still carries `,`
+/// and `.`, because the model uses them for intonation and final lengthening,
+/// and this layer supplies the *differentiated duration* the model will not.
+/// That is the same mechanism `generateContinuousAudio` uses between
+/// sentences.
+///
+/// The defaults are **totals, not additions**: each stretch is trimmed of the
+/// decoder's own edge silence first, so the configured value is the whole gap.
+/// They are set above the model's natural 350 ms, or configuring a pause would
+/// make the verse *less* separated than leaving it alone.
 ///
 /// `wordBoundary` defaults to zero: the space token measurably does its job,
 /// and pausing between every word would sound like dictation rather than
@@ -35,9 +41,9 @@ struct SanskritProsodyConfiguration: Equatable {
 
   init(
     wordBoundary: TimeInterval = 0.0,
-    padaPause: TimeInterval = 0.32,
-    versePause: TimeInterval = 0.65,
-    sentencePause: TimeInterval = 0.32
+    padaPause: TimeInterval = 0.50,
+    versePause: TimeInterval = 1.00,
+    sentencePause: TimeInterval = 0.50
   ) {
     self.wordBoundary = wordBoundary
     self.padaPause = padaPause

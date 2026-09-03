@@ -2,12 +2,14 @@
 
 Diagnosis of the audible errors in the first-pass BG 1.1 / 2.47 / 4.7 renders.
 
-**Method.** Nothing here was decided by ear — I cannot listen to the files.
-Every claim is either a pipeline trace (exact, reproducible) or an acoustic
-measurement on generated audio (spectral profile, nucleus duration, syllable
-count). Where a claim could not be measured, it says so.
+**Method.** Nothing here was decided by ear. Every claim is either a pipeline
+trace (exact, reproducible) or an acoustic measurement on generated audio —
+spectral profile, vowel-nucleus duration, syllable-nucleus count. Where a claim
+could not be measured, it says so.
 
-Baseline: `bcb3a30`, voice `hf_alpha`, model `kokoro-v1_0` (hexgrad/Kokoro-82M).
+Baseline for every trace and measurement below: **`bcb3a30`**, voice
+`hf_alpha`, model `kokoro-v1_0` (hexgrad/Kokoro-82M). The traces in §1 are
+therefore the *pre-fix* state — that is what a diagnosis records.
 
 ## Verdict summary
 
@@ -159,8 +161,8 @@ This one is ours, and it is measurable.
 
 **The echo vowel adds a whole syllable** — +110 to +170 ms and an extra energy
 nucleus. `रामः` comes out as *rā-ma-ha*, three syllables, where Sanskrit has
-two plus a light aspiration. The user's "sounds like a fully pronounced हा" is
-exactly what our phonological layer asks for.
+two plus a light aspiration. The reported "sounds like a fully pronounced हा"
+is exactly what the phonological layer was asking for.
 
 The traditional visarga echo is a *brief, voiceless* echo of the preceding
 vowel. Kokoro has no way to spell that: `h` + `a` is a full voiced vowel token
@@ -180,24 +182,46 @@ default and emits `KOKORO_APPROXIMATED_VISARGA`.
 ## 5. Daṇḍa pauses — a confirmed bug
 
 Kokoro's punctuation was inspected before reaching for post-hoc silence, as
-§9 requires. It does not deliver a usable pause:
+§9 requires.
 
-| separator between two words | total span | internal silences ≥20 ms |
+A first probe used two words and suggested punctuation did nothing at all
+(20–35 ms in every case). **That probe was unrepresentative** — two words give
+the model no phrase to break — and the figure is corrected here. Repeating it
+at verse length, same phonemes, only the separator changed:
+
+| separator between the two pādas | longest internal silence |
+|---|---|
+| none (plain space) | 350 ms |
+| `,` — our pāda daṇḍa | 385 ms |
+| `.` — our verse daṇḍa | 355 ms |
+
+So the model **does** insert a substantial gap on its own, about 350 ms. What
+it does not do is *differentiate*: the punctuation is worth ~30 ms over
+nothing, and `।` and `॥` come out identical. A verse and a half-verse break
+the same way, which is the actual complaint.
+
+The structured `SanskritBoundary` information was correct; it had nowhere to
+go, because one `generateAudio` call cannot produce a pause the model does not
+predict. `generateContinuousAudio` already solves this for sentences by
+splitting and inserting real silence.
+
+**Classification: `PROSODY_CONFIGURATION_ERROR`. Fixed** as a separated
+prosody layer, documented as not part of G2P. Because each stretch is trimmed
+of the decoder's own edge silence first, the configured value is the *whole*
+gap and had to be set above the model's natural 350 ms — otherwise configuring
+a pause would have made the verse *less* separated than leaving it alone. That
+was the case in a first attempt at 320 ms, which measured no better than v1.
+
+Result, at 500 ms pāda and 1000 ms verse:
+
+| | longest internal silence | next longest (word gaps) |
 |---|---|---|
-| none | 865 ms | [25] |
-| space | 995 ms | [35, 20] |
-| `,` — our pāda daṇḍa | 1040 ms | [25, 30] |
-| `.` — our verse daṇḍa | 970 ms | [30, 20] |
+| v1 bg_01_01 | 365 ms | 220 ms |
+| **v2 bg_01_01** | **585 ms** | 240 ms |
+| v1 bg_02_47 | 320 ms | 295 ms |
+| **v2 bg_02_47** | **555 ms** | 235 ms |
 
-**`,` and `.` are indistinguishable from a plain space** — 20–35 ms in every
-case. There is no phrase break, and no difference between `।` and `॥`. The
-structured `SanskritBoundary` information was correct; it simply had nowhere
-to go, because a single `generateAudio` call cannot produce a pause the model
-does not predict.
-
-`generateContinuousAudio` already solves this for sentences by splitting and
-inserting real silence. **Classification: `PROSODY_CONFIGURATION_ERROR`.
-Fixed** — as a clearly separated prosody layer, documented as not part of G2P.
+The pāda break is now 2.4× a word gap instead of level with one.
 
 ## 6. Word boundaries and long sandhi compounds
 
@@ -277,7 +301,8 @@ No implementation change was made to chase agreement.
 **Changed** (each with a failing test first):
 
 1. Visarga echo off by default — §4, measured spurious syllable.
-2. Pāda and verse pauses via a separated prosody layer — §5, measured 25 ms.
+2. Pāda and verse pauses via a separated prosody layer — §5, measured: the
+   model does not distinguish `।` from `॥`, or either from a plain space.
 3. `markStressOnHeavySyllables` implemented rather than dead — §7.
 
 **Deliberately not changed:**
