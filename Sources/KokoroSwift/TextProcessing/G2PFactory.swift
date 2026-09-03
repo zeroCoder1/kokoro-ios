@@ -11,6 +11,9 @@ public enum G2P {
   /// Native Hindi G2P. Reads Devanagari, numbers and Latin acronyms locally,
   /// and falls back to Misaki for the English it does not cover.
   case hindi
+  /// Native Classical Sanskrit G2P. Devanagari only, and deliberately not the
+  /// Hindi engine: Sanskrit keeps every inherent vowel.
+  case sanskrit
   /// eSpeak NG-based G2P engine supporting multiple languages.
   case eSpeakNG
 }
@@ -48,6 +51,11 @@ final class G2PFactory {
 #else
       throw G2PError.noSuchEngine
 #endif
+
+    case .sanskrit:
+      // No Misaki fallback: Classical Sanskrit recitation has no English in
+      // it, so this engine has no optional dependency to guard.
+      return SanskritG2PProcessor()
 
     case .eSpeakNG:
 #if canImport(eSpeakNGLib)
