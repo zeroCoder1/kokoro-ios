@@ -104,6 +104,21 @@ import Testing
     return "\"\(out)\""
   }
 
+  // Isolated targets: one word each, at the recitation delivery, so a single
+  // problem can be listened to without hunting for it inside a verse.
+  let targets: [(id: String, text: String)] = [
+    ("visarga_yuyutsavah", "युयुत्सवः"),
+    ("visarga_mamakah", "मामकाः"),
+    ("nasal_sanjaya", "सञ्जय"),
+    ("cluster_pandavashchaiva", "पाण्डवाश्चैव"),
+    ("cluster_rbhurma", "कर्मफलहेतुर्भूर्मा"),
+    ("cluster_sangostvakarmani", "सङ्गोऽस्त्वकर्मणि"),
+    ("cluster_abhyutthanam", "अभ्युत्थानम्"),
+    ("vocalic_r_srijamyaham", "सृजाम्यहम्"),
+    ("vocalic_r_krishna", "कृष्ण"),
+    ("vocalic_r_hrishikesha", "हृषीकेश"),
+  ]
+
   for verse in verses {
     for mode in modes {
       let speed = mode.delivery.speed
@@ -130,6 +145,7 @@ import Testing
             "kokoro_phonemes": \(quote(analysis.kokoroPhonemes)),
             "segment_phonemes": [\(phonemeList)],
             "segment_pauses_seconds": [\(pauseList)],
+            "decoded_tokens": [\(audit.decoded.map { quote($0) }.joined(separator: ", "))],
             "token_ids": [\(audit.tokenIDs.map(String.init).joined(separator: ", "))],
             "token_count": \(audit.tokenIDs.count),
             "round_trip_ok": \(audit.roundTrips),
@@ -154,6 +170,63 @@ import Testing
         """)
       print("WROTE \(name)  \(String(format: "%.2f", seconds))s")
     }
+  }
+
+  for target in targets {
+    let delivery = SanskritDelivery.recitation
+    let (audio, segments) = try render(target.text, delivery: delivery)
+    let name = "\(target.id).wav"
+    try AudioUtils.writeWavFile(
+      samples: audio, sampleRate: sampleRate,
+      fileURL: URL(fileURLWithPath: outputDirectory).appendingPathComponent(name)
+    )
+    let analysis = SanskritPhonemizer.analyze(target.text)
+    let audit = SanskritTokenAudit.audit(phonemes: analysis.kokoroPhonemes)
+    let seconds = Double(audio.count) / sampleRate
+    let limitation: String
+    if target.id.hasPrefix("visarga") { limitation = "ACOUSTIC_MODEL_LIMITATION: VISARGA" }
+    else if target.id.hasPrefix("vocalic_r") { limitation = "ACOUSTIC_MODEL_LIMITATION: VOCALIC_R" }
+    else if target.id.hasPrefix("nasal") { limitation = "REVIEW_REQUIRED: PALATAL_NASAL" }
+    else { limitation = "ACOUSTIC_MODEL_LIMITATION: CLUSTER" }
+    entries.append("""
+        {
+          "verse_id": \(quote(target.id)),
+          "file": \(quote(name)),
+          "source_text": \(quote(target.text)),
+          "source_edition": "isolated diagnostic target",
+          "normalized": \(quote(analysis.normalized)),
+          "canonical": \(quote(analysis.canonical)),
+          "phonological": \(quote(analysis.phonological)),
+          "kokoro_phonemes": \(quote(analysis.kokoroPhonemes)),
+          "decoded_tokens": [\(audit.decoded.map { quote($0) }.joined(separator: ", "))],
+          "token_ids": [\(audit.tokenIDs.map(String.init).joined(separator: ", "))],
+          "token_count": \(audit.tokenIDs.count),
+          "round_trip_ok": \(audit.roundTrips),
+          "alignment": [\(analysis.alignment.map { entry in
+            "{\"source\": [\(entry.sourceOffsets.lowerBound), \(entry.sourceOffsets.upperBound)], "
+              + "\"canonical\": \(quote(entry.canonical)), "
+              + "\"phonemes\": \(quote(entry.phonemes)), "
+              + "\"tokens\": [\(entry.tokenIndices.lowerBound), \(entry.tokenIndices.upperBound)]}"
+          }.joined(separator: ", "))],
+          "boundaries": [\(segments.map { quote("\($0.boundary.map(String.init(describing:)) ?? "end")") }.joined(separator: ", "))],
+          "voice": \(quote(voiceName)),
+          "mode": "recitation",
+          "speed": \(delivery.speed),
+          "prosody": {
+            "word_boundary": \(delivery.prosody.wordBoundary),
+            "pada_pause": \(delivery.prosody.padaPause),
+            "verse_pause": \(delivery.prosody.versePause)
+          },
+          "warnings": [\(analysis.warnings.map { quote($0.text) }.joined(separator: ", "))],
+          "approximations": [\(analysis.warnings.filter { $0.text.contains("APPROXIM") || $0.text.contains("UNSUPPORTED") }.map { quote($0.text) }.joined(separator: ", "))],
+          "predicted_limitation": \(quote(limitation)),
+          "commit": \(quote(commit)),
+          "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+          "voice_id": \(quote(voiceName)),
+          "duration_seconds": \(String(format: "%.3f", seconds))
+        }
+      """)
+    print("WROTE \(name)  \(String(format: "%.2f", seconds))s")
   }
 
   let json = "{\n  \"entries\": [\n" + entries.joined(separator: ",\n") + "\n  ]\n}\n"
