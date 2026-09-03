@@ -225,9 +225,13 @@ public final class KokoroTTS {
   func generateAudio(
     voice: MLXArray,
     phonemes: String,
-    speed: Float = 1.0
+    speed: Float = 1.0,
+    durationScale: [Float]? = nil
   ) throws -> [Float] {
-    try synthesize(voice: voice, phonemes: phonemes, tokens: nil, speed: speed, style: nil).0
+    try synthesize(
+      voice: voice, phonemes: phonemes, tokens: nil,
+      speed: speed, style: nil, durationScale: durationScale
+    ).0
   }
 
   /// The synthesis pipeline. `style` is `nil` on the legacy speed-only path,
@@ -247,7 +251,7 @@ public final class KokoroTTS {
     let (phonemizedText, tokenArray) = try phonemizeText(text)
     return try synthesize(
       voice: voice, phonemes: phonemizedText, tokens: tokenArray,
-      speed: speed, style: style
+      speed: speed, style: style, durationScale: nil
     )
   }
 
@@ -258,7 +262,8 @@ public final class KokoroTTS {
     phonemes phonemizedText: String,
     tokens tokenArray: [MToken]?,
     speed: Float,
-    style: SpeechStyle?
+    style: SpeechStyle?,
+    durationScale: [Float]?
   ) throws -> ([Float], [MToken]?) {
     // Start performance timing
     BenchmarkTimer.reset()
@@ -283,7 +288,8 @@ public final class KokoroTTS {
     let (predictedDurations, alignmentTarget) = predictDurations(
       features: durationFeatures,
       batchSize: paddedInputIds.shape[1],
-      speed: speed
+      speed: speed,
+      durationScale: durationScale
     )
 
     // Step 6: Generate aligned encodings
@@ -487,7 +493,12 @@ public final class KokoroTTS {
   ///   - batchSize: Size of the input batch
   ///   - speed: Speech speed multiplier
   /// - Returns: Predicted durations and alignment target matrix for duration expansion
-  private func predictDurations(features: MLXArray, batchSize: Int, speed: Float) -> (MLXArray, MLXArray) {
+  private func predictDurations(
+    features: MLXArray,
+    batchSize: Int,
+    speed: Float,
+    durationScale: [Float]? = nil
+  ) -> (MLXArray, MLXArray) {
     // Pass through LSTM
     let (lstmOutput, _) = predictorLSTM(features)
 
@@ -495,7 +506,27 @@ public final class KokoroTTS {
     let durationLogits = durationProj(lstmOutput)
 
     // Convert to actual durations (clamped to minimum of 1 frame)
-    let durationSigmoid = MLX.sigmoid(durationLogits).sum(axis: -1) / speed
+    var durationSigmoid = MLX.sigmoid(durationLogits).sum(axis: -1) / speed
+
+    // A per-token multiplier, applied to the model's own prediction before it
+    // becomes frames.
+    //
+    // `speed` is one number for the whole utterance, so it cannot express that
+    // a Sanskrit guru syllable is worth two matras and a laghu one. This can:
+    // it scales the predicted duration of individual tokens and changes
+    // nothing else — not the tokens, not their order, not their identity. The
+    // phoneme sequence the model receives is byte-identical either way.
+    //
+    // A count mismatch is ignored rather than applied partially, because a
+    // scale silently sliding one token out of step would be worse than none.
+    if let durationScale {
+      let count = durationSigmoid.shape.last ?? 0
+      if durationScale.count == count {
+        durationSigmoid = durationSigmoid * MLXArray(durationScale).reshaped([1, count])
+      } else {
+        print("[KokoroTTS] duration scale has \(durationScale.count) entries for \(count) tokens; ignored")
+      }
+    }
     let predictedDurations = MLX.clip(durationSigmoid.round(), min: 1).asType(.int32)[0]
 
     // Create alignment matrix
