@@ -66,7 +66,9 @@ struct SanskritProsodyConfiguration: Equatable {
     case .pada: return padaPause
     case .verse: return versePause
     case .sentence: return sentencePause
-    case .elision: return 0
+    // Neither of these is a pause: an avagraha is an elision inside continuous
+    // speech, and a source newline is typography.
+    case .elision, .displayLineBreak: return 0
     }
   }
 }

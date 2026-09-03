@@ -367,6 +367,9 @@ enum SanskritKokoroMapper {
     // Avagraha is silent. It is not a length mark, which is what EdgeSanskrit
     // makes of it.
     case .elision: return ""
+    // A source newline is typography, not metre: it reads as an ordinary word
+    // break and never as a pause.
+    case .displayLineBreak: return " "
     }
   }
 

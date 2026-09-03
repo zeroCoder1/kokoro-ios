@@ -202,6 +202,30 @@ enum SanskritPhonemizer {
     }
     lines.append("")
 
+    // Both units are printed on purpose: an akṣara is orthographic and a
+    // syllable is phonological, and they differ wherever a consonant closes
+    // the previous syllable — मन्त्र is three akṣaras but two syllables.
+    let syllabified = SanskritSyllabifier.syllabify(result.units, options: options)
+    lines.append("SYLLABLES (phonological)")
+    for syllable in syllabified.syllables {
+      var notes: [String] = ["\(syllable.weight == .guru ? "guru" : "laghu")",
+                             "\(syllable.matras) mātrā"]
+      switch syllable.weightReason {
+      case .longVowel: notes.append("long vowel")
+      case .closedByConsonant: notes.append("closed by \(syllable.coda.map(\.rawValue).joined())")
+      case .anusvara: notes.append("anusvāra")
+      case .visarga: notes.append("visarga")
+      case .lineFinal: notes.append("line-final")
+      case .shortOpenSyllable: notes.append("short open")
+      }
+      if syllable.holdClosingConsonant { notes.append("HOLD \(syllable.coda.map(\.rawValue).joined())") }
+      lines.append("  " + syllable.slp1.padding(toLength: 10, withPad: " ", startingAt: 0)
+        + notes.joined(separator: ", "))
+    }
+    lines.append("  pattern   " + syllabified.syllables.map { $0.weight == .guru ? "G" : "L" }.joined()
+      + "   mātrās \(syllabified.syllables.reduce(0) { $0 + $1.matras })")
+    lines.append("")
+
     lines += ["CANONICAL SANSKRIT (SLP1)", "  \(result.canonical)", ""]
     lines += ["PHONOLOGICAL OUTPUT (SLP1)", "  \(result.phonological)", ""]
     lines += ["KOKORO PHONEMES", "  \(result.kokoroPhonemes)", ""]
@@ -265,6 +289,7 @@ enum SanskritPhonemizer {
     case .verse: return "||         verse boundary (double daṇḍa) — strong pause"
     case .sentence(let character): return "\(character)          sentence punctuation"
     case .elision: return "'          avagraha — silent, elided initial अ"
+    case .displayLineBreak: return "↵          source line break — typography, no pause"
     }
   }
 }

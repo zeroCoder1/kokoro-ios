@@ -13,15 +13,26 @@ enum SanskritBoundary: Equatable {
   /// Sentence punctuation carried over from the source.
   case sentence(Character)
   /// `ऽ` avagraha. Silent, but a real morpheme boundary: it marks an initial
-  /// अ elided after a preceding e or o, as in सोऽहम् and नरोऽपराणि.
+  /// अ elided after a preceding e or o, as in सोऽहम् and नरोऽपराणि. Distinct
+  /// from `none` and from `word`: it neither joins the two sides seamlessly
+  /// nor separates them as words.
   case elision
+  /// A line break in the *source file*, which is a typographic fact and not a
+  /// metrical one.
+  ///
+  /// A śloka is conventionally printed on two lines, but the daṇḍa is what
+  /// marks the pāda — the newline merely follows it. Treating a newline as a
+  /// pause would let a UI re-wrap change pronunciation, so this carries no
+  /// pause and no phonological effect at all. The Sanskrit text stays
+  /// authoritative.
+  case displayLineBreak
 
   /// Whether this ends a breath group. A word boundary does not; a daṇḍa does.
   /// This is what decides whether a visarga takes its echo vowel.
   var isPause: Bool {
     switch self {
     case .pada, .verse, .sentence: return true
-    case .word, .elision: return false
+    case .word, .elision, .displayLineBreak: return false
     }
   }
 
@@ -32,6 +43,7 @@ enum SanskritBoundary: Equatable {
     case .verse: return " || "
     case .sentence(let character): return String(character)
     case .elision: return "'"
+    case .displayLineBreak: return " "
     }
   }
 }
