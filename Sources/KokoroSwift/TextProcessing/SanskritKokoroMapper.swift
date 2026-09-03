@@ -21,9 +21,45 @@ import Foundation
 /// thing, the nearest sound goes out *and* a warning is recorded naming the
 /// substitution. See §30 of the brief and `docs/SANSKRIT_KOKORO_COMPATIBILITY.md`.
 enum SanskritKokoroMapper {
+  /// What the mapper was able to do with one canonical Sanskrit phoneme.
+  ///
+  /// Typed rather than a bare string plus an optional warning, so a caller
+  /// cannot read the phonemes and forget the caveat. The canonical Sanskrit
+  /// layer never changes because Kokoro lacks a sound; this is where that
+  /// shortfall is recorded.
+  enum Outcome: Equatable {
+    /// Kokoro has the sound.
+    case exact(String)
+    /// Kokoro has something close, and the difference is named.
+    case approximation(String, SanskritWarning)
+    /// Kokoro does not have the sound at all; the string is a fallback.
+    case unsupported(String, SanskritWarning)
+
+    var phonemes: String {
+      switch self {
+      case let .exact(value), let .approximation(value, _), let .unsupported(value, _):
+        return value
+      }
+    }
+
+    var warning: SanskritWarning? {
+      switch self {
+      case .exact: return nil
+      case let .approximation(_, warning), let .unsupported(_, warning): return warning
+      }
+    }
+
+    var isExact: Bool { if case .exact = self { return true }; return false }
+  }
+
   struct Result {
     var phonemes: String = ""
     var warnings: [SanskritWarning] = []
+    /// Scalar range in `phonemes` for each input segment, parallel to the
+    /// segments handed in. This is what carries source alignment through the
+    /// last layer, so a Kokoro token can be traced back to the akshara — and
+    /// through that to the character range — that produced it.
+    var spans: [Range<Int>] = []
   }
 
   /// Combining tilde, Kokoro token 17. `Tokenizer` iterates Unicode scalars
@@ -55,28 +91,63 @@ enum SanskritKokoroMapper {
     }
 
     for segment in segments {
+      let start = result.phonemes.unicodeScalars.count
       switch segment {
       case let .vowel(vowel, nasalized):
         vowelIndex += 1
-        let (ipa, warning) = self.ipa(for: vowel, options: options)
-        if let warning { warnOnce(warning) }
+        let outcome = self.ipa(for: vowel, options: options)
+        if let warning = outcome.warning { warnOnce(warning) }
         // eSpeak places the stress token immediately before the vowel, which
         // is the sequence Kokoro learned.
         if stressed.contains(vowelIndex) { result.phonemes += "ˈ" }
-        result.phonemes += nasalize(ipa, if: nasalized)
+        result.phonemes += nasalize(outcome.phonemes, if: nasalized)
 
       case let .consonant(consonant):
-        let (ipa, warning) = self.ipa(for: consonant, options: options)
-        if let warning { warnOnce(warning) }
-        result.phonemes += ipa
+        let outcome = self.ipa(for: consonant, options: options)
+        if let warning = outcome.warning { warnOnce(warning) }
+        result.phonemes += outcome.phonemes
 
       case let .boundary(boundary):
         result.phonemes += self.ipa(for: boundary)
       }
+      result.spans.append(start ..< result.phonemes.unicodeScalars.count)
     }
 
-    result.phonemes = tidied(result.phonemes)
+    // `tidied` only removes whitespace, and only at a boundary segment or at
+    // the very ends, so the spans stay usable: they are recomputed against the
+    // tidied string rather than trusted blindly.
+    result = retiming(result)
     return result
+  }
+
+  /// Re-derives the spans against the tidied phoneme string.
+  ///
+  /// `tidied` collapses runs of spaces and pulls punctuation back against the
+  /// phoneme before it, so scalar offsets taken while building shift by a few
+  /// positions. Rather than trust them, the spans are rebuilt by walking the
+  /// original pieces through the tidied string in order — anything that cannot
+  /// be located collapses to an empty range at the current position rather
+  /// than silently pointing at the wrong phoneme.
+  private static func retiming(_ result: Result) -> Result {
+    var output = result
+    let original = Array(result.phonemes.unicodeScalars)
+    output.phonemes = tidied(result.phonemes)
+    let tidiedScalars = Array(output.phonemes.unicodeScalars)
+
+    var cursor = 0
+    output.spans = result.spans.map { span in
+      let piece = Array(original[span.clamped(to: 0 ..< original.count)])
+      let meaningful = piece.filter { $0 != " " }
+      guard !meaningful.isEmpty else { return cursor ..< cursor }
+      // Find the piece's first meaningful scalar at or after the cursor.
+      var index = cursor
+      while index < tidiedScalars.count, tidiedScalars[index] != meaningful[0] { index += 1 }
+      guard index < tidiedScalars.count else { return cursor ..< cursor }
+      let end = min(index + meaningful.count, tidiedScalars.count)
+      cursor = end
+      return index ..< end
+    }
+    return output
   }
 
   // MARK: Prominence
@@ -154,26 +225,26 @@ enum SanskritKokoroMapper {
   private static func ipa(
     for vowel: SanskritVowel,
     options: SanskritOptions
-  ) -> (String, SanskritWarning?) {
+  ) -> Outcome {
     switch vowel {
-    case .a: return ("a", nil)
-    case .aa: return ("aː", nil)
-    case .i: return ("i", nil)
-    case .ii: return ("iː", nil)
-    case .u: return ("u", nil)
-    case .uu: return ("uː", nil)
+    case .a: return .exact("a")
+    case .aa: return .exact("aː")
+    case .i: return .exact("i")
+    case .ii: return .exact("iː")
+    case .u: return .exact("u")
+    case .uu: return .exact("uː")
 
     // ए and ओ are inherently long in Sanskrit — always guru, and metre
     // depends on it. EdgeSanskrit writes them short, which is the error this
     // length mark exists to avoid.
-    case .e: return ("eː", nil)
-    case .o: return ("oː", nil)
+    case .e: return .exact("eː")
+    case .o: return .exact("oː")
 
     // The vrddhi diphthongs. `aɪ` and `aʊ` are the best-conditioned
     // diphthong sequences in the model — English *price* and *mouth* — and
     // carry their length in the glide rather than an explicit mark.
-    case .ai: return ("aɪ", nil)
-    case .au: return ("aʊ", nil)
+    case .ai: return .exact("aɪ")
+    case .au: return .exact("aʊ")
 
     // The vocalic liquids: the one real gap. Kokoro has no syllabic
     // diacritic — neither U+0329 nor U+0325 is in the vocabulary — so `r̩`
@@ -181,26 +252,26 @@ enum SanskritKokoroMapper {
     // light syllable, so metre survives; the timbre is what is lost.
     case .vocalicR:
       let rendered = options.vocalicLiquid == .ri ? "ɾɪ" : "ɾu"
-      return (rendered, .kokoroApproximation(
+      return .approximation(rendered, .kokoroApproximation(
         sound: "vocalic ṛ (ऋ)",
         rendered: rendered,
         reason: "no syllabic diacritic in the Kokoro vocabulary"
       ))
     case .vocalicRR:
       let rendered = options.vocalicLiquid == .ri ? "ɾiː" : "ɾuː"
-      return (rendered, .kokoroApproximation(
+      return .approximation(rendered, .kokoroApproximation(
         sound: "long vocalic ṝ (ॠ)",
         rendered: rendered,
         reason: "no syllabic diacritic in the Kokoro vocabulary"
       ))
     case .vocalicL:
-      return ("lɪ", .kokoroApproximation(
+      return .approximation("lɪ", .kokoroApproximation(
         sound: "vocalic ḷ (ऌ)",
         rendered: "lɪ",
         reason: "no syllabic diacritic in the Kokoro vocabulary"
       ))
     case .vocalicLL:
-      return ("liː", .kokoroApproximation(
+      return .approximation("liː", .kokoroApproximation(
         sound: "long vocalic ḹ (ॡ)",
         rendered: "liː",
         reason: "no syllabic diacritic in the Kokoro vocabulary"
@@ -213,71 +284,71 @@ enum SanskritKokoroMapper {
   private static func ipa(
     for consonant: SanskritConsonant,
     options: SanskritOptions
-  ) -> (String, SanskritWarning?) {
+  ) -> Outcome {
     switch consonant {
-    case .ka: return ("k", nil)
-    case .kha: return ("kʰ", nil)
-    case .ga: return ("ɡ", nil)
-    case .gha: return ("ɡʰ", nil)
-    case .nga: return ("ŋ", nil)
+    case .ka: return .exact("k")
+    case .kha: return .exact("kʰ")
+    case .ga: return .exact("ɡ")
+    case .gha: return .exact("ɡʰ")
+    case .nga: return .exact("ŋ")
 
     // तालव्य. Palatal stops rather than affricates: that is the traditional
     // description, and Kokoro trained `c`/`ɟ` through its Hindi, so they are
     // conditioned in an Indic context. EdgeSanskrit writes `tʃ`/`dʒ`.
-    case .ca: return (options.palatalStops == .stops ? "c" : "ʧ", nil)
-    case .cha: return (options.palatalStops == .stops ? "cʰ" : "ʧʰ", nil)
-    case .ja: return (options.palatalStops == .stops ? "ɟ" : "ʤ", nil)
-    case .jha: return (options.palatalStops == .stops ? "ɟʰ" : "ʤʰ", nil)
-    case .nya: return ("ɲ", nil)
+    case .ca: return .exact(options.palatalStops == .stops ? "c" : "ʧ")
+    case .cha: return .exact(options.palatalStops == .stops ? "cʰ" : "ʧʰ")
+    case .ja: return .exact(options.palatalStops == .stops ? "ɟ" : "ʤ")
+    case .jha: return .exact(options.palatalStops == .stops ? "ɟʰ" : "ʤʰ")
+    case .nya: return .exact("ɲ")
 
-    case .tta: return ("ʈ", nil)
-    case .ttha: return ("ʈʰ", nil)
-    case .dda: return ("ɖ", nil)
-    case .ddha: return ("ɖʰ", nil)
-    case .nna: return ("ɳ", nil)
+    case .tta: return .exact("ʈ")
+    case .ttha: return .exact("ʈʰ")
+    case .dda: return .exact("ɖ")
+    case .ddha: return .exact("ɖʰ")
+    case .nna: return .exact("ɳ")
 
     // Sanskrit त द न are true dentals and Kokoro's are English alveolars.
     // The contrast with the retroflex series survives, which is the phonemic
     // requirement; the exact place is a voice-training matter and must not be
     // "fixed" by moving these somewhere else in the vocabulary.
-    case .ta: return ("t", nil)
-    case .tha: return ("tʰ", nil)
-    case .da: return ("d", nil)
-    case .dha: return ("dʰ", nil)
-    case .na: return ("n", nil)
+    case .ta: return .exact("t")
+    case .tha: return .exact("tʰ")
+    case .da: return .exact("d")
+    case .dha: return .exact("dʰ")
+    case .na: return .exact("n")
 
-    case .pa: return ("p", nil)
-    case .pha: return ("pʰ", nil)
-    case .ba: return ("b", nil)
-    case .bha: return ("bʰ", nil)
-    case .ma: return ("m", nil)
+    case .pa: return .exact("p")
+    case .pha: return .exact("pʰ")
+    case .ba: return .exact("b")
+    case .bha: return .exact("bʰ")
+    case .ma: return .exact("m")
 
-    case .ya: return ("j", nil)
-    case .ra: return ("ɾ", nil)
-    case .la: return ("l", nil)
+    case .ya: return .exact("j")
+    case .ra: return .exact("ɾ")
+    case .la: return .exact("l")
     // दन्त्योष्ठ्य: an approximant, not the fricative `v`.
-    case .va: return ("ʋ", nil)
+    case .va: return .exact("ʋ")
 
     // श ष स stay three-way distinct either way. `ɕ` is the more accurate
     // value for तालव्य श and is in the vocabulary, but reaches Kokoro only
     // through Japanese and Chinese, so it is thinly conditioned here.
-    case .sha: return (options.palatalSibilant == .postalveolar ? "ʃ" : "ɕ", nil)
-    case .ssa: return ("ʂ", nil)
-    case .sa: return ("s", nil)
+    case .sha: return .exact(options.palatalSibilant == .postalveolar ? "ʃ" : "ɕ")
+    case .ssa: return .exact("ʂ")
+    case .sa: return .exact("s")
 
     // Sanskrit ह is breathy `ɦ`, which is not in the base vocabulary — it is
     // one of the tokens IndicVoice had to add.
-    case .ha, .visarga: return ("h", nil)
+    case .ha, .visarga: return .exact("h")
 
     case .lla:
-      return ("l", .kokoroUnsupported(
+      return .unsupported("l", .kokoroUnsupported(
         sound: "ḷa (ळ)",
         detail: "ɭ (U+026D) is not in the Kokoro vocabulary; read as l"
       ))
 
     // Both allophones are spellable, and both are off by default.
-    case .jihvamuliya: return ("x", nil)
-    case .upadhmaniya: return ("ɸ", nil)
+    case .jihvamuliya: return .exact("x")
+    case .upadhmaniya: return .exact("ɸ")
     }
   }
 

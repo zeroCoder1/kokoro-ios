@@ -296,12 +296,24 @@ enum SanskritPhonology {
 
   struct Result {
     var segments: [Segment] = []
+    /// Which unit each segment came from, parallel to `segments`. `nil` for a
+    /// boundary, which belongs to no akshara. This is what carries source
+    /// alignment through the phonology layer so a token can be traced back to
+    /// the character range that produced it.
+    var origins: [Int?] = []
     var warnings: [SanskritWarning] = []
     /// SLP1 for the resolved form — anusvara turned into its nasal, visarga
     /// into its echo. Diffable against a reference, and the line the
     /// inspector prints as PHONOLOGICAL OUTPUT.
     var slp1: String {
       Self.render(segments).trimmingCharacters(in: .whitespaces)
+    }
+
+    /// Appends a segment together with the unit it came from, so the two
+    /// arrays cannot drift apart.
+    mutating func append(_ segment: Segment, from origin: Int?) {
+      segments.append(segment)
+      origins.append(origin)
     }
 
     static func render(_ segments: [Segment]) -> String {
@@ -329,13 +341,13 @@ enum SanskritPhonology {
     for (index, unit) in units.enumerated() {
       switch unit {
       case let .boundary(boundary):
-        result.segments.append(.boundary(boundary))
+        result.append(.boundary(boundary), from: nil)
 
       case let .akshara(akshara):
         // The onset cluster is written as it stands; conjuncts need no
         // special handling because they were parsed compositionally.
         for consonant in akshara.onset {
-          result.segments.append(.consonant(consonant))
+          result.append(.consonant(consonant), from: index)
         }
 
         // An anusvara or chandrabindu on a vowelless akshara has nothing to
@@ -361,10 +373,10 @@ enum SanskritPhonology {
         }
 
         if let vowel = akshara.vowel {
-          result.segments.append(.vowel(vowel, nasalized: nasalizedVowel))
+          result.append(.vowel(vowel, nasalized: nasalizedVowel), from: index)
         }
         if let homorganic {
-          result.segments.append(.consonant(homorganic))
+          result.append(.consonant(homorganic), from: index)
         }
 
         if akshara.visarga {
@@ -453,8 +465,8 @@ enum SanskritPhonology {
     let atPause = isAtPause(after: index, in: units)
 
     if atPause, options.visargaEchoAtPause, let vowel = akshara.vowel {
-      result.segments.append(.consonant(.ha))
-      result.segments.append(.vowel(vowel.echoVowel, nasalized: false))
+      result.append(.consonant(.ha), from: index)
+      result.append(.vowel(vowel.echoVowel, nasalized: false), from: index)
       result.warnings.append(.visargaApproximated(
         rendered: "h + a full vowel",
         reason: "Kokoro has no short or voiceless vowel, so the echo becomes a whole syllable"
@@ -469,11 +481,11 @@ enum SanskritPhonology {
       // Kokoro, but Vagdhenu's own A/B preferred the plain form, so this is
       // off by default.
       if next.isUnvoiced, next.place == .velar {
-        result.segments.append(.consonant(.jihvamuliya))
+        result.append(.consonant(.jihvamuliya), from: index)
         return
       }
       if next.isUnvoiced, next.place == .labial {
-        result.segments.append(.consonant(.upadhmaniya))
+        result.append(.consonant(.upadhmaniya), from: index)
         return
       }
     }
@@ -482,7 +494,7 @@ enum SanskritPhonology {
     // a brief echo of the preceding vowel, and Kokoro has neither the
     // voiceless vowel nor a way to shorten one — but it adds no spurious
     // syllable, which the echo does. Reported, never claimed as faithful.
-    result.segments.append(.consonant(.ha))
+    result.append(.consonant(.ha), from: index)
     result.warnings.append(.visargaApproximated(
       rendered: "h",
       reason: atPause
