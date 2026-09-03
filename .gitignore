@@ -8,3 +8,6 @@ DerivedData/
 .netrc
 .venv/
 *.metallib
+
+# Listening samples: regenerable output, see Artifacts/sanskrit/README.md
+/Artifacts/*/*.wav
