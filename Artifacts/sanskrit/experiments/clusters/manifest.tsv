@@ -1,0 +1,39 @@
+filename	id	input	canonical	desired_ipa	kokoro_phonemes	token_ids	voice	speed	warnings
+c_dharmakshetre_hf_alpha.wav	c_dharmakshetre	धर्मक्षेत्रे	Darmakzetre	dʰaɾmakʂeːtɾeː	dʰaɾmakʂeːtɾeː	46 162 43 125 55 43 53 130 47 158 62 125 47 158	hf_alpha	1.0	
+c_dharma_kshetre_split_hf_alpha.wav	c_dharma_kshetre_split	dʰaɾma kʂeːtɾeː	(raw phonemes)	dʰaɾma kʂeːtɾeː	dʰaɾma kʂeːtɾeː	46 162 43 125 55 43 16 53 130 47 158 62 125 47 158	hf_alpha	1.0	
+c_rmaksha_hf_alpha.wav	c_rmaksha	ɾmakʂa	(raw phonemes)	ɾmakʂa	ɾmakʂa	125 55 43 53 130 43	hf_alpha	1.0	
+c_shcha_hf_alpha.wav	c_shcha	श्च	Sca	ʃca	ʃca	131 45 43	hf_alpha	1.0	
+c_shchai_hf_alpha.wav	c_shchai	श्चै	ScE	ʃcaɪ	ʃcaɪ	131 45 43 102	hf_alpha	1.0	
+c_chai_hf_alpha.wav	c_chai	चै	cE	caɪ	caɪ	45 43 102	hf_alpha	1.0	
+c_che_hf_alpha.wav	c_che	चे	ce	ceː	ceː	45 47 158	hf_alpha	1.0	
+c_chaiva_hf_alpha.wav	c_chaiva	चैव	cEva	caɪʋa	caɪʋa	45 43 102 136 43	hf_alpha	1.0	
+c_pandavah_hf_alpha.wav	c_pandavah	पाण्डवाः	pARqavAH	paːɳɖaʋaːh	paːɳɖaʋaːh	58 43 158 113 80 43 136 43 158 50	hf_alpha	1.0	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+c_pandavashcha_hf_alpha.wav	c_pandavashcha	पाण्डवाश्च	pARqavASca	paːɳɖaʋaːʃca	paːɳɖaʋaːʃca	58 43 158 113 80 43 136 43 158 131 45 43	hf_alpha	1.0	
+c_pandavashchaiva_hf_alpha.wav	c_pandavashchaiva	पाण्डवाश्चैव	pARqavAScEva	paːɳɖaʋaːʃcaɪʋa	paːɳɖaʋaːʃcaɪʋa	58 43 158 113 80 43 136 43 158 131 45 43 102 136 43	hf_alpha	1.0	
+c_bhu_short_hf_alpha.wav	c_bhu_short	भु	Bu	bʰu	bʰu	44 162 63	hf_alpha	1.0	
+c_bhu_long_hf_alpha.wav	c_bhu_long	भू	BU	bʰuː	bʰuː	44 162 63 158	hf_alpha	1.0	
+c_rbhu_short_hf_alpha.wav	c_rbhu_short	ɾbʰu	(raw phonemes)	ɾbʰu	ɾbʰu	125 44 162 63	hf_alpha	1.0	
+c_rbhu_long_hf_alpha.wav	c_rbhu_long	ɾbʰuː	(raw phonemes)	ɾbʰuː	ɾbʰuː	125 44 162 63 158	hf_alpha	1.0	
+c_bhur_hf_alpha.wav	c_bhur	bʰuːɾ	(raw phonemes)	bʰuːɾ	bʰuːɾ	44 162 63 158 125	hf_alpha	1.0	
+c_rbhur_hf_alpha.wav	c_rbhur	ɾbʰuːɾ	(raw phonemes)	ɾbʰuːɾ	ɾbʰuːɾ	125 44 162 63 158 125	hf_alpha	1.0	
+c_bhurma_hf_alpha.wav	c_bhurma	bʰuːɾmaː	(raw phonemes)	bʰuːɾmaː	bʰuːɾmaː	44 162 63 158 125 55 43 158	hf_alpha	1.0	
+c_rbhurma_hf_alpha.wav	c_rbhurma	ɾbʰuːɾmaː	(raw phonemes)	ɾbʰuːɾmaː	ɾbʰuːɾmaː	125 44 162 63 158 125 55 43 158	hf_alpha	1.0	
+c_hetur_bhurma_hf_alpha.wav	c_hetur_bhurma	हेतुर्भूर्मा	heturBUrmA	heːtuɾbʰuːɾmaː	heːtuɾbʰuːɾmaː	50 47 158 62 63 125 44 162 63 158 125 55 43 158	hf_alpha	1.0	
+c_bhya_hf_alpha.wav	c_bhya	भ्य	Bya	bʰja	bʰja	44 162 52 43	hf_alpha	1.0	
+c_bhyu_hf_alpha.wav	c_bhyu	bʰju	(raw phonemes)	bʰju	bʰju	44 162 52 63	hf_alpha	1.0	
+c_bhyut_hf_alpha.wav	c_bhyut	bʰjut	(raw phonemes)	bʰjut	bʰjut	44 162 52 63 62	hf_alpha	1.0	
+c_ttha_hf_alpha.wav	c_ttha	त्थ	tTa	ttʰa	ttʰa	62 62 162 43	hf_alpha	1.0	
+c_uttha_hf_alpha.wav	c_uttha	उत्थ	utTa	uttʰa	uttʰa	63 62 62 162 43	hf_alpha	1.0	
+c_bhyuttha_hf_alpha.wav	c_bhyuttha	bʰjuttʰa	(raw phonemes)	bʰjuttʰa	bʰjuttʰa	44 162 52 63 62 62 162 43	hf_alpha	1.0	
+c_abhyutthanam_hf_alpha.wav	c_abhyutthanam	अभ्युत्थानम्	aByutTAnam	abʰjuttʰaːnam	abʰjuttʰaːnam	43 44 162 52 63 62 62 162 43 158 56 43 55	hf_alpha	1.0	
+c_gla_hf_alpha.wav	c_gla	ग्ल	gla	ɡla	ɡla	92 54 43	hf_alpha	1.0	
+c_glaa_hf_alpha.wav	c_glaa	ग्ला	glA	ɡlaː	ɡlaː	92 54 43 158	hf_alpha	1.0	
+c_nirbha_hf_alpha.wav	c_nirbha	निर्भ	nirBa	niɾbʰa	niɾbʰa	56 51 125 44 162 43	hf_alpha	1.0	
+c_nirbhava_hf_alpha.wav	c_nirbhava	निर्भव	nirBava	niɾbʰaʋa	niɾbʰaʋa	56 51 125 44 162 43 136 43	hf_alpha	1.0	
+c_glanirbhavati_hf_alpha.wav	c_glanirbhavati	ग्लानिर्भवति	glAnirBavati	ɡlaːniɾbʰaʋati	ɡlaːniɾbʰaʋati	92 54 43 158 56 51 125 44 162 43 136 43 62 51	hf_alpha	1.0	
+c_sango_hf_alpha.wav	c_sango	सङ्गो	saNgo	saŋɡoː	saŋɡoː	61 43 112 92 57 158	hf_alpha	1.0	
+c_stva_hf_alpha.wav	c_stva	स्त्व	stva	stʋa	stʋa	61 62 136 43	hf_alpha	1.0	
+c_sangostu_hf_alpha.wav	c_sangostu	सङ्गोऽस्तु	saNgo'stu	saŋɡoːstu	saŋɡoːstu	61 43 112 92 57 158 61 62 63	hf_alpha	1.0	
+c_sangostvakarmani_hf_alpha.wav	c_sangostvakarmani	सङ्गोऽस्त्वकर्मणि	saNgo'stvakarmaRi	saŋɡoːstʋakaɾmaɳi	saŋɡoːstʋakaɾmaɳi	61 43 112 92 57 158 61 62 136 43 53 43 125 55 43 113 51	hf_alpha	1.0	
+c_sanjaya_hf_alpha.wav	c_sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hf_alpha	1.0	
+c_samjaya_hf_alpha.wav	c_samjaya	संजय	saMjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hf_alpha	1.0	

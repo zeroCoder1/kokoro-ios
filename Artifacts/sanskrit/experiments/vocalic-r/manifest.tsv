@@ -1,0 +1,68 @@
+filename	id	input	canonical	desired_ipa	kokoro_phonemes	token_ids	voice	speed	warnings
+vr_ka__current_ri_hf_alpha.wav	vr_ka__current_ri	kɾɪ	(raw phonemes)	kɾɪ	kɾɪ	53 125 102	hf_alpha	1.0	
+vr_ka__south_ru_hf_alpha.wav	vr_ka__south_ru	kɾu	(raw phonemes)	kɾu	kɾu	53 125 63	hf_alpha	1.0	
+vr_ka__retroflex_flap_hf_alpha.wav	vr_ka__retroflex_flap	kɽ	(raw phonemes)	kɽ	kɽ	53 129	hf_alpha	1.0	
+vr_ka__retroflex_approx_hf_alpha.wav	vr_ka__retroflex_approx	kɻ	(raw phonemes)	kɻ	kɻ	53 126	hf_alpha	1.0	
+vr_ka__bare_r_hf_alpha.wav	vr_ka__bare_r	kɾ	(raw phonemes)	kɾ	kɾ	53 125	hf_alpha	1.0	
+vr_ga__current_ri_hf_alpha.wav	vr_ga__current_ri	ɡɾɪ	(raw phonemes)	ɡɾɪ	ɡɾɪ	92 125 102	hf_alpha	1.0	
+vr_ga__south_ru_hf_alpha.wav	vr_ga__south_ru	ɡɾu	(raw phonemes)	ɡɾu	ɡɾu	92 125 63	hf_alpha	1.0	
+vr_ga__retroflex_flap_hf_alpha.wav	vr_ga__retroflex_flap	ɡɽ	(raw phonemes)	ɡɽ	ɡɽ	92 129	hf_alpha	1.0	
+vr_ga__retroflex_approx_hf_alpha.wav	vr_ga__retroflex_approx	ɡɻ	(raw phonemes)	ɡɻ	ɡɻ	92 126	hf_alpha	1.0	
+vr_ga__bare_r_hf_alpha.wav	vr_ga__bare_r	ɡɾ	(raw phonemes)	ɡɾ	ɡɾ	92 125	hf_alpha	1.0	
+vr_ta__current_ri_hf_alpha.wav	vr_ta__current_ri	tɾɪ	(raw phonemes)	tɾɪ	tɾɪ	62 125 102	hf_alpha	1.0	
+vr_ta__south_ru_hf_alpha.wav	vr_ta__south_ru	tɾu	(raw phonemes)	tɾu	tɾu	62 125 63	hf_alpha	1.0	
+vr_ta__retroflex_flap_hf_alpha.wav	vr_ta__retroflex_flap	tɽ	(raw phonemes)	tɽ	tɽ	62 129	hf_alpha	1.0	
+vr_ta__retroflex_approx_hf_alpha.wav	vr_ta__retroflex_approx	tɻ	(raw phonemes)	tɻ	tɻ	62 126	hf_alpha	1.0	
+vr_ta__bare_r_hf_alpha.wav	vr_ta__bare_r	tɾ	(raw phonemes)	tɾ	tɾ	62 125	hf_alpha	1.0	
+vr_da__current_ri_hf_alpha.wav	vr_da__current_ri	dɾɪ	(raw phonemes)	dɾɪ	dɾɪ	46 125 102	hf_alpha	1.0	
+vr_da__south_ru_hf_alpha.wav	vr_da__south_ru	dɾu	(raw phonemes)	dɾu	dɾu	46 125 63	hf_alpha	1.0	
+vr_da__retroflex_flap_hf_alpha.wav	vr_da__retroflex_flap	dɽ	(raw phonemes)	dɽ	dɽ	46 129	hf_alpha	1.0	
+vr_da__retroflex_approx_hf_alpha.wav	vr_da__retroflex_approx	dɻ	(raw phonemes)	dɻ	dɻ	46 126	hf_alpha	1.0	
+vr_da__bare_r_hf_alpha.wav	vr_da__bare_r	dɾ	(raw phonemes)	dɾ	dɾ	46 125	hf_alpha	1.0	
+vr_pa__current_ri_hf_alpha.wav	vr_pa__current_ri	pɾɪ	(raw phonemes)	pɾɪ	pɾɪ	58 125 102	hf_alpha	1.0	
+vr_pa__south_ru_hf_alpha.wav	vr_pa__south_ru	pɾu	(raw phonemes)	pɾu	pɾu	58 125 63	hf_alpha	1.0	
+vr_pa__retroflex_flap_hf_alpha.wav	vr_pa__retroflex_flap	pɽ	(raw phonemes)	pɽ	pɽ	58 129	hf_alpha	1.0	
+vr_pa__retroflex_approx_hf_alpha.wav	vr_pa__retroflex_approx	pɻ	(raw phonemes)	pɻ	pɻ	58 126	hf_alpha	1.0	
+vr_pa__bare_r_hf_alpha.wav	vr_pa__bare_r	pɾ	(raw phonemes)	pɾ	pɾ	58 125	hf_alpha	1.0	
+vr_ma__current_ri_hf_alpha.wav	vr_ma__current_ri	mɾɪ	(raw phonemes)	mɾɪ	mɾɪ	55 125 102	hf_alpha	1.0	
+vr_ma__south_ru_hf_alpha.wav	vr_ma__south_ru	mɾu	(raw phonemes)	mɾu	mɾu	55 125 63	hf_alpha	1.0	
+vr_ma__retroflex_flap_hf_alpha.wav	vr_ma__retroflex_flap	mɽ	(raw phonemes)	mɽ	mɽ	55 129	hf_alpha	1.0	
+vr_ma__retroflex_approx_hf_alpha.wav	vr_ma__retroflex_approx	mɻ	(raw phonemes)	mɻ	mɻ	55 126	hf_alpha	1.0	
+vr_ma__bare_r_hf_alpha.wav	vr_ma__bare_r	mɾ	(raw phonemes)	mɾ	mɾ	55 125	hf_alpha	1.0	
+vr_va__current_ri_hf_alpha.wav	vr_va__current_ri	ʋɾɪ	(raw phonemes)	ʋɾɪ	ʋɾɪ	136 125 102	hf_alpha	1.0	
+vr_va__south_ru_hf_alpha.wav	vr_va__south_ru	ʋɾu	(raw phonemes)	ʋɾu	ʋɾu	136 125 63	hf_alpha	1.0	
+vr_va__retroflex_flap_hf_alpha.wav	vr_va__retroflex_flap	ʋɽ	(raw phonemes)	ʋɽ	ʋɽ	136 129	hf_alpha	1.0	
+vr_va__retroflex_approx_hf_alpha.wav	vr_va__retroflex_approx	ʋɻ	(raw phonemes)	ʋɻ	ʋɻ	136 126	hf_alpha	1.0	
+vr_va__bare_r_hf_alpha.wav	vr_va__bare_r	ʋɾ	(raw phonemes)	ʋɾ	ʋɾ	136 125	hf_alpha	1.0	
+vr_sa__current_ri_hf_alpha.wav	vr_sa__current_ri	sɾɪ	(raw phonemes)	sɾɪ	sɾɪ	61 125 102	hf_alpha	1.0	
+vr_sa__south_ru_hf_alpha.wav	vr_sa__south_ru	sɾu	(raw phonemes)	sɾu	sɾu	61 125 63	hf_alpha	1.0	
+vr_sa__retroflex_flap_hf_alpha.wav	vr_sa__retroflex_flap	sɽ	(raw phonemes)	sɽ	sɽ	61 129	hf_alpha	1.0	
+vr_sa__retroflex_approx_hf_alpha.wav	vr_sa__retroflex_approx	sɻ	(raw phonemes)	sɻ	sɻ	61 126	hf_alpha	1.0	
+vr_sa__bare_r_hf_alpha.wav	vr_sa__bare_r	sɾ	(raw phonemes)	sɾ	sɾ	61 125	hf_alpha	1.0	
+vr_ha__current_ri_hf_alpha.wav	vr_ha__current_ri	hɾɪ	(raw phonemes)	hɾɪ	hɾɪ	50 125 102	hf_alpha	1.0	
+vr_ha__south_ru_hf_alpha.wav	vr_ha__south_ru	hɾu	(raw phonemes)	hɾu	hɾu	50 125 63	hf_alpha	1.0	
+vr_ha__retroflex_flap_hf_alpha.wav	vr_ha__retroflex_flap	hɽ	(raw phonemes)	hɽ	hɽ	50 129	hf_alpha	1.0	
+vr_ha__retroflex_approx_hf_alpha.wav	vr_ha__retroflex_approx	hɻ	(raw phonemes)	hɻ	hɻ	50 126	hf_alpha	1.0	
+vr_ha__bare_r_hf_alpha.wav	vr_ha__bare_r	hɾ	(raw phonemes)	hɾ	hɾ	50 125	hf_alpha	1.0	
+vrw_krta__current_ri_hf_alpha.wav	vrw_krta__current_ri	kɾɪta	(raw phonemes)	kɾɪta	kɾɪta	53 125 102 62 43	hf_alpha	1.0	
+vrw_krta__south_ru_hf_alpha.wav	vrw_krta__south_ru	kɾuta	(raw phonemes)	kɾuta	kɾuta	53 125 63 62 43	hf_alpha	1.0	
+vrw_krpa__current_ri_hf_alpha.wav	vrw_krpa__current_ri	kɾɪpaː	(raw phonemes)	kɾɪpaː	kɾɪpaː	53 125 102 58 43 158	hf_alpha	1.0	
+vrw_krpa__south_ru_hf_alpha.wav	vrw_krpa__south_ru	kɾupaː	(raw phonemes)	kɾupaː	kɾupaː	53 125 63 58 43 158	hf_alpha	1.0	
+vrw_krishna__current_ri_hf_alpha.wav	vrw_krishna__current_ri	kɾɪʂɳa	(raw phonemes)	kɾɪʂɳa	kɾɪʂɳa	53 125 102 130 113 43	hf_alpha	1.0	
+vrw_krishna__south_ru_hf_alpha.wav	vrw_krishna__south_ru	kɾuʂɳa	(raw phonemes)	kɾuʂɳa	kɾuʂɳa	53 125 63 130 113 43	hf_alpha	1.0	
+vrw_grha__current_ri_hf_alpha.wav	vrw_grha__current_ri	ɡɾɪha	(raw phonemes)	ɡɾɪha	ɡɾɪha	92 125 102 50 43	hf_alpha	1.0	
+vrw_grha__south_ru_hf_alpha.wav	vrw_grha__south_ru	ɡɾuha	(raw phonemes)	ɡɾuha	ɡɾuha	92 125 63 50 43	hf_alpha	1.0	
+vrw_trpta__current_ri_hf_alpha.wav	vrw_trpta__current_ri	tɾɪpta	(raw phonemes)	tɾɪpta	tɾɪpta	62 125 102 58 62 43	hf_alpha	1.0	
+vrw_trpta__south_ru_hf_alpha.wav	vrw_trpta__south_ru	tɾupta	(raw phonemes)	tɾupta	tɾupta	62 125 63 58 62 43	hf_alpha	1.0	
+vrw_drishti__current_ri_hf_alpha.wav	vrw_drishti__current_ri	dɾɪʂʈi	(raw phonemes)	dɾɪʂʈi	dɾɪʂʈi	46 125 102 130 132 51	hf_alpha	1.0	
+vrw_drishti__south_ru_hf_alpha.wav	vrw_drishti__south_ru	dɾuʂʈi	(raw phonemes)	dɾuʂʈi	dɾuʂʈi	46 125 63 130 132 51	hf_alpha	1.0	
+vrw_prthvi__current_ri_hf_alpha.wav	vrw_prthvi__current_ri	pɾɪtʰʋiː	(raw phonemes)	pɾɪtʰʋiː	pɾɪtʰʋiː	58 125 102 62 162 136 51 158	hf_alpha	1.0	
+vrw_prthvi__south_ru_hf_alpha.wav	vrw_prthvi__south_ru	pɾutʰʋiː	(raw phonemes)	pɾutʰʋiː	pɾutʰʋiː	58 125 63 62 162 136 51 158	hf_alpha	1.0	
+vrw_mrtyu__current_ri_hf_alpha.wav	vrw_mrtyu__current_ri	mɾɪtju	(raw phonemes)	mɾɪtju	mɾɪtju	55 125 102 62 52 63	hf_alpha	1.0	
+vrw_mrtyu__south_ru_hf_alpha.wav	vrw_mrtyu__south_ru	mɾutju	(raw phonemes)	mɾutju	mɾutju	55 125 63 62 52 63	hf_alpha	1.0	
+vrw_vrtti__current_ri_hf_alpha.wav	vrw_vrtti__current_ri	ʋɾɪtti	(raw phonemes)	ʋɾɪtti	ʋɾɪtti	136 125 102 62 62 51	hf_alpha	1.0	
+vrw_vrtti__south_ru_hf_alpha.wav	vrw_vrtti__south_ru	ʋɾutti	(raw phonemes)	ʋɾutti	ʋɾutti	136 125 63 62 62 51	hf_alpha	1.0	
+vrw_srjati__current_ri_hf_alpha.wav	vrw_srjati__current_ri	sɾɪɟati	(raw phonemes)	sɾɪɟati	sɾɪɟati	61 125 102 90 43 62 51	hf_alpha	1.0	
+vrw_srjati__south_ru_hf_alpha.wav	vrw_srjati__south_ru	sɾuɟati	(raw phonemes)	sɾuɟati	sɾuɟati	61 125 63 90 43 62 51	hf_alpha	1.0	
+vrw_hrdaya__current_ri_hf_alpha.wav	vrw_hrdaya__current_ri	hɾɪdaja	(raw phonemes)	hɾɪdaja	hɾɪdaja	50 125 102 46 43 52 43	hf_alpha	1.0	
+vrw_hrdaya__south_ru_hf_alpha.wav	vrw_hrdaya__south_ru	hɾudaja	(raw phonemes)	hɾudaja	hɾudaja	50 125 63 46 43 52 43	hf_alpha	1.0	

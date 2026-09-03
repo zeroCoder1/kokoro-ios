@@ -1,0 +1,41 @@
+filename	id	input	canonical	desired_ipa	kokoro_phonemes	token_ids	voice	speed	warnings
+yuyutsavah_af_heart_s0.80.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	af_heart	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+yuyutsavah_hf_alpha_s0.80.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hf_alpha	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+yuyutsavah_hf_beta_s0.80.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hf_beta	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+yuyutsavah_hm_omega_s0.80.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hm_omega	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+yuyutsavah_hm_psi_s0.80.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hm_psi	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_af_heart_s0.80.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	af_heart	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hf_alpha_s0.80.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hf_alpha	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hf_beta_s0.80.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hf_beta	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hm_omega_s0.80.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hm_omega	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hm_psi_s0.80.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hm_psi	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+sanjaya_af_heart_s0.80.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	af_heart	0.8	
+sanjaya_hf_alpha_s0.80.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hf_alpha	0.8	
+sanjaya_hf_beta_s0.80.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hf_beta	0.8	
+sanjaya_hm_omega_s0.80.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hm_omega	0.8	
+sanjaya_hm_psi_s0.80.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hm_psi	0.8	
+pandavashchaiva_af_heart_s0.80.wav	pandavashchaiva	पाण्डवाश्चैव	pARqavAScEva	paːɳɖaʋaːʃcaɪʋa	paːɳɖaʋaːʃcaɪʋa	58 43 158 113 80 43 136 43 158 131 45 43 102 136 43	af_heart	0.8	
+pandavashchaiva_hf_alpha_s0.80.wav	pandavashchaiva	पाण्डवाश्चैव	pARqavAScEva	paːɳɖaʋaːʃcaɪʋa	paːɳɖaʋaːʃcaɪʋa	58 43 158 113 80 43 136 43 158 131 45 43 102 136 43	hf_alpha	0.8	
+pandavashchaiva_hf_beta_s0.80.wav	pandavashchaiva	पाण्डवाश्चैव	pARqavAScEva	paːɳɖaʋaːʃcaɪʋa	paːɳɖaʋaːʃcaɪʋa	58 43 158 113 80 43 136 43 158 131 45 43 102 136 43	hf_beta	0.8	
+pandavashchaiva_hm_omega_s0.80.wav	pandavashchaiva	पाण्डवाश्चैव	pARqavAScEva	paːɳɖaʋaːʃcaɪʋa	paːɳɖaʋaːʃcaɪʋa	58 43 158 113 80 43 136 43 158 131 45 43 102 136 43	hm_omega	0.8	
+pandavashchaiva_hm_psi_s0.80.wav	pandavashchaiva	पाण्डवाश्चैव	pARqavAScEva	paːɳɖaʋaːʃcaɪʋa	paːɳɖaʋaːʃcaɪʋa	58 43 158 113 80 43 136 43 158 131 45 43 102 136 43	hm_psi	0.8	
+karmaphalahetur_af_heart_s0.80.wav	karmaphalahetur	कर्मफलहेतुर्भूर्मा	karmaPalaheturBUrmA	kaɾmapʰalaheːtuɾbʰuːɾmaː	kaɾmapʰalaheːtuɾbʰuːɾmaː	53 43 125 55 43 58 162 43 54 43 50 47 158 62 63 125 44 162 63 158 125 55 43 158	af_heart	0.8	
+karmaphalahetur_hf_alpha_s0.80.wav	karmaphalahetur	कर्मफलहेतुर्भूर्मा	karmaPalaheturBUrmA	kaɾmapʰalaheːtuɾbʰuːɾmaː	kaɾmapʰalaheːtuɾbʰuːɾmaː	53 43 125 55 43 58 162 43 54 43 50 47 158 62 63 125 44 162 63 158 125 55 43 158	hf_alpha	0.8	
+karmaphalahetur_hf_beta_s0.80.wav	karmaphalahetur	कर्मफलहेतुर्भूर्मा	karmaPalaheturBUrmA	kaɾmapʰalaheːtuɾbʰuːɾmaː	kaɾmapʰalaheːtuɾbʰuːɾmaː	53 43 125 55 43 58 162 43 54 43 50 47 158 62 63 125 44 162 63 158 125 55 43 158	hf_beta	0.8	
+karmaphalahetur_hm_omega_s0.80.wav	karmaphalahetur	कर्मफलहेतुर्भूर्मा	karmaPalaheturBUrmA	kaɾmapʰalaheːtuɾbʰuːɾmaː	kaɾmapʰalaheːtuɾbʰuːɾmaː	53 43 125 55 43 58 162 43 54 43 50 47 158 62 63 125 44 162 63 158 125 55 43 158	hm_omega	0.8	
+karmaphalahetur_hm_psi_s0.80.wav	karmaphalahetur	कर्मफलहेतुर्भूर्मा	karmaPalaheturBUrmA	kaɾmapʰalaheːtuɾbʰuːɾmaː	kaɾmapʰalaheːtuɾbʰuːɾmaː	53 43 125 55 43 58 162 43 54 43 50 47 158 62 63 125 44 162 63 158 125 55 43 158	hm_psi	0.8	
+sangostvakarmani_af_heart_s0.80.wav	sangostvakarmani	सङ्गोऽस्त्वकर्मणि	saNgo'stvakarmaRi	saŋɡoːstʋakaɾmaɳi	saŋɡoːstʋakaɾmaɳi	61 43 112 92 57 158 61 62 136 43 53 43 125 55 43 113 51	af_heart	0.8	
+sangostvakarmani_hf_alpha_s0.80.wav	sangostvakarmani	सङ्गोऽस्त्वकर्मणि	saNgo'stvakarmaRi	saŋɡoːstʋakaɾmaɳi	saŋɡoːstʋakaɾmaɳi	61 43 112 92 57 158 61 62 136 43 53 43 125 55 43 113 51	hf_alpha	0.8	
+sangostvakarmani_hf_beta_s0.80.wav	sangostvakarmani	सङ्गोऽस्त्वकर्मणि	saNgo'stvakarmaRi	saŋɡoːstʋakaɾmaɳi	saŋɡoːstʋakaɾmaɳi	61 43 112 92 57 158 61 62 136 43 53 43 125 55 43 113 51	hf_beta	0.8	
+sangostvakarmani_hm_omega_s0.80.wav	sangostvakarmani	सङ्गोऽस्त्वकर्मणि	saNgo'stvakarmaRi	saŋɡoːstʋakaɾmaɳi	saŋɡoːstʋakaɾmaɳi	61 43 112 92 57 158 61 62 136 43 53 43 125 55 43 113 51	hm_omega	0.8	
+sangostvakarmani_hm_psi_s0.80.wav	sangostvakarmani	सङ्गोऽस्त्वकर्मणि	saNgo'stvakarmaRi	saŋɡoːstʋakaɾmaɳi	saŋɡoːstʋakaɾmaɳi	61 43 112 92 57 158 61 62 136 43 53 43 125 55 43 113 51	hm_psi	0.8	
+abhyutthanam_af_heart_s0.80.wav	abhyutthanam	अभ्युत्थानम्	aByutTAnam	abʰjuttʰaːnam	abʰjuttʰaːnam	43 44 162 52 63 62 62 162 43 158 56 43 55	af_heart	0.8	
+abhyutthanam_hf_alpha_s0.80.wav	abhyutthanam	अभ्युत्थानम्	aByutTAnam	abʰjuttʰaːnam	abʰjuttʰaːnam	43 44 162 52 63 62 62 162 43 158 56 43 55	hf_alpha	0.8	
+abhyutthanam_hf_beta_s0.80.wav	abhyutthanam	अभ्युत्थानम्	aByutTAnam	abʰjuttʰaːnam	abʰjuttʰaːnam	43 44 162 52 63 62 62 162 43 158 56 43 55	hf_beta	0.8	
+abhyutthanam_hm_omega_s0.80.wav	abhyutthanam	अभ्युत्थानम्	aByutTAnam	abʰjuttʰaːnam	abʰjuttʰaːnam	43 44 162 52 63 62 62 162 43 158 56 43 55	hm_omega	0.8	
+abhyutthanam_hm_psi_s0.80.wav	abhyutthanam	अभ्युत्थानम्	aByutTAnam	abʰjuttʰaːnam	abʰjuttʰaːnam	43 44 162 52 63 62 62 162 43 158 56 43 55	hm_psi	0.8	
+srjamyaham_af_heart_s0.80.wav	srjamyaham	सृजाम्यहम्	sfjAmyaham	sɾɪɟaːmjaham	sɾɪɟaːmjaham	61 125 102 90 43 158 55 52 43 50 43 55	af_heart	0.8	KOKORO_APPROXIMATION: vocalic ṛ (ऋ) → ɾɪ (no syllabic diacritic in the Kokoro vocabulary)
+srjamyaham_hf_alpha_s0.80.wav	srjamyaham	सृजाम्यहम्	sfjAmyaham	sɾɪɟaːmjaham	sɾɪɟaːmjaham	61 125 102 90 43 158 55 52 43 50 43 55	hf_alpha	0.8	KOKORO_APPROXIMATION: vocalic ṛ (ऋ) → ɾɪ (no syllabic diacritic in the Kokoro vocabulary)
+srjamyaham_hf_beta_s0.80.wav	srjamyaham	सृजाम्यहम्	sfjAmyaham	sɾɪɟaːmjaham	sɾɪɟaːmjaham	61 125 102 90 43 158 55 52 43 50 43 55	hf_beta	0.8	KOKORO_APPROXIMATION: vocalic ṛ (ऋ) → ɾɪ (no syllabic diacritic in the Kokoro vocabulary)
+srjamyaham_hm_omega_s0.80.wav	srjamyaham	सृजाम्यहम्	sfjAmyaham	sɾɪɟaːmjaham	sɾɪɟaːmjaham	61 125 102 90 43 158 55 52 43 50 43 55	hm_omega	0.8	KOKORO_APPROXIMATION: vocalic ṛ (ऋ) → ɾɪ (no syllabic diacritic in the Kokoro vocabulary)
+srjamyaham_hm_psi_s0.80.wav	srjamyaham	सृजाम्यहम्	sfjAmyaham	sɾɪɟaːmjaham	sɾɪɟaːmjaham	61 125 102 90 43 158 55 52 43 50 43 55	hm_psi	0.8	KOKORO_APPROXIMATION: vocalic ṛ (ऋ) → ɾɪ (no syllabic diacritic in the Kokoro vocabulary)
