@@ -82,7 +82,14 @@ import Testing
     let segments = SanskritProsody.segments(for: text, configuration: delivery.prosody)
     var audio: [Float] = []
     for segment in segments {
-      let piece = try tts.generateAudio(voice: voice, phonemes: segment.phonemes, speed: speed)
+      // The duration intent is applied per segment, so the scale lines up
+      // with the tokens of that call. It changes no phoneme.
+      let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
+        segment.phonemes, intent: delivery.intent
+      )
+      let piece = try tts.generateAudio(
+        voice: voice, phonemes: segment.phonemes, speed: speed, durationScale: scale
+      )
       audio += AudioSegments.trimmingEdgeSilence(piece, sampleRate: sampleRate)
       // Slower recitation wants proportionally longer pauses.
       let pause = segment.pauseAfter / Double(speed)
@@ -152,6 +159,7 @@ import Testing
             "voice": \(quote(voiceName)),
             "mode": \(quote(mode.name)),
             "speed": \(speed),
+            "duration_intent": \(quote("\(mode.delivery.intent)")),
             "prosody": {
               "word_boundary": \(mode.delivery.prosody.wordBoundary),
               "pada_pause": \(mode.delivery.prosody.padaPause),

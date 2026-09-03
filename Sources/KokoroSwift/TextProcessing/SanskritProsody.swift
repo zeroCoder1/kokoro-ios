@@ -100,18 +100,29 @@ struct SanskritProsodyConfiguration: Equatable {
 struct SanskritDelivery: Equatable {
   var speed: Float
   var prosody: SanskritProsodyConfiguration
+  /// Per-token duration intent applied on top of the model's own prediction.
+  ///
+  /// Defaults to `.visargaLengthOnly` rather than the fuller `.recitation`,
+  /// because those are two different levels of evidence. The visarga repair is
+  /// measured against references — काः was arriving at the duration of a short
+  /// क, and 1.3× restores it — while the broader guru/laghu scaling has not
+  /// shown a consistent whole-verse effect and stays out until listening says
+  /// otherwise.
+  var intent: SanskritProsodyIntent = .visargaLengthOnly
 
   /// Deliberate pace for following along word by word, with long pauses.
   static let learning = SanskritDelivery(
     speed: 0.76,
-    prosody: SanskritProsodyConfiguration(padaPause: 0.70, versePause: 1.30)
+    prosody: SanskritProsodyConfiguration(padaPause: 0.70, versePause: 1.30),
+    intent: .visargaLengthOnly
   )
 
   /// The default for recitation. The slowest rate at which every syllable
   /// still resolves separately, without sounding laboured.
   static let recitation = SanskritDelivery(
     speed: 0.80,
-    prosody: SanskritProsodyConfiguration(padaPause: 0.50, versePause: 1.00)
+    prosody: SanskritProsodyConfiguration(padaPause: 0.50, versePause: 1.00),
+    intent: .visargaLengthOnly
   )
 
   /// The voice's own pace. Measurably degraded — BG 2.47's first pāda loses
@@ -119,7 +130,15 @@ struct SanskritDelivery: Equatable {
   /// ask for it; not recommended for recitation.
   static let fast = SanskritDelivery(
     speed: 1.0,
-    prosody: SanskritProsodyConfiguration(padaPause: 0.40, versePause: 0.80)
+    prosody: SanskritProsodyConfiguration(padaPause: 0.40, versePause: 0.80),
+    intent: .visargaLengthOnly
+  )
+
+  /// Exactly the model's own timing, for A/B against any of the above.
+  static let unshaped = SanskritDelivery(
+    speed: 0.80,
+    prosody: SanskritProsodyConfiguration(padaPause: 0.50, versePause: 1.00),
+    intent: .neutral
   )
 }
 
