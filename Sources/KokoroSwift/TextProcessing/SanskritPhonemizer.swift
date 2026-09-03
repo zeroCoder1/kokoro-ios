@@ -37,6 +37,13 @@ enum SanskritPhonemizer {
     var kokoroPhonemes: String
     /// Every approximation, unsupported sound and unreadable scalar.
     var warnings: [SanskritWarning]
+    /// Source-to-token alignment, one entry per akshara that produced sound.
+    ///
+    /// This closes the chain the highlighting feature needs:
+    /// source character range -> akshara -> canonical phonemes -> Kokoro
+    /// tokens. No forced alignment is involved — these are the exact spans the
+    /// pipeline itself produced, not an estimate.
+    var alignment: [SourceAlignment]
 
     /// Kokoro token ids for `kokoroPhonemes`.
     ///
@@ -49,6 +56,18 @@ enum SanskritPhonemizer {
       _ = try? KokoroConfig.loadConfig()
       return Tokenizer.tokenize(phonemizedText: kokoroPhonemes)
     }
+  }
+
+  /// One akshara's journey from source characters to Kokoro tokens.
+  struct SourceAlignment: Equatable {
+    /// Scalar offsets into `normalized`.
+    var sourceOffsets: Range<Int>
+    /// The akshara's own canonical SLP1.
+    var canonical: String
+    /// The IPA those characters produced.
+    var phonemes: String
+    /// Indices into `tokens`.
+    var tokenIndices: Range<Int>
   }
 
   static func phonemize(
@@ -76,8 +95,62 @@ enum SanskritPhonemizer {
       phonological: phonology.slp1,
       kokoroPhonemes: kokoro.phonemes,
       warnings: normalized.warnings + parsed.warnings
-        + phonology.warnings + kokoro.warnings
+        + phonology.warnings + kokoro.warnings,
+      alignment: align(units: parsed.units, phonology: phonology, kokoro: kokoro)
     )
+  }
+
+  /// Joins the per-segment spans back to the aksharas that produced them.
+  ///
+  /// A token index is a scalar index into the phoneme string minus the scalars
+  /// the tokenizer drops before it. For Sanskrit nothing is dropped — the
+  /// round-trip audit asserts that — so the two coincide; the subtraction is
+  /// there so a future unmappable phoneme shifts the alignment honestly rather
+  /// than leaving it quietly wrong.
+  private static func align(
+    units: [SanskritUnit],
+    phonology: SanskritPhonology.Result,
+    kokoro: SanskritKokoroMapper.Result
+  ) -> [SourceAlignment] {
+    let vocab = (try? KokoroConfig.loadConfig().vocab) ?? [:]
+    let scalars = Array(kokoro.phonemes.unicodeScalars)
+    // tokenIndex[i] = how many scalars before i actually produced a token.
+    var tokenIndex = [Int](repeating: 0, count: scalars.count + 1)
+    for (offset, scalar) in scalars.enumerated() {
+      tokenIndex[offset + 1] = tokenIndex[offset] + (vocab[String(scalar)] == nil ? 0 : 1)
+    }
+
+    // Gather each akshara's segment spans, then take their extent.
+    var byAkshara: [Int: (lower: Int, upper: Int)] = [:]
+    for (segmentIndex, origin) in phonology.origins.enumerated() {
+      guard let origin, segmentIndex < kokoro.spans.count else { continue }
+      let span = kokoro.spans[segmentIndex]
+      guard !span.isEmpty else { continue }
+      if let existing = byAkshara[origin] {
+        byAkshara[origin] = (min(existing.lower, span.lowerBound),
+                             max(existing.upper, span.upperBound))
+      } else {
+        byAkshara[origin] = (span.lowerBound, span.upperBound)
+      }
+    }
+
+    return byAkshara.keys.sorted().compactMap { unitIndex -> SourceAlignment? in
+      guard case let .akshara(akshara) = units[unitIndex],
+            let extent = byAkshara[unitIndex] else { return nil }
+      let lower = min(extent.lower, scalars.count)
+      let upper = min(extent.upper, scalars.count)
+      var canonical = akshara.onset.map(\.rawValue).joined()
+      canonical += akshara.vowel?.rawValue ?? ""
+      if akshara.anusvara { canonical += "M" }
+      if akshara.chandrabindu { canonical += "~" }
+      if akshara.visarga { canonical += "H" }
+      return SourceAlignment(
+        sourceOffsets: akshara.sourceOffsets,
+        canonical: canonical,
+        phonemes: String(String.UnicodeScalarView(scalars[lower ..< upper])),
+        tokenIndices: tokenIndex[lower] ..< tokenIndex[upper]
+      )
+    }
   }
 
   /// SLP1 with the marks left as marks — `saMskfta`, `rAmaH`, `so'ham`. This
@@ -135,6 +208,23 @@ enum SanskritPhonemizer {
 
     let tokens = result.tokens
     lines += ["TOKENS (\(tokens.count))", "  \(tokens.map(String.init).joined(separator: " "))", ""]
+
+    lines.append("SOURCE ALIGNMENT")
+    let source = Array(result.normalized.unicodeScalars)
+    for entry in result.alignment {
+      let lower = min(entry.sourceOffsets.lowerBound, source.count)
+      let upper = min(entry.sourceOffsets.upperBound, source.count)
+      let characters = String(String.UnicodeScalarView(source[lower ..< upper]))
+      let ids = tokens.count >= entry.tokenIndices.upperBound
+        ? tokens[entry.tokenIndices].map(String.init).joined(separator: " ")
+        : "-"
+      lines.append("  [\(lower)..<\(upper)] \(characters)"
+        .padding(toLength: 26, withPad: " ", startingAt: 0)
+        + "\(entry.canonical)".padding(toLength: 8, withPad: " ", startingAt: 0)
+        + "\(entry.phonemes)".padding(toLength: 10, withPad: " ", startingAt: 0)
+        + "tokens[\(entry.tokenIndices.lowerBound)..<\(entry.tokenIndices.upperBound)] = \(ids)")
+    }
+    lines.append("")
 
     lines.append("WARNINGS")
     if result.warnings.isEmpty {
