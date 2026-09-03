@@ -317,21 +317,40 @@ private func phonemes(_ text: String) -> String {
 
 // MARK: - Visarga
 
-/// At a pause the visarga takes an echo of the vowel before it, which is what
-/// recitation sounds like and what both Sanskrit references do.
-@Test func visargaTakesItsEchoVowelAtAPause() {
+/// A visarga at a pause is a plain `h`, and adds no syllable.
+///
+/// Both Sanskrit references apply an echo vowel here, and traditional
+/// recitation has one — but it is brief and voiceless, and Kokoro can only
+/// spell a full voiced vowel. Measured, `ɾaːmaha` had six energy nuclei
+/// against three for `ɾaːmah`: the echo was audibly a whole extra syllable.
+/// See Artifacts/sanskrit/diagnostics/audio-failure-analysis.md §4.
+@Test func visargaAtAPauseIsAPlainAspirate() {
   let expected: [(String, String)] = [
-    ("रामः", "ɾaːmaha"),
-    ("हरिः", "haɾihi"),
-    ("गुरुः", "ɡuɾuhu"),
-    ("देवैः", "deːʋaɪhi"),
-    ("युयुत्सवः", "jujutsaʋaha"),
-    ("पाण्डवाः", "paːɳɖaʋaːha"),
-    ("नमः", "namaha"),
-    ("श्रेयः", "ʃɾeːjaha"),
+    ("रामः", "ɾaːmah"),
+    ("हरिः", "haɾih"),
+    ("गुरुः", "ɡuɾuh"),
+    ("देवैः", "deːʋaɪh"),
+    ("युयुत्सवः", "jujutsaʋah"),
+    ("पाण्डवाः", "paːɳɖaʋaːh"),
+    ("नमः", "namah"),
+    ("श्रेयः", "ʃɾeːjah"),
   ]
   for (input, ipa) in expected {
     #expect(phonemes(input) == ipa, "\(input) gave \(phonemes(input))")
+  }
+}
+
+/// The echo is still there as an option, keyed to the preceding vowel, for a
+/// voice that can render it lightly.
+@Test func theVisargaEchoRemainsAvailable() {
+  var options = SanskritOptions.default
+  options.visargaEchoAtPause = true
+  let expected: [(String, String)] = [
+    ("रामः", "ɾaːmaha"), ("हरिः", "haɾihi"),
+    ("गुरुः", "ɡuɾuhu"), ("देवैः", "deːʋaɪhi"),
+  ]
+  for (input, ipa) in expected {
+    #expect(analyze(input, options).kokoroPhonemes == ipa)
   }
 }
 
@@ -351,8 +370,7 @@ private func phonemes(_ text: String) -> String {
 @Test func visargaBeforeAnotherWordIsPlain() {
   #expect(phonemes("रामः करोति") == "ɾaːmah kaɾoːti")
   #expect(phonemes("रामः पश्यति") == "ɾaːmah paʃjati")
-  // ...but the last word in the line is at a pause.
-  #expect(phonemes("रामः षष्ठः").hasSuffix("ʂaʂʈʰaha"))
+  #expect(phonemes("रामः षष्ठः").hasSuffix("ʂaʂʈʰah"))
 }
 
 @Test func visargaIsNeverDroppedOrTurnedIntoHa() {

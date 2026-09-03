@@ -94,7 +94,9 @@ private func corpusLines() throws -> [String] {
   for row in try goldenRows() {
     let warnings = SanskritPhonemizer.analyze(row.input).warnings
     let approximates = warnings.contains {
-      $0.text.hasPrefix("KOKORO_APPROXIMATION") || $0.text.hasPrefix("KOKORO_UNSUPPORTED")
+      $0.text.hasPrefix("KOKORO_APPROXIMATION")
+        || $0.text.hasPrefix("KOKORO_UNSUPPORTED")
+        || $0.text.hasPrefix("KOKORO_APPROXIMATED_VISARGA")
     }
     if row.status == "KOKORO_APPROXIMATION" {
       #expect(approximates, "\(row.input) is marked as an approximation but warns about nothing")
@@ -111,7 +113,7 @@ private func corpusLines() throws -> [String] {
 @Test func theGitaVersesReadCorrectly() {
   let verses: [(String, String)] = [
     ("धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।",
-     "dʰaɾmakʂeːtɾeː kuɾukʂeːtɾeː samaʋeːtaː jujutsaʋaha,"),
+     "dʰaɾmakʂeːtɾeː kuɾukʂeːtɾeː samaʋeːtaː jujutsaʋah,"),
     ("मामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ॥",
      "maːmakaːh paːɳɖaʋaːʃcaɪʋa kimakuɾʋata saɲɟaja."),
     ("मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ॥",
@@ -139,6 +141,7 @@ private func corpusLines() throws -> [String] {
     for warning in SanskritPhonemizer.analyze(verse).warnings {
       let known = warning.text.contains("vocalic")
         || warning.text.contains("anusvāra before a continuant")
+        || warning.text.hasPrefix("KOKORO_APPROXIMATED_VISARGA")
       #expect(known, "undocumented warning for \(verse): \(warning.text)")
     }
   }
