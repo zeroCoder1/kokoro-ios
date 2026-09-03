@@ -43,6 +43,10 @@ import Testing
         let commit = environment["SA_COMMIT"]
   else { return }
 
+  let modes: [(name: String, delivery: SanskritDelivery)] = [
+    ("learning", .learning), ("recitation", .recitation), ("fast", .fast),
+  ]
+
   let verses: [(id: String, text: String)] = [
     ("bg_01_01", """
       धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।
@@ -71,8 +75,11 @@ import Testing
 
   /// Synthesizes each pada separately and joins them with the silence the
   /// configuration asks for. Kokoro's punctuation cannot supply a real pause.
-  func render(_ text: String, speed: Float) throws -> ([Float], [SanskritProsody.Segment]) {
-    let segments = SanskritProsody.segments(for: text)
+  func render(
+    _ text: String, delivery: SanskritDelivery
+  ) throws -> ([Float], [SanskritProsody.Segment]) {
+    let speed = delivery.speed
+    let segments = SanskritProsody.segments(for: text, configuration: delivery.prosody)
     var audio: [Float] = []
     for segment in segments {
       let piece = try tts.generateAudio(voice: voice, phonemes: segment.phonemes, speed: speed)
@@ -98,9 +105,10 @@ import Testing
   }
 
   for verse in verses {
-    for (suffix, speed) in [("", Float(1.0)), ("_slow", Float(0.75))] {
-      let (audio, segments) = try render(verse.text, speed: speed)
-      let name = "\(verse.id)\(suffix).wav"
+    for mode in modes {
+      let speed = mode.delivery.speed
+      let (audio, segments) = try render(verse.text, delivery: mode.delivery)
+      let name = "\(verse.id)_\(mode.name).wav"
       try AudioUtils.writeWavFile(
         samples: audio, sampleRate: sampleRate,
         fileURL: URL(fileURLWithPath: outputDirectory).appendingPathComponent(name)
@@ -126,7 +134,17 @@ import Testing
             "token_count": \(audit.tokenIDs.count),
             "round_trip_ok": \(audit.roundTrips),
             "voice": \(quote(voiceName)),
+            "mode": \(quote(mode.name)),
             "speed": \(speed),
+            "prosody": {
+              "word_boundary": \(mode.delivery.prosody.wordBoundary),
+              "pada_pause": \(mode.delivery.prosody.padaPause),
+              "verse_pause": \(mode.delivery.prosody.versePause)
+            },
+            "boundaries": [\(segments.map { quote("\($0.boundary.map(String.init(describing:)) ?? "end")") }.joined(separator: ", "))],
+            "approximations": [\(analysis.warnings.filter { $0.text.contains("APPROXIM") || $0.text.contains("UNSUPPORTED") }.map { quote($0.text) }.joined(separator: ", "))],
+            "source_edition": "Bhagavad Gita, standard Devanagari text",
+            "normalized": \(quote(analysis.normalized)),
             "duration_seconds": \(String(format: "%.3f", seconds)),
             "warnings": [\(warningList)],
             "commit": \(quote(commit)),

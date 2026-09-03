@@ -71,6 +71,50 @@ struct SanskritProsodyConfiguration: Equatable {
   }
 }
 
+/// A speaking rate paired with the pauses that suit it.
+///
+/// Sanskrit is not English at 1.0. Measured on BG 1.1's first pāda — identical
+/// phonemes and token ids at every rate, only `speed` changed — by counting
+/// separately articulated energy nuclei against the 16 syllables the pāda
+/// actually has:
+///
+///     speed   duration   nuclei   mean nucleus
+///     0.72     4750 ms     18        106 ms
+///     0.78     4420 ms     20         93 ms
+///     0.84     3960 ms     19         86 ms
+///     0.90     3475 ms     17         85 ms
+///     1.00     3255 ms     15         92 ms      ← fewer nuclei than syllables
+///
+/// At 1.0 the model resolves fewer nuclei than the pāda has syllables, which
+/// is syllables merging. From 0.84 down every syllable is separately
+/// articulated. That is the evidence for the presets below; it is a measure of
+/// articulation, not of how good it sounds, so treat the values as a starting
+/// point for listening rather than a settled answer.
+struct SanskritDelivery: Equatable {
+  var speed: Float
+  var prosody: SanskritProsodyConfiguration
+
+  /// Deliberate pace for following along word by word, with long pauses.
+  static let learning = SanskritDelivery(
+    speed: 0.75,
+    prosody: SanskritProsodyConfiguration(padaPause: 0.70, versePause: 1.30)
+  )
+
+  /// The default for recitation. The slowest rate at which every syllable
+  /// still resolves separately, without sounding laboured.
+  static let recitation = SanskritDelivery(
+    speed: 0.84,
+    prosody: SanskritProsodyConfiguration(padaPause: 0.50, versePause: 1.00)
+  )
+
+  /// The voice's own pace. Syllables begin to merge here; kept for review and
+  /// for callers who want it, not recommended for recitation.
+  static let fast = SanskritDelivery(
+    speed: 1.0,
+    prosody: SanskritProsodyConfiguration(padaPause: 0.40, versePause: 0.80)
+  )
+}
+
 /// Splits a Sanskrit text into stretches that are synthesized separately and
 /// rejoined with real silence.
 ///
