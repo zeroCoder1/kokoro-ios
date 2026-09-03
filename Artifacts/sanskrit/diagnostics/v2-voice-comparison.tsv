@@ -1,0 +1,36 @@
+input	voice	speed	canonical	kokoro_phonemes	token_ids	audio_path	observed_issue	failure_category
+युयुत्सवः	af_heart	1.0	yuyutsavaH	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	diagnostics/voices/yuyutsavah_af_heart.wav	visarga unfricated (tail ZCR 0.066)	ACOUSTIC_MODEL_LIMITATION
+युयुत्सवः	hf_alpha	1.0	yuyutsavaH	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	diagnostics/voices/yuyutsavah_hf_alpha.wav	syllables merged (3/4 nuclei); visarga unfricated (tail ZCR 0.045)	ACOUSTIC_MODEL_LIMITATION
+युयुत्सवः	hf_beta	1.0	yuyutsavaH	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	diagnostics/voices/yuyutsavah_hf_beta.wav	visarga unfricated (tail ZCR 0.026)	ACOUSTIC_MODEL_LIMITATION
+युयुत्सवः	hm_omega	1.0	yuyutsavaH	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	diagnostics/voices/yuyutsavah_hm_omega.wav	syllables merged (3/4 nuclei); visarga unfricated (tail ZCR 0.027)	ACOUSTIC_MODEL_LIMITATION
+युयुत्सवः	hm_psi	1.0	yuyutsavaH	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	diagnostics/voices/yuyutsavah_hm_psi.wav	syllables merged (3/4 nuclei); visarga unfricated (tail ZCR 0.035)	ACOUSTIC_MODEL_LIMITATION
+मामकाः	af_heart	1.0	mAmakAH	maːmakaːh	55 43 158 55 43 53 43 158 50	diagnostics/voices/mamakah_af_heart.wav	syllables merged (1/4 nuclei); visarga unfricated (tail ZCR 0.062)	ACOUSTIC_MODEL_LIMITATION
+मामकाः	hf_alpha	1.0	mAmakAH	maːmakaːh	55 43 158 55 43 53 43 158 50	diagnostics/voices/mamakah_hf_alpha.wav	syllables merged (3/4 nuclei); visarga unfricated (tail ZCR 0.030)	ACOUSTIC_MODEL_LIMITATION
+मामकाः	hf_beta	1.0	mAmakAH	maːmakaːh	55 43 158 55 43 53 43 158 50	diagnostics/voices/mamakah_hf_beta.wav	syllables merged (2/4 nuclei); visarga unfricated (tail ZCR 0.032)	ACOUSTIC_MODEL_LIMITATION
+मामकाः	hm_omega	1.0	mAmakAH	maːmakaːh	55 43 158 55 43 53 43 158 50	diagnostics/voices/mamakah_hm_omega.wav	syllables merged (2/4 nuclei); visarga unfricated (tail ZCR 0.017)	ACOUSTIC_MODEL_LIMITATION
+मामकाः	hm_psi	1.0	mAmakAH	maːmakaːh	55 43 158 55 43 53 43 158 50	diagnostics/voices/mamakah_hm_psi.wav	syllables merged (2/4 nuclei); visarga unfricated (tail ZCR 0.031)	ACOUSTIC_MODEL_LIMITATION
+पाण्डवाश्चैव	af_heart	1.0	pARqavAScEva	paːɳɖaʋaːʃcaɪʋa	58 43 158 113 80 43 136 43 158 131 45 43 102 136 43	diagnostics/voices/pandavashcaiva_af_heart.wav	none measured	NONE
+पाण्डवाश्चैव	hf_alpha	1.0	pARqavAScEva	paːɳɖaʋaːʃcaɪʋa	58 43 158 113 80 43 136 43 158 131 45 43 102 136 43	diagnostics/voices/pandavashcaiva_hf_alpha.wav	none measured	NONE
+पाण्डवाश्चैव	hf_beta	1.0	pARqavAScEva	paːɳɖaʋaːʃcaɪʋa	58 43 158 113 80 43 136 43 158 131 45 43 102 136 43	diagnostics/voices/pandavashcaiva_hf_beta.wav	syllables merged (4/5 nuclei)	ACOUSTIC_MODEL_LIMITATION
+पाण्डवाश्चैव	hm_omega	1.0	pARqavAScEva	paːɳɖaʋaːʃcaɪʋa	58 43 158 113 80 43 136 43 158 131 45 43 102 136 43	diagnostics/voices/pandavashcaiva_hm_omega.wav	none measured	NONE
+पाण्डवाश्चैव	hm_psi	1.0	pARqavAScEva	paːɳɖaʋaːʃcaɪʋa	58 43 158 113 80 43 136 43 158 131 45 43 102 136 43	diagnostics/voices/pandavashcaiva_hm_psi.wav	syllables merged (4/5 nuclei)	ACOUSTIC_MODEL_LIMITATION
+सञ्जय	af_heart	1.0	saYjaya	saɲɟaja	61 43 114 90 43 52 43	diagnostics/voices/sanjaya_af_heart.wav	syllables merged (2/3 nuclei)	ACOUSTIC_MODEL_LIMITATION
+सञ्जय	hf_alpha	1.0	saYjaya	saɲɟaja	61 43 114 90 43 52 43	diagnostics/voices/sanjaya_hf_alpha.wav	syllables merged (2/3 nuclei)	ACOUSTIC_MODEL_LIMITATION
+सञ्जय	hf_beta	1.0	saYjaya	saɲɟaja	61 43 114 90 43 52 43	diagnostics/voices/sanjaya_hf_beta.wav	syllables merged (2/3 nuclei)	ACOUSTIC_MODEL_LIMITATION
+सञ्जय	hm_omega	1.0	saYjaya	saɲɟaja	61 43 114 90 43 52 43	diagnostics/voices/sanjaya_hm_omega.wav	syllables merged (2/3 nuclei)	ACOUSTIC_MODEL_LIMITATION
+सञ्जय	hm_psi	1.0	saYjaya	saɲɟaja	61 43 114 90 43 52 43	diagnostics/voices/sanjaya_hm_psi.wav	syllables merged (2/3 nuclei)	ACOUSTIC_MODEL_LIMITATION
+सङ्गोऽस्त्वकर्मणि	af_heart	1.0	saNgo'stvakarmaRi	saŋɡoːstʋakaɾmaɳi	61 43 112 92 57 158 61 62 136 43 53 43 125 55 43 113 51	diagnostics/voices/sangostvakarmani_af_heart.wav	syllables merged (5/7 nuclei)	ACOUSTIC_MODEL_LIMITATION
+सङ्गोऽस्त्वकर्मणि	hf_alpha	1.0	saNgo'stvakarmaRi	saŋɡoːstʋakaɾmaɳi	61 43 112 92 57 158 61 62 136 43 53 43 125 55 43 113 51	diagnostics/voices/sangostvakarmani_hf_alpha.wav	none measured	NONE
+सङ्गोऽस्त्वकर्मणि	hf_beta	1.0	saNgo'stvakarmaRi	saŋɡoːstʋakaɾmaɳi	61 43 112 92 57 158 61 62 136 43 53 43 125 55 43 113 51	diagnostics/voices/sangostvakarmani_hf_beta.wav	none measured	NONE
+सङ्गोऽस्त्वकर्मणि	hm_omega	1.0	saNgo'stvakarmaRi	saŋɡoːstʋakaɾmaɳi	61 43 112 92 57 158 61 62 136 43 53 43 125 55 43 113 51	diagnostics/voices/sangostvakarmani_hm_omega.wav	syllables merged (6/7 nuclei)	ACOUSTIC_MODEL_LIMITATION
+सङ्गोऽस्त्वकर्मणि	hm_psi	1.0	saNgo'stvakarmaRi	saŋɡoːstʋakaɾmaɳi	61 43 112 92 57 158 61 62 136 43 53 43 125 55 43 113 51	diagnostics/voices/sangostvakarmani_hm_psi.wav	syllables merged (6/7 nuclei)	ACOUSTIC_MODEL_LIMITATION
+अभ्युत्थानम्	af_heart	1.0	aByutTAnam	abʰjuttʰaːnam	43 44 162 52 63 62 62 162 43 158 56 43 55	diagnostics/voices/abhyutthanam_af_heart.wav	none measured	NONE
+अभ्युत्थानम्	hf_alpha	1.0	aByutTAnam	abʰjuttʰaːnam	43 44 162 52 63 62 62 162 43 158 56 43 55	diagnostics/voices/abhyutthanam_hf_alpha.wav	none measured	NONE
+अभ्युत्थानम्	hf_beta	1.0	aByutTAnam	abʰjuttʰaːnam	43 44 162 52 63 62 62 162 43 158 56 43 55	diagnostics/voices/abhyutthanam_hf_beta.wav	none measured	NONE
+अभ्युत्थानम्	hm_omega	1.0	aByutTAnam	abʰjuttʰaːnam	43 44 162 52 63 62 62 162 43 158 56 43 55	diagnostics/voices/abhyutthanam_hm_omega.wav	syllables merged (3/4 nuclei)	ACOUSTIC_MODEL_LIMITATION
+अभ्युत्थानम्	hm_psi	1.0	aByutTAnam	abʰjuttʰaːnam	43 44 162 52 63 62 62 162 43 158 56 43 55	diagnostics/voices/abhyutthanam_hm_psi.wav	syllables merged (3/4 nuclei)	ACOUSTIC_MODEL_LIMITATION
+सृजाम्यहम्	af_heart	1.0	sfjAmyaham	sɾɪɟaːmjaham	61 125 102 90 43 158 55 52 43 50 43 55	diagnostics/voices/srjamyaham_af_heart.wav	syllables merged (3/5 nuclei)	ACOUSTIC_MODEL_LIMITATION
+सृजाम्यहम्	hf_alpha	1.0	sfjAmyaham	sɾɪɟaːmjaham	61 125 102 90 43 158 55 52 43 50 43 55	diagnostics/voices/srjamyaham_hf_alpha.wav	none measured	NONE
+सृजाम्यहम्	hf_beta	1.0	sfjAmyaham	sɾɪɟaːmjaham	61 125 102 90 43 158 55 52 43 50 43 55	diagnostics/voices/srjamyaham_hf_beta.wav	syllables merged (4/5 nuclei)	ACOUSTIC_MODEL_LIMITATION
+सृजाम्यहम्	hm_omega	1.0	sfjAmyaham	sɾɪɟaːmjaham	61 125 102 90 43 158 55 52 43 50 43 55	diagnostics/voices/srjamyaham_hm_omega.wav	syllables merged (2/5 nuclei)	ACOUSTIC_MODEL_LIMITATION
+सृजाम्यहम्	hm_psi	1.0	sfjAmyaham	sɾɪɟaːmjaham	61 125 102 90 43 158 55 52 43 50 43 55	diagnostics/voices/srjamyaham_hm_psi.wav	syllables merged (2/5 nuclei)	ACOUSTIC_MODEL_LIMITATION

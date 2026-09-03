@@ -1,0 +1,7 @@
+filename	id	input	canonical	desired_ipa	kokoro_phonemes	token_ids	voice	speed	warnings
+h_onset_hf_alpha.wav	h_onset	haːma	(raw phonemes)	haːma	haːma	50 43 158 55 43	hf_alpha	1.0	
+h_coda_hf_alpha.wav	h_coda	maːh	(raw phonemes)	maːh	maːh	55 43 158 50	hf_alpha	1.0	
+h_none_hf_alpha.wav	h_none	maː	(raw phonemes)	maː	maː	55 43 158	hf_alpha	1.0	
+h_coda_x_hf_alpha.wav	h_coda_x	maːx	(raw phonemes)	maːx	maːx	55 43 158 66	hf_alpha	1.0	
+h_coda_s_hf_alpha.wav	h_coda_s	maːs	(raw phonemes)	maːs	maːs	55 43 158 61	hf_alpha	1.0	
+h_medial_hf_alpha.wav	h_medial	maːhaː	(raw phonemes)	maːhaː	maːhaː	55 43 158 50 43 158	hf_alpha	1.0	
