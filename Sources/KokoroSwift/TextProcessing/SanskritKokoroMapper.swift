@@ -39,6 +39,15 @@ enum SanskritKokoroMapper {
     var result = Result()
     var seenApproximations: Set<String> = []
 
+    // Prominence, when asked for. Sanskrit has no stress accent, so this is an
+    // accommodation to Kokoro and belongs here rather than in the phonology —
+    // see SanskritOptions.markStressOnHeavySyllables for the measurements and
+    // for why it is off by default.
+    let stressed: Set<Int> = options.markStressOnHeavySyllables
+      ? stressedVowelIndices(in: segments)
+      : []
+    var vowelIndex = -1
+
     /// One warning per distinct approximation per line, not one per syllable.
     func warnOnce(_ warning: SanskritWarning) {
       guard seenApproximations.insert(warning.text).inserted else { return }
@@ -48,8 +57,12 @@ enum SanskritKokoroMapper {
     for segment in segments {
       switch segment {
       case let .vowel(vowel, nasalized):
+        vowelIndex += 1
         let (ipa, warning) = self.ipa(for: vowel, options: options)
         if let warning { warnOnce(warning) }
+        // eSpeak places the stress token immediately before the vowel, which
+        // is the sequence Kokoro learned.
+        if stressed.contains(vowelIndex) { result.phonemes += "ˈ" }
         result.phonemes += nasalize(ipa, if: nasalized)
 
       case let .consonant(consonant):
@@ -64,6 +77,65 @@ enum SanskritKokoroMapper {
 
     result.phonemes = tidied(result.phonemes)
     return result
+  }
+
+  // MARK: Prominence
+
+  /// Which vowels take `ˈ`, counted over the whole segment stream.
+  ///
+  /// One per orthographic word, by the weight rule Western Sanskritists use:
+  /// the penultimate syllable if it is heavy, otherwise the antepenultimate,
+  /// otherwise the first. A syllable is heavy when its vowel is long or when
+  /// more than one consonant follows it before the next vowel.
+  ///
+  /// Only reachable when `markStressOnHeavySyllables` is set. Sanskrit has no
+  /// stress accent and the default is off.
+  private static func stressedVowelIndices(
+    in segments: [SanskritPhonology.Segment]
+  ) -> Set<Int> {
+    var stressed: Set<Int> = []
+    // (index into the vowel numbering, whether the syllable is heavy)
+    var word: [(index: Int, heavy: Bool)] = []
+    var vowelIndex = -1
+    var consonantsSinceVowel = 0
+
+    func closeWord() {
+      defer { word.removeAll(keepingCapacity: true) }
+      guard !word.isEmpty else { return }
+      if word.count == 1 { stressed.insert(word[0].index); return }
+      let penult = word[word.count - 2]
+      if penult.heavy {
+        stressed.insert(penult.index)
+      } else if word.count >= 3 {
+        stressed.insert(word[word.count - 3].index)
+      } else {
+        stressed.insert(word[0].index)
+      }
+    }
+
+    /// A vowel is heavy if it is long, or if a cluster closes its syllable.
+    func settleWeight() {
+      guard let last = word.indices.last else { return }
+      if consonantsSinceVowel >= 2 { word[last].heavy = true }
+      consonantsSinceVowel = 0
+    }
+
+    for segment in segments {
+      switch segment {
+      case let .vowel(vowel, _):
+        settleWeight()
+        vowelIndex += 1
+        word.append((vowelIndex, vowel.isLong))
+      case .consonant:
+        consonantsSinceVowel += 1
+      case let .boundary(boundary):
+        settleWeight()
+        if boundary != .elision { closeWord() }
+      }
+    }
+    settleWeight()
+    closeWord()
+    return stressed
   }
 
   // MARK: Vowels

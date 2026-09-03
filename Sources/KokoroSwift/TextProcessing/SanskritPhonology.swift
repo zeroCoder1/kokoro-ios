@@ -13,6 +13,10 @@ enum SanskritWarning: Equatable {
   case unknownScalar(String)
   /// Vedic accent marks were present and ignored, per the Classical scope.
   case vedicAccentIgnored
+  /// The visarga was written, and is realised as something short of a real
+  /// one. Kept separate from the generic approximation so it can never be
+  /// claimed as faithful Sanskrit.
+  case visargaApproximated(rendered: String, reason: String)
   /// A vowel sign or virama with no consonant in front of it.
   case orphanedMark(String)
 
@@ -26,6 +30,8 @@ enum SanskritWarning: Equatable {
       return "UNKNOWN_SCALAR: \(detail)"
     case .vedicAccentIgnored:
       return "VEDIC_ACCENT_IGNORED: udatta/anudatta marks dropped (Classical scope, see docs/SANSKRIT.md)"
+    case let .visargaApproximated(rendered, reason):
+      return "KOKORO_APPROXIMATED_VISARGA: ḥ → \(rendered) (\(reason))"
     case let .orphanedMark(mark):
       return "ORPHANED_MARK: \(mark) — no consonant to attach to, dropped"
     }
@@ -222,17 +228,50 @@ struct SanskritOptions {
   var palatalSibilant: PalatalSibilant = .postalveolar
   var palatalStops: PalatalStops = .stops
 
-  /// Whether a visarga at a pause takes its echo vowel. Both references do
-  /// this and it is what recitation sounds like.
-  var visargaEchoAtPause: Bool = true
-
-  /// Classical Sanskrit has no stress accent — recitation is governed by
-  /// matra, not prominence — so nothing is marked by default.
+  /// Whether a visarga at a pause takes its echo vowel.
   ///
-  /// If the current voices render an unstressed line flatly, that is Gate 3
-  /// and the answer is a Sanskrit voice, not inventing stress for a language
-  /// that has none. This exists so the alternative can be *heard* before
-  /// anyone argues about it.
+  /// **Off, and this is a correction.** Both Sanskrit references do apply the
+  /// echo, and traditional recitation does have one — but it is a *brief,
+  /// voiceless* echo, and Kokoro cannot spell that. `h` plus a vowel is a full
+  /// voiced vowel token and the model renders a full syllable. Measured on
+  /// this model:
+  ///
+  ///     ɾaːma    585 ms   3 energy nuclei
+  ///     ɾaːmah   565 ms   3 energy nuclei     ← plain h adds no syllable
+  ///     ɾaːmaha  735 ms   6 energy nuclei     ← the echo adds one
+  ///
+  /// So रामः came out *rā-ma-ha*, three syllables, where Sanskrit has two and
+  /// a light aspiration. Turning the echo on is turning that defect back on;
+  /// it stays available because the underlying phonology is real and a future
+  /// Sanskrit-trained voice may render it correctly.
+  var visargaEchoAtPause: Bool = false
+
+  /// Marks prominence by syllable weight, as an accommodation to the acoustic
+  /// model rather than a claim about Sanskrit.
+  ///
+  /// Classical Sanskrit has no stress accent — recitation is governed by
+  /// mātrā — so this is **off**, and the phonology layer never sees it: the
+  /// mark is added by `SanskritKokoroMapper`, which is the layer that exists
+  /// to accommodate Kokoro.
+  ///
+  /// What the evidence says, so the decision can be made on it. `ˈ` is the
+  /// most frequent token in Kokoro's whole training distribution — 8542
+  /// occurrences across all nine training languages in an espeak scan, 285 in
+  /// Hindi alone — and Sanskrit emits none of it. Switching this on lengthens
+  /// vowels by about 10% (क्षेत्रे's final ए goes from 114 ms to 126 ms
+  /// against 156 ms for the same vowel in isolation). It does **not** change
+  /// vowel quality: `kˈeː` is as centralized as `keː`, so it does not address
+  /// the ए-sounds-like-ई complaint.
+  ///
+  /// Left off because gaining 10% duration by asserting a stress accent the
+  /// language does not have is the trade §37 of the brief forbids. It is
+  /// implemented, rather than the dead flag it used to be, so the alternative
+  /// can be heard.
+  ///
+  /// The rule when enabled is the weight-based one Western Sanskritists use
+  /// (Whitney, Macdonell): the penultimate if heavy, else the antepenultimate,
+  /// else the first syllable. A syllable is heavy if its vowel is long or a
+  /// consonant cluster closes it.
   var markStressOnHeavySyllables: Bool = false
 
   static let `default` = SanskritOptions()
@@ -416,6 +455,10 @@ enum SanskritPhonology {
     if atPause, options.visargaEchoAtPause, let vowel = akshara.vowel {
       result.segments.append(.consonant(.ha))
       result.segments.append(.vowel(vowel.echoVowel, nasalized: false))
+      result.warnings.append(.visargaApproximated(
+        rendered: "h + a full vowel",
+        reason: "Kokoro has no short or voiceless vowel, so the echo becomes a whole syllable"
+      ))
       return
     }
 
@@ -435,7 +478,17 @@ enum SanskritPhonology {
       }
     }
 
+    // A plain h. It is not a full visarga — that is a voiceless fricative with
+    // a brief echo of the preceding vowel, and Kokoro has neither the
+    // voiceless vowel nor a way to shorten one — but it adds no spurious
+    // syllable, which the echo does. Reported, never claimed as faithful.
     result.segments.append(.consonant(.ha))
+    result.warnings.append(.visargaApproximated(
+      rendered: "h",
+      reason: atPause
+        ? "the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable"
+        : "word-internal visarga; Kokoro has no voiceless fricative for it"
+    ))
   }
 
   /// Whether what follows is a pause rather than more of the utterance. Only
