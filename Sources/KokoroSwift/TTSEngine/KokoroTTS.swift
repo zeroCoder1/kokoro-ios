@@ -211,6 +211,25 @@ public final class KokoroTTS {
     )
   }
 
+  /// Generates audio from a phoneme string, skipping G2P entirely.
+  ///
+  /// A diagnostic entry point. Comparing two phoneme sequences acoustically —
+  /// `keː` against `kiː`, or the same phonemes with and without a stress mark
+  /// — needs everything except the phonemes held identical, which is not
+  /// possible when the only way in is text that a G2P then rewrites.
+  ///
+  /// Not public, and not part of the synthesis path: `generateAudio` above is
+  /// still the way to say something. This exists so that a claim about what
+  /// the acoustic model does with a given token sequence can be measured
+  /// rather than asserted. See Tools/sanskrit-minimal-pairs.sh.
+  func generateAudio(
+    voice: MLXArray,
+    phonemes: String,
+    speed: Float = 1.0
+  ) throws -> [Float] {
+    try synthesize(voice: voice, phonemes: phonemes, tokens: nil, speed: speed, style: nil).0
+  }
+
   /// The synthesis pipeline. `style` is `nil` on the legacy speed-only path,
   /// which leaves the predicted prosody curves exactly as the model produced
   /// them.
@@ -224,12 +243,26 @@ public final class KokoroTTS {
     // Update language if it has changed
     try updateLanguageIfNeeded(language)
 
+    // Step 1: Convert text to phonemes
+    let (phonemizedText, tokenArray) = try phonemizeText(text)
+    return try synthesize(
+      voice: voice, phonemes: phonemizedText, tokens: tokenArray,
+      speed: speed, style: style
+    )
+  }
+
+  /// The pipeline from phonemes onwards, shared by the text path and the
+  /// diagnostic phoneme path so the two cannot drift apart.
+  private func synthesize(
+    voice: MLXArray,
+    phonemes phonemizedText: String,
+    tokens tokenArray: [MToken]?,
+    speed: Float,
+    style: SpeechStyle?
+  ) throws -> ([Float], [MToken]?) {
     // Start performance timing
     BenchmarkTimer.reset()
     BenchmarkTimer.startTimer(Constants.bm_TTS)
-
-    // Step 1: Convert text to phonemes
-    let (phonemizedText, tokenArray) = try phonemizeText(text)
 
     // Step 2: Tokenize and prepare input
     let (paddedInputIds, attentionMask, inputLengths, textMask, inputIds) = try prepareInputTensors(phonemizedText)
