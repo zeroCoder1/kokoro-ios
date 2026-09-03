@@ -94,7 +94,7 @@
 क का कि की कु कू कृ कॄ कॢ कॣ के कै को कौ
 
 # Length minimal pairs. These must never merge.
-अद अाद
+अद आद
 दिन दीन
 सुत सूत
 कृत कॄत
