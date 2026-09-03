@@ -1,0 +1,279 @@
+# Sanskrit listening corpus for Kokoro.
+#
+# Lines beginning with `#` are comments and section headings; every other
+# non-empty line is one item to phonemize, inspect and listen to.
+#
+# The point of this file is coverage, not volume. Between them the sections
+# below exercise every vowel, every consonant, every aspiration contrast,
+# each anusvara environment, each visarga environment, the conjuncts that
+# Classical Sanskrit actually uses, and the five Bhagavad Gita passages the
+# work is aimed at. If a phoneme is not exercised here, it is not tested.
+
+# ─────────────────────────────────────────────────────────────────────
+# 1. Bhagavad Gita — the target corpus
+# ─────────────────────────────────────────────────────────────────────
+
+# BG 1.1
+धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।
+मामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ॥
+
+# BG 2.47
+कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ।
+मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ॥
+
+# BG 4.7
+यदा यदा हि धर्मस्य ग्लानिर्भवति भारत ।
+अभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम् ॥
+
+# BG 2.22
+वासांसि जीर्णानि यथा विहाय
+नवानि गृह्णाति नरोऽपराणि ।
+
+# BG 2.20
+न जायते म्रियते वा कदाचिन्
+नायं भूत्वा भविता वा न भूयः ।
+
+# ─────────────────────────────────────────────────────────────────────
+# 2. Names and vocabulary from the brief
+# ─────────────────────────────────────────────────────────────────────
+
+कृष्ण
+कृष्णः
+अर्जुन
+अर्जुनः
+सञ्जय
+धर्म
+धर्मस्य
+कर्म
+कर्मण्येव
+ब्रह्म
+ब्रह्मन्
+ब्रह्मण्याधाय
+क्षेत्र
+क्षेत्रज्ञ
+क्षत्रिय
+ज्ञान
+विज्ञान
+प्रज्ञा
+श्रद्धा
+श्रेयः
+दुःख
+मोक्ष
+यज्ञ
+यज्ञार्थात्
+सङ्ग
+सङ्गोऽस्तु
+अश्वत्थामा
+हृषीकेश
+धृतराष्ट्र
+गाण्डीव
+अच्युत
+पुरुषोत्तम
+
+# ─────────────────────────────────────────────────────────────────────
+# 3. Vowel inventory — every independent vowel, then every dependent sign
+# ─────────────────────────────────────────────────────────────────────
+
+# Independent
+अत्र
+आत्मा
+इति
+ईश
+उप
+ऊर्ध्व
+ऋषि
+ॠकार
+ऌकार
+ॡकार
+एव
+ऐश्वर्य
+ओम्
+औषध
+
+# Dependent signs on क, so length contrasts are heard side by side
+क का कि की कु कू कृ कॄ कॢ कॣ के कै को कौ
+
+# Length minimal pairs. These must never merge.
+अद अाद
+दिन दीन
+सुत सूत
+कृत कॄत
+
+# ─────────────────────────────────────────────────────────────────────
+# 4. Consonant inventory — the five vargas, in order
+# ─────────────────────────────────────────────────────────────────────
+
+क ख ग घ ङ
+च छ ज झ ञ
+ट ठ ड ढ ण
+त थ द ध न
+प फ ब भ म
+य र ल व
+श ष स ह
+
+# Aspiration contrasts in real words
+कर खर
+गज घट
+चल छल
+जन झष
+तप थल
+दम धन
+पल फल
+बल भय
+टीका ठग
+डम ढक्क
+
+# Place contrasts that must not collapse
+तप टप
+दम डम
+नर णत्व
+शिव षष्ठ सर
+सर्व शर्व
+
+# Nasal series, each in its own word
+अङ्ग
+पञ्च
+अण्ड
+अन्त
+अम्ब
+
+# ─────────────────────────────────────────────────────────────────────
+# 5. Conjuncts
+# ─────────────────────────────────────────────────────────────────────
+
+क्ष
+त्र
+ज्ञ
+श्र
+क्त
+क्त्व
+त्त्व
+द्व
+द्भ
+द्ध
+न्त
+न्ध
+न्द
+म्प
+म्ब
+स्थ
+स्म
+स्व
+ह्म
+ह्न
+
+# The same conjuncts inside words
+भक्त
+कृत्वा
+तत्त्व
+द्वार
+उद्भव
+बुद्ध
+अन्तर
+अन्ध
+इन्द्र
+सम्पद्
+अम्बर
+तिष्ठ
+अस्मि
+स्वयम्
+ब्रह्म
+चिह्न
+कर्तव्य
+भक्त्या
+अश्वत्थ
+
+# ─────────────────────────────────────────────────────────────────────
+# 6. Anusvara — one word per following place of articulation
+# ─────────────────────────────────────────────────────────────────────
+
+# before velar
+संकल्प
+# before palatal
+संचय
+# before retroflex
+कुंठित
+# before dental
+संतोष
+# before labial
+संपत्
+# before semivowel and sibilant (the disputed environments)
+संयोग
+संरक्ष
+संलग्न
+संवाद
+संशय
+संस्कृत
+संहार
+# word-final
+अहं
+त्वं
+इदं
+एतं
+
+# ─────────────────────────────────────────────────────────────────────
+# 7. Visarga — every preceding vowel, and every following environment
+# ─────────────────────────────────────────────────────────────────────
+
+# utterance-final, by preceding vowel
+रामः
+हरिः
+गुरुः
+देवैः
+युयुत्सवः
+पाण्डवाः
+अर्जुनः
+योगः
+श्रेयः
+नमः
+
+# word-internal
+दुःख
+दुःशासन
+निःशेष
+अन्तःकरण
+
+# before an unvoiced velar and labial (jihvamuliya / upadhmaniya contexts)
+रामः करोति
+रामः पश्यति
+
+# before a sibilant (satva contexts)
+रामः च
+रामः तत्र
+रामः षष्ठः
+
+# ─────────────────────────────────────────────────────────────────────
+# 8. Chandrabindu, avagraha, and the dandas
+# ─────────────────────────────────────────────────────────────────────
+
+# chandrabindu
+हुँ
+अँ
+
+# avagraha — elided initial अ after a preceding e or o
+सोऽहम्
+नरोऽपराणि
+सङ्गोऽस्तु
+तेऽपि
+
+# danda and double danda as prosodic boundaries
+अस्ति । नास्ति ॥
+
+# ॐ, which is one ligature scalar with no parseable parts
+ॐ
+ॐ नमः शिवाय
+
+# ─────────────────────────────────────────────────────────────────────
+# 9. Robustness — malformed and mixed input
+# ─────────────────────────────────────────────────────────────────────
+
+# a bare virama, a doubled virama, a stranded vowel sign
+क्
+क््
+ा
+# mixed script
+धर्म dharma
+# digits, which Classical Sanskrit recitation does not speak
+अध्याय १
+# a Latin-only line
+Bhagavad Gita
