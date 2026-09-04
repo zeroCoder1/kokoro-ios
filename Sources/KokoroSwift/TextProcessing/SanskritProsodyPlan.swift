@@ -49,21 +49,24 @@ struct SanskritProsodyIntent: Equatable, Sendable {
   /// Multiplier for the aspiration mark, so an aspirated stop keeps its
   /// release.
   var aspirationScale: Float
-  /// Multiplier for a word-final **short** vowel.
+  /// Multiplier for a word-final **short** vowel. **Experimental, and 1.0 in
+  /// every shipped delivery.**
   ///
-  /// Below 1.0, because the model lengthens them. Utterance-final lengthening
-  /// is an English habit, and Kokoro applies it to Sanskrit where a final
-  /// laghu must stay light. Measured at 0.80, final syllable duration:
+  /// The measurement behind it is real: the model applies utterance-final
+  /// lengthening — an English habit — and collapses length contrasts that
+  /// Sanskrit needs. कर्मणि against कर्मणी measured 1.02, भवति against भवती
+  /// 1.08, and scaling the final vowel to 0.80 restores कर्मणि to 0.79 of
+  /// कर्मणी.
   ///
-  ///     कर्मणि 950 ms against कर्मणी 970 ms   — ratio 1.02, collapsed
-  ///     भवति   370 ms against भवती   420 ms   — ratio 1.08, collapsed
+  /// It is nevertheless **not** production behaviour, because it is applied to
+  /// every word-final short vowel with no evidence that every one of them is
+  /// over-long. सञ्जय, कदाचन and भारत all end in a perfectly valid short a,
+  /// and a rule that shortens all of them is a guess dressed as a repair. It
+  /// changes duration only — never a phoneme, never a token — but a blanket
+  /// duration rule still needs per-context evidence it does not yet have.
   ///
-  /// Scaling the final vowel down restores the contrast — कर्मणि reaches
-  /// 0.79 of कर्मणी at 0.80× — without touching a phoneme. It is the mirror
-  /// of the visarga repair: the phonology says laghu, the model over-realises,
-  /// and the duration is corrected rather than the spelling.
-  ///
-  /// A final *long* vowel is never touched: शरीरा must stay long.
+  /// Contrast the visarga repair below, which is scoped to one phonological
+  /// environment and distinguishes long from short within it.
   var finalShortVowelScale: Float
   /// Multiplier for a syllable closed by a visarga.
   ///
@@ -100,10 +103,20 @@ struct SanskritProsodyIntent: Equatable, Sendable {
     aspirationScale: 1.15, finalShortVowelScale: 0.80, visargaSyllableScale: 1.30
   )
 
-  /// The two measured duration repairs and nothing else: a visarga-final
-  /// syllable kept its length, and a word-final short vowel kept short.
-  /// This is what the shipped deliveries use.
+  /// What the shipped deliveries use: the visarga repair only.
+  ///
+  /// Scoped to one phonological environment — a syllable closed by a visarga —
+  /// and it distinguishes a long vowel there from a short one, so it is not a
+  /// blanket rule. The final-short-vowel scale is deliberately 1.0 here; see
+  /// `experimentalFinalVowel`.
   static let closureRepairs = SanskritProsodyIntent(
+    guruVowelScale: 1.0, laghuVowelScale: 1.0, heldCodaScale: 1.0,
+    aspirationScale: 1.0, finalShortVowelScale: 1.0, visargaSyllableScale: 1.30
+  )
+
+  /// The visarga repair plus the experimental final-short-vowel scale, for
+  /// A/B listening. Not shipped.
+  static let experimentalFinalVowel = SanskritProsodyIntent(
     guruVowelScale: 1.0, laghuVowelScale: 1.0, heldCodaScale: 1.0,
     aspirationScale: 1.0, finalShortVowelScale: 0.80, visargaSyllableScale: 1.30
   )
