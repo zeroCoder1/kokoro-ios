@@ -49,6 +49,22 @@ struct SanskritProsodyIntent: Equatable, Sendable {
   /// Multiplier for the aspiration mark, so an aspirated stop keeps its
   /// release.
   var aspirationScale: Float
+  /// Multiplier for a word-final **short** vowel.
+  ///
+  /// Below 1.0, because the model lengthens them. Utterance-final lengthening
+  /// is an English habit, and Kokoro applies it to Sanskrit where a final
+  /// laghu must stay light. Measured at 0.80, final syllable duration:
+  ///
+  ///     कर्मणि 950 ms against कर्मणी 970 ms   — ratio 1.02, collapsed
+  ///     भवति   370 ms against भवती   420 ms   — ratio 1.08, collapsed
+  ///
+  /// Scaling the final vowel down restores the contrast — कर्मणि reaches
+  /// 0.79 of कर्मणी at 0.80× — without touching a phoneme. It is the mirror
+  /// of the visarga repair: the phonology says laghu, the model over-realises,
+  /// and the duration is corrected rather than the spelling.
+  ///
+  /// A final *long* vowel is never touched: शरीरा must stay long.
+  var finalShortVowelScale: Float
   /// Multiplier for a syllable closed by a visarga.
   ///
   /// This one is not a preference, it is a repair. A visarga-final syllable is
@@ -72,7 +88,7 @@ struct SanskritProsodyIntent: Equatable, Sendable {
   /// otherwise.
   static let neutral = SanskritProsodyIntent(
     guruVowelScale: 1.0, laghuVowelScale: 1.0, heldCodaScale: 1.0,
-    aspirationScale: 1.0, visargaSyllableScale: 1.0
+    aspirationScale: 1.0, finalShortVowelScale: 1.0, visargaSyllableScale: 1.0
   )
 
   /// The experimental setting. Guru vowels get a little more time, laghu
@@ -81,14 +97,21 @@ struct SanskritProsodyIntent: Equatable, Sendable {
   /// leaving the range the model already produces.
   static let recitation = SanskritProsodyIntent(
     guruVowelScale: 1.15, laghuVowelScale: 0.92, heldCodaScale: 1.20,
-    aspirationScale: 1.15, visargaSyllableScale: 1.30
+    aspirationScale: 1.15, finalShortVowelScale: 0.80, visargaSyllableScale: 1.30
   )
 
-  /// The visarga repair on its own, with every other scale neutral. Isolates
-  /// the one change with a measured before-and-after.
+  /// The two measured duration repairs and nothing else: a visarga-final
+  /// syllable kept its length, and a word-final short vowel kept short.
+  /// This is what the shipped deliveries use.
+  static let closureRepairs = SanskritProsodyIntent(
+    guruVowelScale: 1.0, laghuVowelScale: 1.0, heldCodaScale: 1.0,
+    aspirationScale: 1.0, finalShortVowelScale: 0.80, visargaSyllableScale: 1.30
+  )
+
+  /// The visarga repair on its own, for isolating it in an experiment.
   static let visargaLengthOnly = SanskritProsodyIntent(
     guruVowelScale: 1.0, laghuVowelScale: 1.0, heldCodaScale: 1.0,
-    aspirationScale: 1.0, visargaSyllableScale: 1.30
+    aspirationScale: 1.0, finalShortVowelScale: 1.0, visargaSyllableScale: 1.30
   )
 }
 
@@ -161,7 +184,18 @@ enum SanskritProsodyPlanner {
       guard next == " " || ",.;:!?".unicodeScalars.contains(next) || index == kept.count - 1
       else { continue }
       visargaPositions.insert(index)
-      // ...and the vowel (plus its length mark) immediately before it.
+      // ...and the vowel before it, but **only if that vowel is already
+      // long**.
+      //
+      // A visarga-final syllable is guru either way, but the two reasons are
+      // not interchangeable. In मामकाः the ā is genuinely long and the model
+      // under-realises it, so restoring its duration is a repair. In युयुत्सवः
+      // the a is genuinely *short*, and lengthening it turns वः into वाः — a
+      // different vowel, and the exact error reported as "युयुत्सवाह". The
+      // visarga's own duration is scaled in both cases; the vowel's is not.
+      let lengthMark = index >= 1
+        && kept[kept.index(kept.startIndex, offsetBy: index - 1)] == "ː"
+      guard lengthMark else { continue }
       var back = index - 1
       while back >= 0 {
         let previous = kept[kept.index(kept.startIndex, offsetBy: back)]
@@ -169,6 +203,20 @@ enum SanskritProsodyPlanner {
         if !isVowelish { break }
         visargaPositions.insert(back)
         back -= 1
+      }
+    }
+
+    // Word-final short vowels: a vowel followed by a word break, punctuation
+    // or the end, and *not* carrying a length mark.
+    var finalShortVowels: Set<Int> = []
+    for (index, scalar) in kept.enumerated() {
+      guard "aeiouɑɐɒæɔəɛɜɨɪɯøœʊʌɤ".unicodeScalars.contains(scalar) else { continue }
+      let next: Unicode.Scalar? = index + 1 < kept.count
+        ? kept[kept.index(kept.startIndex, offsetBy: index + 1)] : nil
+      guard let next else { finalShortVowels.insert(index); continue }
+      if next == "ː" { continue }                       // long: leave alone
+      if next == " " || ",.;:!?".unicodeScalars.contains(next) {
+        finalShortVowels.insert(index)
       }
     }
 
@@ -202,6 +250,9 @@ enum SanskritProsodyPlanner {
       previousWasVowel = isVowel
       if visargaPositions.contains(position), let last = scale.indices.last {
         scale[last] *= intent.visargaSyllableScale
+      }
+      if finalShortVowels.contains(position), let last = scale.indices.last {
+        scale[last] *= intent.finalShortVowelScale
       }
     }
     return scale.count == tokens.count ? scale : nil

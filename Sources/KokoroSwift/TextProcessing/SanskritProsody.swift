@@ -108,13 +108,13 @@ public struct SanskritDelivery: Equatable, Sendable {
   /// क, and 1.3× restores it — while the broader guru/laghu scaling has not
   /// shown a consistent whole-verse effect and stays out until listening says
   /// otherwise.
-  var intent: SanskritProsodyIntent = .visargaLengthOnly
+  var intent: SanskritProsodyIntent = .closureRepairs
 
   /// A delivery with the standard Sanskrit duration intent.
   public init(speed: Float, prosody: SanskritProsodyConfiguration) {
     self.speed = speed
     self.prosody = prosody
-    self.intent = .visargaLengthOnly
+    self.intent = .closureRepairs
   }
 
   init(speed: Float, prosody: SanskritProsodyConfiguration, intent: SanskritProsodyIntent) {
@@ -127,7 +127,7 @@ public struct SanskritDelivery: Equatable, Sendable {
   public static let learning = SanskritDelivery(
     speed: 0.76,
     prosody: SanskritProsodyConfiguration(padaPause: 0.70, versePause: 1.30),
-    intent: .visargaLengthOnly
+    intent: .closureRepairs
   )
 
   /// The default for recitation. The slowest rate at which every syllable
@@ -135,7 +135,7 @@ public struct SanskritDelivery: Equatable, Sendable {
   public static let recitation = SanskritDelivery(
     speed: 0.80,
     prosody: SanskritProsodyConfiguration(padaPause: 0.50, versePause: 1.00),
-    intent: .visargaLengthOnly
+    intent: .closureRepairs
   )
 
   /// The voice's own pace. Measurably degraded — BG 2.47's first pāda loses
@@ -144,7 +144,7 @@ public struct SanskritDelivery: Equatable, Sendable {
   public static let fast = SanskritDelivery(
     speed: 1.0,
     prosody: SanskritProsodyConfiguration(padaPause: 0.40, versePause: 0.80),
-    intent: .visargaLengthOnly
+    intent: .closureRepairs
   )
 
   /// Exactly the model's own timing, for A/B against any of the above.
