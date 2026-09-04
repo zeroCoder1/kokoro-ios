@@ -1,0 +1,36 @@
+filename	id	input	canonical	desired_ipa	kokoro_phonemes	token_ids	voice	speed	warnings
+sanjaya_hf_alpha_s0.72.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hf_alpha	0.72	
+sanjaya_hf_alpha_s0.78.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hf_alpha	0.78	
+sanjaya_hf_alpha_s0.84.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hf_alpha	0.84	
+sanjaya_hf_alpha_s0.90.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hf_alpha	0.9	
+sanjaya_hf_alpha.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hf_alpha	1.0	
+kadachana_hf_alpha_s0.72.wav	kadachana	कदाचन	kadAcana	kadaːcana	kadaːcana	53 43 46 43 158 45 43 56 43	hf_alpha	0.72	
+kadachana_hf_alpha_s0.78.wav	kadachana	कदाचन	kadAcana	kadaːcana	kadaːcana	53 43 46 43 158 45 43 56 43	hf_alpha	0.78	
+kadachana_hf_alpha_s0.84.wav	kadachana	कदाचन	kadAcana	kadaːcana	kadaːcana	53 43 46 43 158 45 43 56 43	hf_alpha	0.84	
+kadachana_hf_alpha_s0.90.wav	kadachana	कदाचन	kadAcana	kadaːcana	kadaːcana	53 43 46 43 158 45 43 56 43	hf_alpha	0.9	
+kadachana_hf_alpha.wav	kadachana	कदाचन	kadAcana	kadaːcana	kadaːcana	53 43 46 43 158 45 43 56 43	hf_alpha	1.0	
+karmani_hf_alpha_s0.72.wav	karmani	कर्मणि	karmaRi	kaɾmaɳi	kaɾmaɳi	53 43 125 55 43 113 51	hf_alpha	0.72	
+karmani_hf_alpha_s0.78.wav	karmani	कर्मणि	karmaRi	kaɾmaɳi	kaɾmaɳi	53 43 125 55 43 113 51	hf_alpha	0.78	
+karmani_hf_alpha_s0.84.wav	karmani	कर्मणि	karmaRi	kaɾmaɳi	kaɾmaɳi	53 43 125 55 43 113 51	hf_alpha	0.84	
+karmani_hf_alpha_s0.90.wav	karmani	कर्मणि	karmaRi	kaɾmaɳi	kaɾmaɳi	53 43 125 55 43 113 51	hf_alpha	0.9	
+karmani_hf_alpha.wav	karmani	कर्मणि	karmaRi	kaɾmaɳi	kaɾmaɳi	53 43 125 55 43 113 51	hf_alpha	1.0	
+aham_hf_alpha_s0.72.wav	aham	अहम्	aham	aham	aham	43 50 43 55	hf_alpha	0.72	
+aham_hf_alpha_s0.78.wav	aham	अहम्	aham	aham	aham	43 50 43 55	hf_alpha	0.78	
+aham_hf_alpha_s0.84.wav	aham	अहम्	aham	aham	aham	43 50 43 55	hf_alpha	0.84	
+aham_hf_alpha_s0.90.wav	aham	अहम्	aham	aham	aham	43 50 43 55	hf_alpha	0.9	
+aham_hf_alpha.wav	aham	अहम्	aham	aham	aham	43 50 43 55	hf_alpha	1.0	
+yuyutsavah_hf_alpha_s0.72.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hf_alpha	0.72	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+yuyutsavah_hf_alpha_s0.78.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hf_alpha	0.78	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+yuyutsavah_hf_alpha_s0.84.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hf_alpha	0.84	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+yuyutsavah_hf_alpha_s0.90.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hf_alpha	0.9	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+yuyutsavah_hf_alpha.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hf_alpha	1.0	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hf_alpha_s0.72.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hf_alpha	0.72	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hf_alpha_s0.78.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hf_alpha	0.78	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hf_alpha_s0.84.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hf_alpha	0.84	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hf_alpha_s0.90.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hf_alpha	0.9	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hf_alpha.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hf_alpha	1.0	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+bhurma_hf_alpha_s0.72.wav	bhurma	भूर्मा	BUrmA	bʰuːɾmaː	bʰuːɾmaː	44 162 63 158 125 55 43 158	hf_alpha	0.72	
+bhurma_hf_alpha_s0.78.wav	bhurma	भूर्मा	BUrmA	bʰuːɾmaː	bʰuːɾmaː	44 162 63 158 125 55 43 158	hf_alpha	0.78	
+bhurma_hf_alpha_s0.84.wav	bhurma	भूर्मा	BUrmA	bʰuːɾmaː	bʰuːɾmaː	44 162 63 158 125 55 43 158	hf_alpha	0.84	
+bhurma_hf_alpha_s0.90.wav	bhurma	भूर्मा	BUrmA	bʰuːɾmaː	bʰuːɾmaː	44 162 63 158 125 55 43 158	hf_alpha	0.9	
+bhurma_hf_alpha.wav	bhurma	भूर्मा	BUrmA	bʰuːɾmaː	bʰuːɾmaː	44 162 63 158 125 55 43 158	hf_alpha	1.0	
