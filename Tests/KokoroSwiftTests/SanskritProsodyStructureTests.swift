@@ -381,38 +381,45 @@ private func division(_ text: String) -> String {
 
 // MARK: - Visarga length repair
 
-/// A visarga-final syllable is guru — a long vowel *and* a closing visarga —
-/// but the model gives it barely more time than a light one. Measured on
-/// मामकाः at 0.80: 330 ms for the short-vowel `maːmaka`, 390 ms for the long
-/// `maːmakaː`, and 360 ms for our `maːmakaːh`. काः was arriving barely longer
-/// than क, which is why it was heard as मामक.
-@Test func visargaFinalSyllableIsLengthenedNotRespelled() {
-  for word in ["मामकाः", "रामः", "युयुत्सवः", "पाण्डवाः", "योगः"] {
+/// A visarga-final syllable is guru, but *why* it is guru decides what may be
+/// lengthened. In मामकाः the ā is genuinely long and the model under-realises
+/// it, so restoring its duration is a repair. In युयुत्सवः the a is genuinely
+/// short, and lengthening it turns वः into वाः — a different vowel, and the
+/// error reported as "युयुत्सवाह". The visarga's own duration is scaled in
+/// both cases; the vowel's only when it is already long.
+@Test func visargaLengtheningNeverLengthensAShortVowel() {
+  // Long vowel before the visarga: the vowel is repaired.
+  for word in ["मामकाः", "पाण्डवाः", "भूः", "धीः", "हरेः", "गुरोः"] {
     let phonemes = SanskritPhonemizer.phonemize(word)
-    let plain = SanskritProsodyPlanner.durationScaleForPhonemes(phonemes, intent: .neutral)
-    let repaired = SanskritProsodyPlanner.durationScaleForPhonemes(
-      phonemes, intent: .visargaLengthOnly
-    )
-    #expect(plain == nil, "the neutral intent must stay a no-op")
-    let scale = try? #require(repaired)
-    #expect(scale?.count == SanskritTokenAudit.audit(text: word).tokenIDs.count)
-
-    // The last tokens — the visarga and the vowel it closes — are scaled up,
-    // and nothing earlier in the word is touched.
-    if let scale, scale.count >= 3 {
-      #expect(scale[scale.count - 1] > 1.0, "\(word): the visarga was not lengthened")
-      #expect(scale[scale.count - 2] > 1.0, "\(word): its vowel was not lengthened")
-      #expect(scale.prefix(scale.count - 3).allSatisfy { $0 == 1.0 } || scale.count < 4,
-              "\(word): the repair reached earlier syllables")
-    }
-    // And the phonemes are untouched — this is duration, not respelling.
-    #expect(SanskritPhonemizer.phonemize(word) == phonemes)
+    guard let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
+      phonemes, intent: .closureRepairs
+    ) else { Issue.record("\(word): no scale"); continue }
+    #expect(scale[scale.count - 1] > 1.0, "\(word): the visarga was not lengthened")
+    #expect(scale[scale.count - 2] > 1.0, "\(word): its long vowel was not repaired")
   }
-  // A word with no visarga gets no repair at all.
-  let noVisarga = SanskritProsodyPlanner.durationScaleForPhonemes(
+
+  // Short vowel before the visarga: only the visarga is scaled.
+  for word in ["युयुत्सवः", "रामः", "योगः", "अर्जुनः", "नमः", "पुनः", "कः"] {
+    let phonemes = SanskritPhonemizer.phonemize(word)
+    guard let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
+      phonemes, intent: .closureRepairs
+    ) else { Issue.record("\(word): no scale"); continue }
+    #expect(scale[scale.count - 1] > 1.0, "\(word): the visarga was not lengthened")
+    #expect(scale[scale.count - 2] == 1.0,
+            "\(word): a SHORT vowel was lengthened — वः would become वाः")
+  }
+
+  // And no repair touches a phoneme.
+  for word in ["मामकाः", "युयुत्सवः"] {
+    let before = SanskritPhonemizer.phonemize(word)
+    _ = SanskritProsodyPlanner.durationScaleForPhonemes(before, intent: .closureRepairs)
+    #expect(SanskritPhonemizer.phonemize(word) == before)
+  }
+  // A word with no visarga gets no visarga repair.
+  let none = SanskritProsodyPlanner.durationScaleForPhonemes(
     SanskritPhonemizer.phonemize("कर्म"), intent: .visargaLengthOnly
   )
-  #expect(noVisarga?.allSatisfy { $0 == 1.0 } == true)
+  #expect(none?.allSatisfy { $0 == 1.0 } == true)
 }
 
 /// `prepareInputTensors` wraps the token sequence in a padding token at each
