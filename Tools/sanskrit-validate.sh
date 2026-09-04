@@ -44,7 +44,7 @@ import Testing
   else { return }
 
   let modes: [(name: String, delivery: SanskritDelivery)] = [
-    ("learning", .learning), ("recitation", .recitation), ("fast", .fast),
+    ("learning", .learning), ("recitation", .recitation),
   ]
 
   let verses: [(id: String, text: String)] = [
@@ -114,16 +114,18 @@ import Testing
   // Isolated targets: one word each, at the recitation delivery, so a single
   // problem can be listened to without hunting for it inside a verse.
   let targets: [(id: String, text: String)] = [
-    ("visarga_yuyutsavah", "युयुत्सवः"),
-    ("visarga_mamakah", "मामकाः"),
-    ("nasal_sanjaya", "सञ्जय"),
-    ("cluster_pandavashchaiva", "पाण्डवाश्चैव"),
-    ("cluster_rbhurma", "कर्मफलहेतुर्भूर्मा"),
-    ("cluster_sangostvakarmani", "सङ्गोऽस्त्वकर्मणि"),
-    ("cluster_abhyutthanam", "अभ्युत्थानम्"),
-    ("vocalic_r_srijamyaham", "सृजाम्यहम्"),
-    ("vocalic_r_krishna", "कृष्ण"),
-    ("vocalic_r_hrishikesha", "हृषीकेश"),
+    ("sanjaya", "सञ्जय"),
+    ("kadachana", "कदाचन"),
+    ("karmani", "कर्मणि"),
+    ("aham", "अहम्"),
+    ("bhagavan", "भगवान्"),
+    ("yuyutsavah", "युयुत्सवः"),
+    ("mamakah", "मामकाः"),
+    ("ramah", "रामः"),
+    ("bhurma", "भूर्मा"),
+    ("sangostvakarmani", "सङ्गोऽस्त्वकर्मणि"),
+    ("abhyutthanam", "अभ्युत्थानम्"),
+    ("srijamyaham", "सृजाम्यहम्"),
   ]
 
   for verse in verses {
@@ -192,10 +194,20 @@ import Testing
     let audit = SanskritTokenAudit.audit(phonemes: analysis.kokoroPhonemes)
     let seconds = Double(audio.count) / sampleRate
     let limitation: String
-    if target.id.hasPrefix("visarga") { limitation = "ACOUSTIC_MODEL_LIMITATION: VISARGA" }
-    else if target.id.hasPrefix("vocalic_r") { limitation = "ACOUSTIC_MODEL_LIMITATION: VOCALIC_R" }
-    else if target.id.hasPrefix("nasal") { limitation = "REVIEW_REQUIRED: PALATAL_NASAL" }
-    else { limitation = "ACOUSTIC_MODEL_LIMITATION: CLUSTER" }
+    switch target.id {
+    case "yuyutsavah", "mamakah", "ramah":
+      limitation = "ACOUSTIC_MODEL_LIMITATION: VISARGA (non-syllabic in tokens, unfricated in audio)"
+    case "karmani":
+      limitation = "ACOUSTIC_MODEL_LIMITATION: FINAL_I_LENGTH (repaired by duration ×0.80)"
+    case "sanjaya", "kadachana":
+      limitation = "ACOUSTIC_EPENTHESIS: FINAL_SHORT_VOWEL (repaired by duration ×0.80)"
+    case "aham", "bhagavan":
+      limitation = "ACOUSTIC_EPENTHESIS: FINAL_NASAL (frontend closed, model opens it)"
+    case "srijamyaham":
+      limitation = "ACOUSTIC_MODEL_LIMITATION: VOCALIC_R"
+    default:
+      limitation = "ACOUSTIC_MODEL_LIMITATION: CLUSTER"
+    }
     entries.append("""
         {
           "verse_id": \(quote(target.id)),
