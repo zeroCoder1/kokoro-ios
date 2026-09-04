@@ -150,6 +150,31 @@ enum SanskritKokoroMapper {
     return output
   }
 
+  /// Wraps an experimental override in the quality its profile claims, so a
+  /// candidate can never present itself as faithful just by being written
+  /// down.
+  private static func outcome(
+    _ phonemes: String,
+    for phoneme: String,
+    in profile: SanskritAcousticMappingProfile
+  ) -> Outcome {
+    switch profile.quality[phoneme] ?? .defensibleApproximation {
+    case .exact:
+      return .exact(phonemes)
+    case .defensibleApproximation:
+      return .approximation(phonemes, .kokoroApproximation(
+        sound: phoneme,
+        rendered: phonemes,
+        reason: "experimental profile '\(profile.name)'"
+      ))
+    case .unsupported:
+      return .unsupported(phonemes, .kokoroUnsupported(
+        sound: phoneme,
+        detail: "experimental profile '\(profile.name)' has no faithful mapping"
+      ))
+    }
+  }
+
   // MARK: Prominence
 
   /// Which vowels take `ˈ`, counted over the whole segment stream.
@@ -226,6 +251,12 @@ enum SanskritKokoroMapper {
     for vowel: SanskritVowel,
     options: SanskritOptions
   ) -> Outcome {
+    // An experimental profile may override this phoneme. Keyed by canonical
+    // phoneme, so the override applies wherever the sound occurs and never to
+    // one particular word.
+    if let override = options.acousticProfile.vowels[vowel] {
+      return outcome(override, for: "\(vowel)", in: options.acousticProfile)
+    }
     switch vowel {
     case .a: return .exact("a")
     case .aa: return .exact("aː")
@@ -285,6 +316,9 @@ enum SanskritKokoroMapper {
     for consonant: SanskritConsonant,
     options: SanskritOptions
   ) -> Outcome {
+    if let override = options.acousticProfile.consonants[consonant] {
+      return outcome(override, for: "\(consonant)", in: options.acousticProfile)
+    }
     switch consonant {
     case .ka: return .exact("k")
     case .kha: return .exact("kʰ")
