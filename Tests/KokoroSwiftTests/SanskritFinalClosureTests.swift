@@ -254,12 +254,22 @@ private func endsOnConsonant(_ ipa: String) -> Bool {
 /// The duration repairs scale time. They must never touch a phoneme, and must
 /// never reach a long final vowel or a closed syllable.
 @Test func closureRepairsScaleOnlyWhatTheyShould() {
-  // A final short vowel is scaled down.
-  for word in ["सञ्जय", "कदाचन", "कर्मणि", "भवति"] {
+  // A valid final short vowel is LEFT ALONE by the shipped profile. सञ्जय,
+  // कदाचन and भारत all end in a perfectly good short a, and a blanket rule
+  // that shortens every one of them is a guess rather than a repair.
+  for word in ["सञ्जय", "कदाचन", "भारत", "कर्मणि", "भवति"] {
     let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
       phonemes(word), intent: .closureRepairs
     )
-    #expect(scale?.last ?? 1 < 1.0, "\(word): the final short vowel was not shortened")
+    #expect(scale == nil || scale?.allSatisfy { $0 == 1.0 } == true,
+            "\(word): the shipped profile touched a valid final vowel")
+  }
+  // The experimental profile does scale it, and only it.
+  for word in ["सञ्जय", "कदाचन", "कर्मणि"] {
+    let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
+      phonemes(word), intent: .experimentalFinalVowel
+    )
+    #expect(scale?.last ?? 1 < 1.0, "\(word): the experimental scale did not apply")
   }
   // A final long vowel is left alone.
   for word in ["कर्मणी", "समवेता", "शरीरा", "भूर्मा"] {
