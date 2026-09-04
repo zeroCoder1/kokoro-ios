@@ -274,6 +274,10 @@ struct SanskritOptions {
   /// consonant cluster closes it.
   var markStressOnHeavySyllables: Bool = false
 
+  /// Backing store for `acousticProfile`; see the extension in
+  /// SanskritAcousticMapping.swift.
+  var profileStorage: SanskritAcousticMappingProfile?
+
   static let `default` = SanskritOptions()
 }
 
@@ -465,7 +469,7 @@ enum SanskritPhonology {
     let atPause = isAtPause(after: index, in: units)
 
     if atPause, options.visargaEchoAtPause, let vowel = akshara.vowel {
-      result.append(.consonant(.ha), from: index)
+      result.append(.consonant(.visarga), from: index)
       result.append(.vowel(vowel.echoVowel, nasalized: false), from: index)
       result.warnings.append(.visargaApproximated(
         rendered: "h + a full vowel",
@@ -490,11 +494,13 @@ enum SanskritPhonology {
       }
     }
 
-    // A plain h. It is not a full visarga — that is a voiceless fricative with
-    // a brief echo of the preceding vowel, and Kokoro has neither the
-    // voiceless vowel nor a way to shorten one — but it adds no spurious
-    // syllable, which the echo does. Reported, never claimed as faithful.
-    result.append(.consonant(.ha), from: index)
+    // The visarga stays its own phoneme here, distinct from ह. What Kokoro
+    // is eventually sent for it is the mapper's problem, and it is not
+    // faithful — a real visarga is a voiceless fricative with a brief echo of
+    // the preceding vowel, and Kokoro has neither the voiceless vowel nor a
+    // way to shorten one. Keeping it separate at this layer means कः and कह्
+    // differ in the phonology and not only in the spelling.
+    result.append(.consonant(.visarga), from: index)
     result.warnings.append(.visargaApproximated(
       rendered: "h",
       reason: atPause

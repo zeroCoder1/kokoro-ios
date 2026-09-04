@@ -216,7 +216,7 @@ enum SanskritSyllabifier {
         // guessing from the phoneme.
         if let origin = items[position].1,
            case let .akshara(akshara) = units[origin], akshara.visarga,
-           split == cluster.count, cluster.last == .ha {
+           split == cluster.count, cluster.last == .visarga {
           syllable.coda.removeLast()
           syllable.endsWithVisarga = true
         }
