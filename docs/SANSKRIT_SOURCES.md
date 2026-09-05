@@ -211,6 +211,72 @@ states it "deliberately contains no eSpeak code or data", and
 `Tools/espeak-diff.py` / `Tools/hindi-inspect.sh` shell out to the binary for
 development comparison only.
 
+## Reference recordings and models evaluated
+
+Neither of these contributes code or data to the package. Both were measured;
+one is used as a listening reference and nothing else.
+
+| Source | What it is | License | Used how |
+|---|---|---|---|
+| [gita_supersite_sanskrit_tts](https://huggingface.co/datasets/yashnbx/gita_supersite_sanskrit_tts) | 701 clips, one reciter, the complete Gītā | **None stated** | Measurement reference only. Not redistributed, not trained on. |
+| [R910/Sanskrit_TTS_v2](https://huggingface.co/R910/Sanskrit_TTS_v2) | LoRA over Orpheus-3B, Sanskrit fine-tune | Tagged Apache-2.0 | Evaluated and rejected. Nothing used. |
+
+### The reciter recordings
+
+The prosody calibration in `SanskritDelivery.traditional` comes from this
+corpus. What it is, measured rather than taken from the card:
+
+- 701 clips covering all eighteen chapters, and the per-chapter counts match
+  the Gītā exactly (1:47, 2:72 … 18:78)
+- one voice throughout — median F0 182.8 Hz, sd 5.9 Hz across 24 verses from
+  different chapters, which is chant on a fixed reciting tone, not read prose
+- 585 verses are anuṣṭubh with no speaker tag, and those are what the pace
+  figures are computed over
+- the text is canonical Devanagari and matches this repository's validation
+  verses character for character, though it carries speaker tags (`उवाच`,
+  33 verses) and embedded verse numbers that would need stripping
+
+**It cannot be training data.** The audio is 16 kHz at 16 kbps mono MP3, and
+the encoder brick-walled it: the spectrum is flat to about 4.4 kHz and holds
+**0.00% of its energy above 5 kHz**, against 11.3 kHz for this repository's own
+output. Fricative and sibilant energy lives at 4–10 kHz, so the visarga, the
+ś/ṣ/s contrast and stop-burst detail are physically absent from the recording —
+precisely the sounds `SANSKRIT_FINE_TUNING_REQUIREMENTS.md` needs covered.
+
+Timing survives lowpassing intact, which is why it is a sound reference for
+pace and a useless one for segments.
+
+**License is unresolved.** No license is stated on the dataset card, and no
+terms-of-use statement was found at the source (Gītā Supersite, IIT Kanpur).
+Measuring a downloaded copy locally is not redistribution; training on it or
+shipping it would be, and neither is done here.
+
+### The Orpheus fine-tune
+
+Evaluated because it is the only other Sanskrit TTS model with a Gītā-shaped
+purpose. Rejected on architecture, before pronunciation enters into it:
+
+- the repository holds a **389 MB LoRA adapter only**; it needs
+  `unsloth/orpheus-3b-0.1-ft`, which is **6.63 GB**
+- merged, that is 3.3B parameters — about 2 GB even at 4-bit, against Kokoro's
+  ~330 MB
+- it is autoregressive over SNAC codec tokens at **82 tokens per second of
+  audio**, so a ten-second śloka is ~820 sequential passes of a 3.3B model,
+  where Kokoro is one non-autoregressive pass
+- there is no MLX Swift implementation of either Orpheus or the SNAC decoder
+- it takes raw Devanagari and does its own G2P inside the LLM, so this
+  repository's parser, phonology, token audit and metre scan would have no
+  entry point
+
+Its four published samples were measured. They articulate cleanly — BG 2.47
+reaches 16 of 16 syllable nuclei — but **none of them contains a visarga, a
+vocalic ṛ or a word-final म्/न्**, so they demonstrate nothing about the three
+gaps documented here.
+
+The Apache-2.0 tag also warrants checking rather than trusting: it is a LoRA
+over a Llama-3.2-3B derivative, and the Llama Community License carries naming
+and attribution obligations to derivatives.
+
 ## Attribution
 
 No file in this repository reproduces third-party code, so no copyright
