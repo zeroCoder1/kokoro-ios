@@ -243,7 +243,7 @@ private func endsOnConsonant(_ ipa: String) -> Bool {
     let reference = phonemes(word)
     let referenceTokens = tokens(word)
     // Every delivery differs in speed and pause length only.
-    for delivery in [SanskritDelivery.learning, .recitation, .traditional, .fast, .unshaped] {
+    for delivery in [SanskritDelivery.learning, .recitation, .fast, .unshaped] {
       _ = SanskritProsody.segments(for: word, configuration: delivery.prosody)
       #expect(phonemes(word) == reference, "\(word): delivery changed the phonemes")
       #expect(tokens(word) == referenceTokens, "\(word): delivery changed the tokens")

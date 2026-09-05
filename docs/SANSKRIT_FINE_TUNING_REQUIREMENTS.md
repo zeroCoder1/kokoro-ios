@@ -115,6 +115,26 @@ model must learn them as they are written.
 and the long compounds: कर्मण्येवाधिकारस्ते, कर्मफलहेतुर्भूर्मा,
 सङ्गोऽस्त्वकर्मणि, अभ्युत्थानमधर्मस्य.
 
+### 6. Chant tempo — the model cannot be stretched into it
+
+A reciter holds a syllable for **477 ms** (median over 585 anuṣṭubh verses of
+the Gītā Supersite recordings). Kokoro at the shipped `recitation` rate gives
+**195 ms** — 2.4× faster.
+
+Closing that from the frontend was tried and failed. Speed 0.30 matches the
+figure numerically (475 ms) and shows no F0 instability, but the rendered verse
+is **unintelligible on listening**: stretching every phoneme 2.7× past the
+decoder's normal range leaves pitch intact and destroys consonant articulation.
+
+**Recordings must therefore carry the tempo itself**, at chant pace rather than
+read pace, and the training labels must carry the syllable and mātrā metadata
+alongside so the duration predictor learns held syllables rather than inheriting
+stretched short ones.
+
+The reciter is also continuous — 0.0% internal silence at a 2% energy gate,
+against 21–29% for this model at every rate. Whatever is trained should learn
+that phrasing too: silence between syllables is not how a śloka is recited.
+
 ### 6. Vowel length in context
 
 Length is honoured in isolation (भु 390 ms → भू 545, 1.40×) and weakens inside
