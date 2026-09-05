@@ -86,6 +86,131 @@ correction has something to do. The scales in
 0.92 on a laghu one, 1.20 on a held coda. They widen the guru/laghu contrast by
 roughly 25% without leaving the range the model already produces on its own.
 
+## Calibrating against a human reciter
+
+Everything above measures Kokoro against itself. It says how much duration
+control exists, not what the target is. The Gītā Supersite recordings supply
+the target: one reciter, the complete Gītā, chant on a fixed reciting tone
+(median F0 182.8 Hz, sd 5.9 Hz across 24 verses from different chapters).
+
+Measured over the **585 anuṣṭubh verses with no speaker tag**, using voiced
+time only so inserted pauses cannot flatter either side:
+
+| | ms per syllable |
+|---|---|
+| reciter | **477** (sd 33, IQR 456–497) |
+| ours at `recitation`, speed 0.80 | **195** |
+
+**2.4× slower.** Comparing speech spans rather than voiced time understates it
+as 1.7×, which is the mistake to avoid here — the reciter's pauses are a
+separate fact from the reciter's pace.
+
+### The rate sweep
+
+Identical phonemes and token ids at every point; only `speed` changes.
+
+| speed | 0.80 | 0.65 | 0.55 | 0.50 | 0.46 | 0.42 | 0.36 | 0.30 | 0.25 |
+|---|---|---|---|---|---|---|---|---|---|
+| ms/syllable | 195 | 238 | 281 | 305 | 322 | 350 | 403 | **475** | 564 |
+
+**0.30 lands on the reciter**: 473, 474 and 478 across BG 1.1, 2.47 and 4.7,
+against a target of 477. That is `SanskritDelivery.traditional`.
+
+### Why the metric that chose 0.80 cannot argue against 0.30
+
+`recitation`'s 0.80 was picked by counting energy nuclei against the syllables
+a pāda actually has, and taking the rate that lost fewest. Run that same count
+on the human recordings and it scores them **worse than any synthesis here**:
+
+| | nuclei against 32 |
+|---|---|
+| reciter, BG 1.1 / 2.47 / 4.7 | +15 / +10 / +7 |
+| ours at 0.80 | +1 / −1 / −3 |
+| ours at 0.30 | +29 / +28 / +32 |
+
+The metric rewards fast, smooth, evenly-peaked delivery and penalises held
+chant, so over-counting is not evidence of damage. What it *can* legitimately
+detect is syllables **merging**, and there the sweep is unambiguous: at 0.80
+BG 4.7 loses three and BG 2.47 one, and from 0.50 down nothing merges at all.
+
+### The degradation check it cannot provide
+
+A stretched acoustic model warbles before anything else goes wrong, so F0
+stability is the check that matters. Frame-to-frame pitch movement:
+
+| | median jump | jumps > 2 semitones |
+|---|---|---|
+| reciter | 0.33–0.39 st | 24.7–28.8 % |
+| ours at 0.80 | 0.53–0.67 st | 28.2–30.2 % |
+| ours at 0.30 | 0.47–0.49 st | 27.7–27.8 % |
+
+**Nothing degrades.** The slow render is marginally steadier than the fast one
+and sits inside the reciter's own range. Kokoro stretches cleanly to 0.25.
+
+### The pause inverts
+
+Kokoro's own gap at the daṇḍa is not constant — it grows as the model slows:
+
+| speed | 0.80 | 0.55 | 0.46 | 0.36 | 0.30 |
+|---|---|---|---|---|---|
+| model's own gap | 390–460 ms | 500–610 | 560–700 | 440–910 | 550–1150 |
+
+So the original rule — configure a pause *above* the model's natural ~350 ms
+or splitting makes things worse — holds only at fast rates. At `traditional`'s
+pace the model **over**-pauses, and the split path is what reins it in: it
+trims the decoder's own edge silence and inserts exactly the configured value
+divided by speed. The reciter's half-verse break measures 410 ms (median over
+the 292 anuṣṭubh verses that take one), so `padaPause` is 0.12 and 0.12 ÷ 0.30
+≈ 400 ms.
+
+`versePause` is uncalibrated and says so: the reference recordings are trimmed
+at the end, median 50 ms of trailing silence, so they carry no evidence about
+the rest between verses.
+
+### The gap that remains: Kokoro inserts silence a reciter does not
+
+Matching syllable duration does not produce a verse of the reciter's length.
+Internal silence as a share of the speech span, at a 2% energy gate:
+
+| | silence |
+|---|---|
+| reciter | **0.0 %** (0.0% at a 4% gate, 3.3% at 6%) |
+| ours at 0.80 | 20.8 % |
+| ours at 0.50 | 22.9 % |
+| ours at 0.30 | 29.1 % |
+
+The reciter chants continuously. Kokoro does not, and the share grows as it
+slows. BG 2.47 therefore comes out around 27 s at `traditional` against the
+reciter's 15.7 s — for the same voiced time.
+
+That silence is **inside a single `generateAudio` call**, so no pause setting
+reaches it. It leaves two targets that cannot both be met:
+
+- match the reciter's **syllable duration** → speed 0.30, verse ~1.7× too long
+- match the reciter's **verse length** → speed ~0.46, syllables a third short
+
+`traditional` takes the first. The second is a one-line change for anyone who
+prefers it, and the choice is a listening question, not a measurement one.
+
+This asymmetry is also why the 0.30 figure carries a range. Only our side has
+internal silence to gate out, so the voiced/total split moves with the gate
+while the reciter's does not:
+
+| energy gate | 2 % | 6 % | 10 % |
+|---|---|---|---|
+| reciter | 488 ms | 471 | 414 |
+| ours at 0.30 | 542 ms | 474 | 434 |
+
+Read honestly that is 0.30–0.33, not an exact 0.30.
+
+### What this does not fix
+
+Pace is not pronunciation. The visarga, vocalic ṛ and final nasal closure are
+exactly as they were. The reference corpus cannot help with those either — it
+is 16 kHz at 16 kbps, brick-walled at 4.4 kHz with 0.00% of its energy above
+5 kHz, so the fricative band those sounds live in is not in the recording.
+See `docs/SANSKRIT_SOURCES.md`.
+
 ## Design consequences
 
 **Prosodic intent is separate from prosodic realization.** The syllable layer

@@ -332,10 +332,24 @@ private func assertDistinct(_ a: String, _ b: String, _ label: String) {
   let configuration = SanskritProsodyConfiguration.default
   #expect(configuration.pause(for: .word) < configuration.pause(for: .pada))
   #expect(configuration.pause(for: .pada) < configuration.pause(for: .verse))
-  for delivery in [SanskritDelivery.learning, .recitation, .fast] {
+  for delivery in [SanskritDelivery.learning, .recitation, .traditional, .fast] {
     #expect(delivery.prosody.padaPause > delivery.prosody.wordBoundary)
     #expect(delivery.prosody.versePause > delivery.prosody.padaPause)
-    #expect(delivery.prosody.padaPause > 0.35, "pause is below the model's own gap")
+
+    // The configured value is divided by speed at render time, so what has to
+    // be defensible is the gap in seconds, not the number in the struct. It
+    // used to be asserted above 0.35 on the reasoning that a pause shorter
+    // than Kokoro's own ~350 ms gap would make splitting worse than doing
+    // nothing. That reasoning holds only at fast rates: the model's gap grows
+    // as it slows — 390–460 ms at 0.80 against 550–1150 ms at 0.30 — so at a
+    // slow pace it over-pauses, and the split path is what shortens it.
+    //
+    // The reciter's half-verse break is 410 ms, median over the 292 anuṣṭubh
+    // verses that take one. Every delivery has to land in a range that break
+    // could plausibly sit in.
+    let gap = delivery.prosody.padaPause / Double(delivery.speed)
+    #expect(gap > 0.30, "\(delivery.speed): \(gap)s is below any measured break")
+    #expect(gap < 1.20, "\(delivery.speed): \(gap)s is longer than the model's own gap")
   }
 }
 
@@ -366,7 +380,7 @@ private func assertDistinct(_ a: String, _ b: String, _ label: String) {
   for verse in ["धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।",
                 "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ।"] {
     let reference = tokens(verse)
-    for delivery in [SanskritDelivery.learning, .recitation, .fast] {
+    for delivery in [SanskritDelivery.learning, .recitation, .traditional, .fast] {
       let segmented = SanskritProsody.segments(for: verse, configuration: delivery.prosody)
       #expect(!segmented.isEmpty)
       #expect(tokens(verse) == reference, "tokens moved with delivery")
