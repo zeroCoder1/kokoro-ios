@@ -43,6 +43,9 @@ import Testing
   )["voice"] else { return }
   let sampleRate = Double(KokoroTTS.Constants.samplingRate)
   let speed: Float = 0.80
+  // Provenance: the file actually loaded, not an assumed one.
+  let modelSize = (try? FileManager.default.attributesOfItem(atPath: modelPath)[.size]
+    as? Int) ?? nil ?? -1
 
   // (folder, words, candidate profiles). Baseline is always profile zero.
   let groups: [(String, [String], [SanskritAcousticMappingProfile])] = [
@@ -80,6 +83,10 @@ import Testing
   for (folder, words, candidates) in groups {
     var entries: [String] = []
     let directory = root + "/" + folder
+    // A fresh --out has no group subdirectories yet.
+    try FileManager.default.createDirectory(
+      atPath: directory, withIntermediateDirectories: true
+    )
     for word in words {
       let profiles: [(String, SanskritAcousticMappingProfile)] =
         [("baseline", .baseline)]
@@ -96,7 +103,20 @@ import Testing
         )
         try AudioUtils.writeWavFile(samples: audio, sampleRate: sampleRate,
           fileURL: URL(fileURLWithPath: directory).appendingPathComponent(name))
-        let quality = profile.quality.values.first.map { "\($0)" } ?? "exact"
+        // A profile that declares no override has no grade of its own, and
+        // claiming `exact` there is how the committed manifests came to mark
+        // the baseline vocalic-ṛ mapping exact while recording its
+        // KOKORO_APPROXIMATION warning in the next field. Fall back to what
+        // the mapper actually says about this word.
+        let approximated = result.warnings.contains {
+          $0.text.hasPrefix("KOKORO_APPROXIMAT")
+        }
+        let unsupported = result.warnings.contains {
+          $0.text.hasPrefix("KOKORO_UNSUPPORTED")
+        }
+        let quality = profile.quality.values.first.map { "\($0)" }
+          ?? (unsupported ? "unsupported"
+              : approximated ? "approximationPerMapper" : "exactPerMapper")
         let changed = result.kokoroPhonemes == baseline.kokoroPhonemes
           ? "(none)" : "\(profile.vowels.keys.map { "\($0)" } + profile.consonants.keys.map { "\($0)" })"
         entries.append("""
@@ -115,7 +135,8 @@ import Testing
               "warnings": [\(result.warnings.map { quote($0.text) }.joined(separator: ", "))],
               "voice": \(quote(voiceName)),
               "speed": \(speed),
-              "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+              "model": \(quote(modelPath)),
+              "model_size_bytes": \(modelSize),
               "duration_seconds": \(String(format: "%.3f", Double(audio.count) / sampleRate)),
               "commit": \(quote(commit)),
               "output_path": \(quote(folder + "/" + name))

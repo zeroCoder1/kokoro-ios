@@ -443,3 +443,87 @@ private func division(_ text: String) -> String {
     #expect(scale?.count != tokens.count + 2)
   }
 }
+
+// MARK: - The pause unit
+
+// `padaPause` is the value at speed 1.0 and the renderer divides it by speed,
+// so the configured number and the audible gap are two different figures.
+// Diagnostics used to record the first and produce the second. These pin both.
+
+@Test func renderedPauseIsTheConfiguredValueDividedBySpeed() {
+  for delivery in [SanskritDelivery.learning, .recitation, .fast, .unshaped] {
+    #expect(delivery.renderedPadaPause
+            == delivery.prosody.padaPause / Double(delivery.speed))
+    #expect(delivery.renderedVersePause
+            == delivery.prosody.versePause / Double(delivery.speed))
+  }
+  // The figures the preset doc comments quote.
+  #expect(abs(SanskritDelivery.recitation.renderedPadaPause - 0.625) < 0.001)
+  #expect(abs(SanskritDelivery.recitation.renderedVersePause - 1.250) < 0.001)
+  #expect(abs(SanskritDelivery.learning.renderedPadaPause - 0.921) < 0.001)
+  #expect(abs(SanskritDelivery.learning.renderedVersePause - 1.711) < 0.001)
+  // At speed 1.0 the two figures coincide, which is what makes the unit
+  // "seconds at speed 1.0" rather than an arbitrary scale.
+  #expect(SanskritDelivery.fast.renderedPadaPause
+          == SanskritDelivery.fast.prosody.padaPause)
+}
+
+/// A slower delivery must not end up with a *shorter* audible break than a
+/// faster one, which is the whole reason the division is there.
+@Test func aSlowerDeliveryPausesLonger() {
+  #expect(SanskritDelivery.learning.renderedPadaPause
+          > SanskritDelivery.recitation.renderedPadaPause)
+  #expect(SanskritDelivery.recitation.renderedPadaPause
+          > SanskritDelivery.fast.renderedPadaPause)
+}
+
+/// `unshaped` is a controlled A/B against `recitation`, so everything except
+/// the duration intent has to match it. Its doc comment used to claim it was
+/// the model's raw timing, which it is not.
+@Test func unshapedDiffersFromRecitationOnlyInTheDurationIntent() {
+  #expect(SanskritDelivery.unshaped.speed == SanskritDelivery.recitation.speed)
+  #expect(SanskritDelivery.unshaped.prosody == SanskritDelivery.recitation.prosody)
+  #expect(SanskritDelivery.unshaped.intent == .neutral)
+  #expect(SanskritDelivery.recitation.intent != .neutral)
+  // Neutral means no opinion at all, so the planner returns nothing to apply.
+  let phonemes = SanskritPhonemizer.phonemize("धर्मक्षेत्रे")
+  let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
+    phonemes, intent: SanskritDelivery.unshaped.intent
+  )
+  #expect(scale == nil || scale?.allSatisfy { $0 == 1.0 } == true)
+}
+
+// MARK: - Warnings survive the prosody layer
+
+// The public entry point returns these. `segments(for:)` drops them, and a
+// caller that never sees them turns a reported omission into a silent one.
+
+@Test func analyzeReportsWhatSegmentsDiscards() {
+  // Non-Devanagari is dropped, and the drop is reported.
+  let mixed = SanskritProsody.analyze("धर्म hello क्षेत्रे")
+  #expect(!mixed.warnings.isEmpty, "dropped Latin text raised no warning")
+  #expect(mixed.warnings.contains { $0.text.hasPrefix("KOKORO_UNSUPPORTED")
+            || $0.text.contains("not Devanagari") },
+          "no warning named the dropped input: \(mixed.warnings.map(\.text))")
+
+  // An approximation is reported even though the audio is perfectly renderable.
+  let visarga = SanskritProsody.analyze("रामः ।")
+  #expect(visarga.warnings.contains { $0.text.hasPrefix("KOKORO_APPROXIMATED_VISARGA") })
+
+  // And the segments are unchanged by collecting them.
+  #expect(SanskritProsody.analyze("रामः ।").segments
+          == SanskritProsody.segments(for: "रामः ।"))
+}
+
+/// Warnings are collected across every segment, not just the first.
+@Test func warningsAreCollectedFromEverySegment() {
+  let verse = "रामः ।\nमामकाः ॥"
+  let analysis = SanskritProsody.analyze(verse)
+  #expect(analysis.segments.count == 2)
+  let visargaWarnings = analysis.warnings.filter {
+    $0.text.hasPrefix("KOKORO_APPROXIMATED_VISARGA")
+  }
+  // One per visarga: रामः and मामकाः are in different segments.
+  #expect(visargaWarnings.count >= 2,
+          "only \(visargaWarnings.count) visarga warnings for two segments")
+}

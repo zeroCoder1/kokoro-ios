@@ -81,10 +81,16 @@ import Testing
       phonemes = result.kokoroPhonemes
       canonical = result.canonical
       warnings = result.warnings.map(\.text).joined(separator: " | ")
-    } else {
+    } else if kind == "phonemes" {
       phonemes = value
       canonical = "(raw phonemes)"
       warnings = ""
+    } else {
+      // Anything else is a typo. Falling through to "raw phonemes" would send
+      // Devanagari to the tokenizer and produce a plausible-looking but
+      // meaningless comparison.
+      print("error: unknown kind '\(kind)' for \(identifier); expected deva or phonemes")
+      return
     }
     let audit = SanskritTokenAudit.audit(phonemes: phonemes)
     let tokens = audit.tokenIDs.map(String.init).joined(separator: " ")

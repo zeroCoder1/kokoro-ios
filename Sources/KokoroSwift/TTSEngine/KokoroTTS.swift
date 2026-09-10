@@ -221,8 +221,12 @@ public final class KokoroTTS {
   /// deliver a differentiated pause and its duration predictor under-realises
   /// a visarga-final syllable. Both of those are supplied here.
   ///
-  ///     let audio = try tts.generateSanskritAudio(voice: voice, text: verse)
-  ///     let slower = try tts.generateSanskritAudio(
+  ///     let (audio, warnings) = try tts.generateSanskritAudio(
+  ///       voice: voice, text: verse
+  ///     )
+  ///     if !warnings.isEmpty { report(warnings) }
+  ///
+  ///     let (slower, _) = try tts.generateSanskritAudio(
   ///       voice: voice, text: verse, delivery: .learning
   ///     )
   ///
@@ -233,19 +237,30 @@ public final class KokoroTTS {
   ///
   /// - Parameters:
   ///   - voice: Voice embedding array.
-  ///   - text: Devanagari. Non-Devanagari is dropped with a warning.
+  ///   - text: Devanagari. Non-Devanagari is dropped, and every drop is
+  ///     reported in the returned warnings.
   ///   - delivery: Pace and pause lengths. `.recitation` by default;
   ///     `.learning` is slower with longer breaks, `.fast` is the voice's own
-  ///     pace, and `.unshaped` is the model's raw timing for comparison.
-  /// - Returns: Audio samples at `Constants.samplingRate`.
+  ///     pace, and `.unshaped` neutralizes only the per-token duration intent.
+  /// - Returns: Audio samples at `Constants.samplingRate`, and the warnings
+  ///   the pipeline raised.
+  ///
+  /// **Check the warnings.** Unsupported input is dropped rather than
+  /// substituted — that is deliberate, because a wrong phoneme in a śloka is
+  /// worse than a missing one — but a caller that ignores this array turns a
+  /// reported omission into a silent one. `KOKORO_UNSUPPORTED` means a sound
+  /// was lost; `KOKORO_APPROXIMATION` and `KOKORO_APPROXIMATED_VISARGA` mean
+  /// one was rendered inexactly.
+  @discardableResult
   public func generateSanskritAudio(
     voice: MLXArray,
     text: String,
     delivery: SanskritDelivery = .recitation
-  ) throws -> [Float] {
+  ) throws -> (audio: [Float], warnings: [String]) {
     let sampleRate = Double(Constants.samplingRate)
     var audio: [Float] = []
-    for segment in SanskritProsody.segments(for: text, configuration: delivery.prosody) {
+    let analysis = SanskritProsody.analyze(text, configuration: delivery.prosody)
+    for segment in analysis.segments {
       // Derived per segment so the multiplier lines up with that call's own
       // tokens rather than the whole verse's.
       let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
@@ -260,7 +275,7 @@ public final class KokoroTTS {
       let pause = segment.pauseAfter / Double(delivery.speed)
       audio += [Float](repeating: 0, count: Int(pause * sampleRate))
     }
-    return audio
+    return (audio, analysis.warnings.map(\.text))
   }
 
   /// Generates audio from a phoneme string, skipping G2P entirely.

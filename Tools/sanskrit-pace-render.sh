@@ -2,13 +2,13 @@
 # Render the validation verses at one delivery, for listening.
 #
 #   Tools/sanskrit-pace-render.sh --model <m> --voices <dir> [--voice hf_alpha]
-#       [--delivery traditional|recitation|learning] [--out <dir>]
+#       [--delivery recitation|learning|fast|unshaped] [--out <dir>]
 #
 # Used to put the shipped deliveries side by side against the human reciter
 # recordings the pace was calibrated from.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-model=""; voices=""; voice="hf_alpha"; delivery="traditional"; out="Artifacts/sanskrit/pace-v1/render"
+model=""; voices=""; voice="hf_alpha"; delivery="recitation"; out="Artifacts/sanskrit/pace-v1/render"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --model)    model="$2"; shift 2 ;;
@@ -35,11 +35,16 @@ import Testing
   guard let modelPath = env["SA_MODEL"], let voiceDirectory = env["SA_VOICES"],
         let voiceName = env["SA_VOICE"], let root = env["SA_OUT"],
         let deliveryName = env["SA_DELIVERY"] else { return }
-  let delivery: SanskritDelivery = switch deliveryName {
-  case "traditional": .traditional
-  case "recitation":  .recitation
-  case "learning":    .learning
-  default:            .recitation
+  // No silent fallback: an unrecognised name would mislabel the evidence,
+  // because the file name keeps whatever was asked for.
+  let deliveries: [String: SanskritDelivery] = [
+    "recitation": .recitation, "learning": .learning,
+    "fast": .fast, "unshaped": .unshaped,
+  ]
+  guard let delivery = deliveries[deliveryName] else {
+    print("error: unknown delivery '\(deliveryName)'; "
+          + "expected one of \(deliveries.keys.sorted().joined(separator: ", "))")
+    return
   }
   let tts = try KokoroTTS(modelPath: URL(fileURLWithPath: modelPath), g2p: .sanskrit)
   guard let voice = try MLX.loadArrays(

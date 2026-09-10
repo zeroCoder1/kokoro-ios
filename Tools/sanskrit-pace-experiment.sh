@@ -100,7 +100,7 @@ import Testing
         )
       }
       try record("whole_\(id)_\(tag)", wholeAudio,
-                 "\"verse\": \"\(id)\", \"speed\": \(speed), \"syllables\": \(syllables), \"pada_pause\": 0, \"mode\": \"whole\"")
+                 "\"verse\": \"\(id)\", \"speed\": \(speed), \"syllables\": \(syllables), \"pada_pause_at_speed_1\": 0, \"pada_pause_rendered\": 0, \"mode\": \"whole\"")
       }
 
       // 2. The shipped split path, at the pause the recitation delivery uses.
@@ -120,7 +120,7 @@ import Testing
         splitAudio += [Float](repeating: 0, count: Int(pause * sampleRate))
       }
       try record("split_\(id)_\(tag)", splitAudio,
-                 "\"verse\": \"\(id)\", \"speed\": \(speed), \"syllables\": \(syllables), \"pada_pause\": 0.50, \"mode\": \"split\"")
+                 "\"verse\": \"\(id)\", \"speed\": \(speed), \"syllables\": \(syllables), \"pada_pause_at_speed_1\": 0.50, \"pada_pause_rendered\": \(0.50 / Double(speed)), \"mode\": \"split\"")
       }
     }
   }

@@ -164,7 +164,8 @@ import Testing
             "duration_intent": \(quote("\(mode.delivery.intent)")),
             "prosody": {
               "word_boundary": \(mode.delivery.prosody.wordBoundary),
-              "pada_pause": \(mode.delivery.prosody.padaPause),
+              "pada_pause_at_speed_1": \(mode.delivery.prosody.padaPause),
+              "pada_pause_rendered": \(mode.delivery.renderedPadaPause),
               "verse_pause": \(mode.delivery.prosody.versePause)
             },
             "boundaries": [\(segments.map { quote("\($0.boundary.map(String.init(describing:)) ?? "end")") }.joined(separator: ", "))],
@@ -234,7 +235,8 @@ import Testing
           "speed": \(delivery.speed),
           "prosody": {
             "word_boundary": \(delivery.prosody.wordBoundary),
-            "pada_pause": \(delivery.prosody.padaPause),
+            "pada_pause_at_speed_1": \(delivery.prosody.padaPause),
+            "pada_pause_rendered": \(delivery.renderedPadaPause),
             "verse_pause": \(delivery.prosody.versePause)
           },
           "warnings": [\(analysis.warnings.map { quote($0.text) }.joined(separator: ", "))],

@@ -2,7 +2,19 @@ import Foundation
 
 /// How long a pause each Sanskrit boundary is worth.
 ///
-/// **These are seconds of real silence, and they are not part of G2P.** They
+/// **The unit is seconds at speed 1.0.** The renderer divides each value by
+/// the delivery's speed, so a pause keeps its proportion to the syllables
+/// around it rather than its absolute length — `recitation`'s 0.50 is 0.625 s
+/// of silence at its speed of 0.80, and `learning`'s 0.70 is 0.921 s at 0.76.
+/// `SanskritDelivery.renderedPadaPause` and `renderedVersePause` compute the
+/// figure a listener actually hears, and diagnostics record that one.
+///
+/// The alternative — absolute seconds, with no division — was considered and
+/// not taken: every measurement under `Artifacts/sanskrit/` was produced with
+/// the division in place, so switching would change the shipped audio while
+/// silently invalidating that evidence.
+///
+/// **These are not part of G2P.** They
 /// exist because Kokoro's punctuation does not deliver a *differentiated*
 /// pause. Measured on this model at verse length, with the same phonemes and
 /// only the separator changed:
@@ -123,7 +135,17 @@ public struct SanskritDelivery: Equatable, Sendable {
     self.intent = intent
   }
 
+  /// The half-verse silence this delivery actually produces, in seconds.
+  ///
+  /// `prosody.padaPause` is the value at speed 1.0; this is what a listener
+  /// hears.
+  public var renderedPadaPause: TimeInterval { prosody.padaPause / Double(speed) }
+  /// The verse-end silence this delivery actually produces, in seconds.
+  public var renderedVersePause: TimeInterval { prosody.versePause / Double(speed) }
+
   /// Deliberate pace for following along word by word, with long pauses.
+  ///
+  /// Pauses render at 0.921 s and 1.711 s — 0.70 and 1.30 divided by 0.76.
   public static let learning = SanskritDelivery(
     speed: 0.76,
     prosody: SanskritProsodyConfiguration(padaPause: 0.70, versePause: 1.30),
@@ -132,6 +154,8 @@ public struct SanskritDelivery: Equatable, Sendable {
 
   /// The default for recitation. The slowest rate at which every syllable
   /// still resolves separately, without sounding laboured.
+  ///
+  /// Pauses render at 0.625 s and 1.25 s — 0.50 and 1.00 divided by 0.80.
   public static let recitation = SanskritDelivery(
     speed: 0.80,
     prosody: SanskritProsodyConfiguration(padaPause: 0.50, versePause: 1.00),
@@ -147,7 +171,14 @@ public struct SanskritDelivery: Equatable, Sendable {
     intent: .closureRepairs
   )
 
-  /// Exactly the model's own timing, for A/B against any of the above.
+  /// The model's own **per-token** timing: the duration intent is neutral, so
+  /// `predictDurations` runs unmodified.
+  ///
+  /// It is otherwise the recitation delivery — speed 0.80 and the same 0.50 /
+  /// 1.00 pauses — because holding those constant is what makes it a
+  /// controlled A/B against `recitation`. It is **not** an unshaped render in
+  /// any wider sense; for that, pass `SanskritProsodyConfiguration.none` at
+  /// speed 1.0.
   public static let unshaped = SanskritDelivery(
     speed: 0.80,
     prosody: SanskritProsodyConfiguration(padaPause: 0.50, versePause: 1.00),
@@ -173,17 +204,39 @@ enum SanskritProsody {
     let boundary: SanskritBoundary?
   }
 
+  /// Segments plus everything the pipeline had to say about the input.
+  struct Analysis {
+    var segments: [Segment] = []
+    /// Normalizer, parser, phonology and mapper warnings, in pipeline order.
+    /// Dropped Devanagari and every approximation appears here.
+    var warnings: [SanskritWarning] = []
+  }
+
   /// Splits at every boundary the configuration gives a non-zero pause to.
   /// With `.none` this returns a single segment and the result is identical
   /// to one `generateAudio` call.
+  ///
+  /// Discards warnings. Prefer `analyze` wherever the caller can report them:
+  /// unsupported input is dropped, and dropping it *silently* is what this
+  /// project's own rules forbid.
   static func segments(
     for text: String,
     options: SanskritOptions = .default,
     configuration: SanskritProsodyConfiguration = .default
   ) -> [Segment] {
+    analyze(text, options: options, configuration: configuration).segments
+  }
+
+  static func analyze(
+    _ text: String,
+    options: SanskritOptions = .default,
+    configuration: SanskritProsodyConfiguration = .default
+  ) -> Analysis {
     let normalized = SanskritNormalizer.normalize(text)
     let parsed = SanskritAksharaParser.parse(normalized.text)
 
+    var analysis = Analysis()
+    analysis.warnings = normalized.warnings + parsed.warnings
     var segments: [Segment] = []
     var pending: [SanskritUnit] = []
 
@@ -191,6 +244,7 @@ enum SanskritProsody {
       guard !pending.isEmpty else { return }
       let phonology = SanskritPhonology.apply(to: pending, options: options)
       let mapped = SanskritKokoroMapper.map(phonology.segments, options: options)
+      analysis.warnings += phonology.warnings + mapped.warnings
       pending.removeAll(keepingCapacity: true)
       guard !mapped.phonemes.isEmpty else { return }
       segments.append(Segment(
@@ -212,6 +266,7 @@ enum SanskritProsody {
       pending.append(unit)
     }
     flush(endedBy: nil)
-    return segments
+    analysis.segments = segments
+    return analysis
   }
 }
