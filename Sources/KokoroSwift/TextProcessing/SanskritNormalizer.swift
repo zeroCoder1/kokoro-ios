@@ -113,11 +113,28 @@ enum SanskritNormalizer {
     return Result(text: collapsingWhitespace(output), warnings: warnings)
   }
 
-  /// One space between tokens, and no leading or trailing space. Newlines
-  /// inside a verse are line breaks in the printing, not pauses — the dandas
-  /// carry the pauses.
+  /// One separator between tokens, and none at either end.
+  ///
+  /// A newline **survives** as a newline. It is typography rather than a
+  /// pause — the daṇḍas carry the pauses — but the parser reports it as
+  /// `SanskritBoundary.displayLineBreak` so a diagnostic can show where the
+  /// source line ended. Collapsing it to a space here is what made that
+  /// boundary unreachable: it is switched on in five places and was never
+  /// once constructed.
   private static func collapsingWhitespace(_ text: String) -> String {
-    text.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+    var output = ""
+    var pending: Character?              // the separator owed before the next token
+    for character in text {
+      guard character.isWhitespace else {
+        if let separator = pending, !output.isEmpty { output.append(separator) }
+        pending = nil
+        output.append(character)
+        continue
+      }
+      // A run containing a newline is a line break; otherwise a space.
+      if character.isNewline { pending = "\n" } else if pending == nil { pending = " " }
+    }
+    return output
   }
 
   /// Whether a visarga may follow this scalar.

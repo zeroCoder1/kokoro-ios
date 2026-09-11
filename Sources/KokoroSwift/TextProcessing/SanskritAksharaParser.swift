@@ -177,10 +177,21 @@ enum SanskritAksharaParser {
       flush()
       // Two spaces, or a space in front of a danda, are one boundary. The
       // stronger one wins so a pause is never weakened by the space beside it.
+      //
+      // A display line break is typography: it separates nothing a space does
+      // not. So a real pause beside it absorbs it — `।` followed by a newline
+      // is one break, not two — while it supersedes a plain space, because it
+      // says more about the source for the same separation.
       if case .some(.boundary(let previous)) = result.units.last {
-        if previous == .word, boundary != .word {
+        if previous == boundary { return }
+        if boundary == .displayLineBreak {
+          if previous == .word { result.units.removeLast() } else { return }
+        } else if previous == .displayLineBreak {
+          if boundary == .word { return }
           result.units.removeLast()
-        } else if previous == boundary || boundary == .word {
+        } else if previous == .word, boundary != .word {
+          result.units.removeLast()
+        } else if boundary == .word {
           return
         }
       }
@@ -262,7 +273,12 @@ enum SanskritAksharaParser {
         index += 1
       default:
         let character = Character(scalar)
-        if character.isWhitespace {
+        if character.isNewline {
+          // Typography, not a pause. Reported so a diagnostic can show where
+          // the printed line ended; it maps to the same space a word boundary
+          // does and carries no silence.
+          appendBoundary(.displayLineBreak)
+        } else if character.isWhitespace {
           appendBoundary(.word)
         } else if vowelSigns[scalar] != nil {
           result.warnings.append(.orphanedMark(String(character)))

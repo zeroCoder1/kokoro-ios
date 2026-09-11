@@ -802,3 +802,60 @@ private func division(_ text: String) -> String {
   // NFC really does leave the form decomposed, which is why this matters.
   #expect("ज़".precomposedStringWithCanonicalMapping.unicodeScalars.count == 2)
 }
+
+// MARK: - A source line break is reported, and changes nothing audible
+
+// `displayLineBreak` was declared, switched on in five places, and never once
+// constructed: normalization collapsed every whitespace run to a space before
+// the parser could see a newline.
+
+@Test func aSourceNewlineProducesTheDisplayLineBreakBoundary() {
+  func boundaries(_ text: String) -> [SanskritBoundary] {
+    SanskritAksharaParser.parse(SanskritNormalizer.normalize(text).text).units
+      .compactMap { if case let .boundary(b) = $0 { return b }; return nil }
+  }
+  // A newline that is the only separator is where the boundary shows up.
+  #expect(boundaries("राम\nलक्ष्मण") == [.displayLineBreak])
+  #expect(boundaries("राम लक्ष्मण") == [.word])
+
+  // Beside a daṇḍa it is absorbed: `।` followed by a newline is one break, and
+  // the daṇḍa is the one that carries the pause. That is why the Gītā verses,
+  // whose line breaks all sit on a daṇḍa, show none.
+  #expect(boundaries("राम ।\nलक्ष्मण") == [.pada])
+  #expect(boundaries("राम\n।लक्ष्मण") == [.pada])
+  let verse = "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।\nमामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ॥"
+  #expect(!boundaries(verse).contains(.displayLineBreak))
+
+  // The normalizer keeps the newline rather than flattening it to a space.
+  #expect(SanskritNormalizer.normalize(verse).text.contains("\n"))
+  // Runs collapse: many blank lines are still one break.
+  let padded = SanskritNormalizer.normalize("राम \n\n\n  \n लक्ष्मण").text
+  #expect(padded == "राम\nलक्ष्मण", "\(padded)")
+  // And a plain space stays a space.
+  #expect(SanskritNormalizer.normalize("राम   लक्ष्मण").text == "राम लक्ष्मण")
+}
+
+/// Typography, not a pause. The boundary must reach diagnostics and nothing
+/// else — same phonemes, same tokens, no silence.
+@Test func aLineBreakIsTypographyAndNotAPause() {
+  for verse in ["धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।\nमामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ॥",
+                "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ॥"] {
+    let multiline = SanskritPhonemizer.analyze(verse)
+    let oneLine = SanskritPhonemizer.analyze(
+      verse.replacingOccurrences(of: "\n", with: " ")
+    )
+    #expect(multiline.kokoroPhonemes == oneLine.kokoroPhonemes,
+            "a line break changed the phonemes")
+    #expect(multiline.tokens == oneLine.tokens, "a line break changed the tokens")
+    #expect(multiline.canonical == oneLine.canonical)
+  }
+  // It carries no silence under any delivery.
+  #expect(SanskritBoundary.displayLineBreak.isPause == false)
+  for delivery in [SanskritDelivery.learning, .recitation, .fast, .unshaped] {
+    #expect(delivery.prosody.pause(for: .displayLineBreak) == 0)
+  }
+  // So it never splits a verse into an extra segment.
+  let verse = "राम ।\nलक्ष्मण ॥"
+  #expect(SanskritProsody.segments(for: verse).count
+          == SanskritProsody.segments(for: "राम । लक्ष्मण ॥").count)
+}

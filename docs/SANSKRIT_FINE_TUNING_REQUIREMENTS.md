@@ -96,6 +96,10 @@ Final stops close correctly (तत् / तत ratio 3.36) but final nasals do 
 Across all nine training languages: `ʂ` 4 occurrences, `ɖ` 1, `ɳ` 9, `ɟ` 12,
 `ʈ` 13, `ɲ` 7 — against `s` 4336 and `t` 4129.
 
+**Aspiration belongs on this list too.** `ʰ` has 44 occurrences, every one of
+them from Hindi, which is an order of magnitude thinner than a core Sanskrit
+contrast needs and not the comfortable figure it was first recorded as.
+
 **Recordings must cover** the contrasts directly:
 
 - ś / ṣ / s: शक्ति, षट्, सत् · शास्त्र, कृष्ण, सम · श्रद्धा, क्षेत्र, सञ्जय

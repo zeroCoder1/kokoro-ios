@@ -26,13 +26,17 @@ counted from an espeak scan across Kokoro's nine training languages.
 
 | target | candidates in vocabulary | training support |
 |---|---|---|
-| ए `eː` | `e` `ɛ` `ɜ` `ᵻ` `A` `æ` | 1171 / 1792 / 393 / 338 / **0** / — |
+| ए `eː` | `e` `ɛ` `ɜ` `ᵻ` `A` `æ` | 1171 / 1792 / 393 / 338 / **0** / 1001 |
 | visarga | `h` `x` `ɸ` `θ` `ç` `χ` | 561 / 11 / **0** / 354 / **1** / 4 |
 | ऋ | `ɾ` `ɚ` `ɹ` `ɻ` `ɽ` `ʁ` | 532 / **694** / 3921 / **0** / **1** / 7 |
 | ञ | `ɲ` `ɴ` `ʎ` `ʲ` | 7 / 2 / 4 / 1 |
 | ष | `ʂ` `ɕ` `ʃ` | 4 / 16 / 989 |
 | ङ | `ŋ` `ɴ` | 577 / 2 |
-| aspiration | `ʰ` `ʱ` | 162 / **absent** |
+| aspiration | `ʰ` `ʱ` | **44** / **absent** |
+
+An earlier version of this table reported `ʰ` at 162. That is its **token id**,
+not its training count; the count is 44. The figure is corrected above, and it
+matters: 162 reads as comfortable support, 44 from a single language does not.
 
 The two symbols that would be *phonetically exact* for ऋ — `ɻ` and `ɽ` — have
 0 and 1 occurrences. `ɸ`, the exact upadhmānīya, has 0. Accuracy and training
@@ -116,7 +120,7 @@ than signal. `h` remains, with `KOKORO_APPROXIMATED_VISARGA` on every use.
 | **ञ** | `ɲ` is the only genuine palatal nasal in the vocabulary. `ɴ` (2) and `ʎ` (4) are worse on both accuracy and training. `BASELINE_BETTER`. |
 | **ष** | `ʂ` is correct and thinly trained (4). `ɕ` is श's proper value, not ष's; `ʃ` would collapse the ś/ṣ contrast. `BASELINE_BETTER`. |
 | **ङ** | `ŋ` is exact and well trained (577). `EXACT_MAPPING_FOUND` — nothing to change. |
-| **aspirated clusters** | `ʰ` is the only aspiration modifier present; `ʱ`, which the voiced aspirates properly want, is absent. `NO_SUPPORTED_KOKORO_MAPPING` for the voiced series; the contrast survives regardless. |
+| **aspirated clusters** | `ʰ` is the only aspiration modifier present, and thinner than it first appeared: **44 occurrences, every one from Hindi**, which puts it with the retroflexes rather than with the well-trained symbols. `ʱ`, which the voiced aspirates properly want, is absent entirely. `NO_SUPPORTED_KOKORO_MAPPING` for the voiced series; the contrast survives in the tokens regardless. |
 
 One candidate was accepted at `exact` quality but not adopted: `ɕ` for **श**
 is the phonetically correct alveolo-palatal, and it is better trained than `ʂ`
