@@ -859,3 +859,67 @@ private func division(_ text: String) -> String {
   #expect(SanskritProsody.segments(for: verse).count
           == SanskritProsody.segments(for: "राम । लक्ष्मण ॥").count)
 }
+
+// MARK: - Whole-text duration scaling joins on the right key
+
+// `Result.alignment` holds only the aksharas that produced sound, so every
+// boundary in the source shifts its array positions away from the unit indices
+// `SanskritSyllable.aksharaIndices` carries. Keying by position dropped every
+// syllable after the first space or daṇḍa.
+
+@Test func alignmentEntriesCarryTheirUnitIndex() {
+  let result = SanskritPhonemizer.analyze("क क")
+  // Three units — akshara, boundary, akshara — but two alignment entries.
+  #expect(result.units.count == 3)
+  #expect(result.alignment.count == 2)
+  // The second entry is unit 2, not unit 1.
+  #expect(result.alignment.map(\.unitIndex) == [0, 2])
+  // Every entry names a unit that really is an akshara.
+  for entry in result.alignment {
+    guard case .akshara = result.units[entry.unitIndex] else {
+      Issue.record("alignment \(entry.unitIndex) is not an akshara")
+      continue
+    }
+  }
+}
+
+@Test func durationScaleReachesSyllablesAfterABoundary() {
+  var intent = SanskritProsodyIntent.neutral
+  intent.guruVowelScale = 2.0
+  intent.laghuVowelScale = 0.5
+
+  // Both aksharas are the same syllable type, so both must be scaled. Keying
+  // by array position left the second one at 1.0.
+  let pair = SanskritProsodyPlanner.durationScale(for: "क क", intent: intent) ?? []
+  #expect(pair.filter { $0 == 0.5 }.count == 2, "क क scaled \(pair)")
+
+  // And across a whole pāda, every word is reached.
+  for text in ["राम लक्ष्मण", "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः"] {
+    let scale = SanskritProsodyPlanner.durationScale(for: text, intent: intent) ?? []
+    #expect(scale.contains { $0 != 1.0 }, "\(text) went unscaled")
+    // The last word is scaled too, not just the first.
+    let tail = scale.suffix(scale.count / 3)
+    #expect(tail.contains { $0 != 1.0 }, "\(text): nothing scaled after the boundaries")
+  }
+}
+
+/// A syllable may draw on two aksharas, so two syllables can name the same one.
+/// Multiplying twice produced a factor no syllable asked for — 4.0 from a guru
+/// scale of 2.0.
+@Test func noTokenIsScaledTwice() {
+  var intent = SanskritProsodyIntent.neutral
+  intent.guruVowelScale = 2.0
+  intent.laghuVowelScale = 0.5
+  intent.heldCodaScale = 3.0
+  let largest = max(intent.guruVowelScale, max(intent.laghuVowelScale, intent.heldCodaScale))
+  for text in ["क क", "राम लक्ष्मण", "सिद्ध", "मन्त्र", "कृत्स्नम्",
+               "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः"] {
+    let scale = SanskritProsodyPlanner.durationScale(for: text, intent: intent) ?? []
+    for (index, value) in scale.enumerated() {
+      #expect(value <= largest,
+              "\(text) token \(index) reached \(value), above the largest single factor \(largest)")
+      #expect(value >= intent.laghuVowelScale,
+              "\(text) token \(index) fell to \(value)")
+    }
+  }
+}

@@ -329,9 +329,14 @@ enum SanskritProsodyPlanner {
     // the alignment the phonemizer already computes. Then, inside that range,
     // scale the vowel tokens by weight and the length and aspiration marks
     // with them.
+    // Keyed by unit index, not by position in the alignment array. The array
+    // holds only the aksharas that produced sound, so every boundary shifts
+    // the two apart — in `क क` the second akshara is unit 2 but array entry 1,
+    // and keying by position silently dropped every syllable after the first
+    // space or daṇḍa.
     var tokensForAkshara: [Int: Range<Int>] = [:]
-    for (index, entry) in result.alignment.enumerated() {
-      tokensForAkshara[index] = entry.tokenIndices
+    for entry in result.alignment {
+      tokensForAkshara[entry.unitIndex] = entry.tokenIndices
     }
     let phonemeScalars = Array(result.kokoroPhonemes.unicodeScalars)
     // Token index -> scalar index. Nothing is dropped for Sanskrit, but derive
@@ -347,12 +352,23 @@ enum SanskritProsodyPlanner {
       "aeiouɑɐɒæɔəɛɜɨɪɯøœʊʌɤ".unicodeScalars.contains(scalar)
     }
 
+    // A syllable may draw on two aksharas — a coda comes from the akshara
+    // after its nucleus — so two syllables can both name the same one and
+    // multiply the same token twice. With a guru scale of 2.0 that produced
+    // 4.0, a factor no syllable asked for. Each token takes the first
+    // syllable that claims it and no more.
+    //
+    // First-wins is a bound, not a resolution: where two syllables genuinely
+    // share an akshara the tokens take the earlier syllable's weight. Exact
+    // ownership needs a nucleus-to-token map the alignment does not carry.
+    var alreadyScaled = Set<Int>()
     for syllable in syllabified.syllables {
       let vowelFactor = syllable.weight == .guru
         ? intent.guruVowelScale : intent.laghuVowelScale
       for aksharaIndex in syllable.aksharaIndices {
         guard let range = tokensForAkshara[aksharaIndex] else { continue }
         for token in range where token < tokenCount {
+          guard alreadyScaled.insert(token).inserted else { continue }
           guard token < scalarForToken.count else { continue }
           let scalar = phonemeScalars[scalarForToken[token]]
           if isVowelScalar(scalar) {

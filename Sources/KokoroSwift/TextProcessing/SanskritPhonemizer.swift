@@ -60,6 +60,14 @@ enum SanskritPhonemizer {
 
   /// One akshara's journey from source characters to Kokoro tokens.
   struct SourceAlignment: Equatable {
+    /// Index of the akshara in `Result.units`.
+    ///
+    /// **Not this entry's position in the array.** The array holds only the
+    /// aksharas that produced sound, so every boundary in the source shifts
+    /// the two apart — in `क क` the second akshara is unit 2 and array entry
+    /// 1. Anything keyed by akshara, such as `SanskritSyllable.aksharaIndices`,
+    /// must join on this.
+    var unitIndex: Int
     /// Scalar offsets into `normalized`.
     var sourceOffsets: Range<Int>
     /// The akshara's own canonical SLP1.
@@ -145,6 +153,7 @@ enum SanskritPhonemizer {
       if akshara.chandrabindu { canonical += "~" }
       if akshara.visarga { canonical += "H" }
       return SourceAlignment(
+        unitIndex: unitIndex,
         sourceOffsets: akshara.sourceOffsets,
         canonical: canonical,
         phonemes: String(String.UnicodeScalarView(scalars[lower ..< upper])),
