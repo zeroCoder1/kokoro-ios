@@ -23,12 +23,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.1,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_0_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "ऋ",
@@ -51,12 +54,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 0.925,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_0_candidate_01.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "ऋ",
@@ -81,12 +87,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.2,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_0_candidate_02.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "कृ",
@@ -113,12 +122,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.5,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_1_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "कृ",
@@ -143,12 +155,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.375,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_1_candidate_01.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "कृ",
@@ -175,12 +190,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.375,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_1_candidate_02.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "कृत",
@@ -211,12 +229,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.875,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_2_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "कृत",
@@ -245,12 +266,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.85,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_2_candidate_01.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "कृत",
@@ -281,12 +305,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.925,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_2_candidate_02.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "कृष्ण",
@@ -319,12 +346,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.825,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_3_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "कृष्ण",
@@ -355,12 +385,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.725,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_3_candidate_01.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "कृष्ण",
@@ -393,12 +426,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.9,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_3_candidate_02.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "सृ",
@@ -425,12 +461,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.425,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_4_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "सृ",
@@ -455,12 +494,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.425,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_4_candidate_01.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "सृ",
@@ -487,12 +529,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.4,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_4_candidate_02.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "सृजति",
@@ -527,12 +572,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.175,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_5_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "सृजति",
@@ -565,12 +613,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.1,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_5_candidate_01.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "सृजति",
@@ -605,12 +656,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.125,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_5_candidate_02.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "सृजाम्यहम्",
@@ -655,12 +709,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.4,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_6_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "सृजाम्यहम्",
@@ -703,12 +760,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.4,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_6_candidate_01.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "सृजाम्यहम्",
@@ -753,12 +813,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.425,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_6_candidate_02.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "हृषीकेश",
@@ -801,12 +864,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.575,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_7_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "हृषीकेश",
@@ -847,12 +913,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.525,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_7_candidate_01.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "हृषीकेश",
@@ -895,12 +964,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.625,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_7_candidate_02.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "वृत्ति",
@@ -933,12 +1005,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.925,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_8_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "वृत्ति",
@@ -969,12 +1044,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.95,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_8_candidate_01.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "वृत्ति",
@@ -1007,12 +1085,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.975,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_8_candidate_02.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "प्रकृति",
@@ -1049,12 +1130,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.2,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_9_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "प्रकृति",
@@ -1089,12 +1173,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.125,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_9_candidate_01.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "प्रकृति",
@@ -1131,12 +1218,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.225,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_9_candidate_02.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "पृथ्वी",
@@ -1173,12 +1263,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.0,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_10_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "पृथ्वी",
@@ -1213,12 +1306,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.9,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_10_candidate_01.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "पृथ्वी",
@@ -1255,12 +1351,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.975,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_10_candidate_02.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "मृत्यु",
@@ -1293,12 +1392,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.9,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_11_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "मृत्यु",
@@ -1329,12 +1431,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.875,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_11_candidate_01.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "मृत्यु",
@@ -1367,12 +1472,15 @@
       ],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.925,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "vocalic-r/vocalic-r_11_candidate_02.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     }
   ]
 }

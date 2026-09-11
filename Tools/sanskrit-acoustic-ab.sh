@@ -27,6 +27,7 @@ done
 trap 'rm -f Tests/KokoroSwiftTests/ZZAcousticAB.swift' EXIT
 
 cat > Tests/KokoroSwiftTests/ZZAcousticAB.swift <<'SWIFT'
+import CryptoKit
 import Foundation
 import MLX
 import Testing
@@ -43,9 +44,22 @@ import Testing
   )["voice"] else { return }
   let sampleRate = Double(KokoroTTS.Constants.samplingRate)
   let speed: Float = 0.80
-  // Provenance: the file actually loaded, not an assumed one.
-  let modelSize = (try? FileManager.default.attributesOfItem(atPath: modelPath)[.size]
-    as? Int) ?? nil ?? -1
+  // Provenance for the weights actually loaded. The caller's path is
+  // machine-specific and says nothing about which model ran, so record an
+  // identity another machine can verify: the file name, its size, and a
+  // digest streamed rather than read whole.
+  let modelFile = URL(fileURLWithPath: modelPath).lastPathComponent
+  let modelSize = ((try? FileManager.default
+    .attributesOfItem(atPath: modelPath)[.size]) as? Int) ?? -1
+  let modelDigest: String = {
+    guard let handle = FileHandle(forReadingAtPath: modelPath) else { return "unreadable" }
+    defer { try? handle.close() }
+    var hasher = SHA256()
+    while let chunk = try? handle.read(upToCount: 4 << 20), !chunk.isEmpty {
+      hasher.update(data: chunk)
+    }
+    return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+  }()
 
   // (folder, words, candidate profiles). Baseline is always profile zero.
   let groups: [(String, [String], [SanskritAcousticMappingProfile])] = [
@@ -141,7 +155,8 @@ import Testing
               "warnings": [\(result.warnings.map { quote($0.text) }.joined(separator: ", "))],
               "voice": \(quote(voiceName)),
               "speed": \(speed),
-              "model": \(quote(modelPath)),
+              "model_file": \(quote(modelFile)),
+              "model_sha256": \(quote(modelDigest)),
               "model_size_bytes": \(modelSize),
               "duration_seconds": \(String(format: "%.3f", Double(audio.count) / sampleRate)),
               "commit": \(quote(commit)),
@@ -158,5 +173,5 @@ import Testing
 SWIFT
 
 SA_MODEL="$model" SA_VOICES="$voices" SA_VOICE="$voice" SA_OUT="$out" \
-SA_COMMIT="$(git rev-parse HEAD)" \
+SA_COMMIT="$(git rev-parse HEAD)$(git diff --quiet HEAD 2>/dev/null || echo '-dirty')" \
   swift test --filter zzAcousticAB 2>&1 | grep -E "^GROUP|error:"

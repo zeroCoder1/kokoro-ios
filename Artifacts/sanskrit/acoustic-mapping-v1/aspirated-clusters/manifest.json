@@ -43,12 +43,15 @@
       "warnings": [],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.525,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "aspirated-clusters/aspirated-clusters_0_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "exact"
+      "word_fidelity_per_mapper": "exact",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "ग्लानिर्भवति",
@@ -95,12 +98,15 @@
       "warnings": [],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.675,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "aspirated-clusters/aspirated-clusters_1_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "exact"
+      "word_fidelity_per_mapper": "exact",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "हेतुर्भूर्मा",
@@ -147,12 +153,15 @@
       "warnings": [],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.575,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "aspirated-clusters/aspirated-clusters_2_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "exact"
+      "word_fidelity_per_mapper": "exact",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "धर्मक्षेत्रे",
@@ -199,12 +208,15 @@
       "warnings": [],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.575,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "aspirated-clusters/aspirated-clusters_3_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "exact"
+      "word_fidelity_per_mapper": "exact",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "भक्त्या",
@@ -239,12 +251,15 @@
       "warnings": [],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.0,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "aspirated-clusters/aspirated-clusters_4_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "exact"
+      "word_fidelity_per_mapper": "exact",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "श्रद्धा",
@@ -279,12 +294,15 @@
       "warnings": [],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.025,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "aspirated-clusters/aspirated-clusters_5_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "exact"
+      "word_fidelity_per_mapper": "exact",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     }
   ]
 }

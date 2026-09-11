@@ -112,7 +112,6 @@
       "mapping_quality": "approximationPerMapper",
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 10.613,
       "warnings": [
         "KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)",
@@ -121,7 +120,11 @@
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "full-verses/bg_01_01_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "verse_id": "bg_01_01",
@@ -235,7 +238,6 @@
       "mapping_quality": "defensibleApproximation",
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 10.592,
       "warnings": [
         "KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)",
@@ -244,7 +246,11 @@
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "full-verses/bg_01_01_experimental.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "verse_id": "bg_02_47",
@@ -361,13 +367,16 @@
       "mapping_quality": "exactPerMapper",
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 10.474,
       "warnings": [],
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "full-verses/bg_02_47_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "exact"
+      "word_fidelity_per_mapper": "exact",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "verse_id": "bg_02_47",
@@ -484,13 +493,16 @@
       "mapping_quality": "defensibleApproximation",
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 10.474,
       "warnings": [],
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "full-verses/bg_02_47_experimental.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "exact"
+      "word_fidelity_per_mapper": "exact",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "verse_id": "bg_04_07",
@@ -607,7 +619,6 @@
       "mapping_quality": "approximationPerMapper",
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 10.769,
       "warnings": [
         "KOKORO_APPROXIMATION: anusvāra before a continuant → vowel nasalisation (Kokoro cannot spell a nasalised approximant)",
@@ -616,7 +627,11 @@
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "full-verses/bg_04_07_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "verse_id": "bg_04_07",
@@ -732,7 +747,6 @@
       "mapping_quality": "defensibleApproximation",
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 10.72,
       "warnings": [
         "KOKORO_APPROXIMATION: anusvāra before a continuant → vowel nasalisation (Kokoro cannot spell a nasalised approximant)",
@@ -741,7 +755,11 @@
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "full-verses/bg_04_07_experimental.wav",
       "mapping_quality_describes": "this profile's override only",
-      "word_fidelity_per_mapper": "approximation"
+      "word_fidelity_per_mapper": "approximation",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     }
   ]
 }

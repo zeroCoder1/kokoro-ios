@@ -9,6 +9,16 @@ and phonological layers are asserted unchanged under every profile.
 
 Baseline `3ef6dcc`. Audio and per-file manifests in the subfolders here.
 
+**Provenance of these manifests is weaker than a re-run's would be.** They were
+generated before the tooling recorded which weights it loaded, so each entry
+carries `model_sha256: "unrecorded"` and a null size; the model was stock
+`kokoro-v1_0` from `hexgrad/Kokoro-82M`, but nothing here proves that. The
+generator now records the file name, size and a SHA-256 digest, and marks the
+commit `-dirty` when the worktree was modified — so a future run is verifiable
+and these are not. Regenerating them would also change every
+`duration_seconds`, because Kokoro's decoder is non-deterministic, so the
+numbers here are kept as the record of what was actually measured.
+
 ## Candidate search
 
 Every defensible symbol in the 114-entry vocabulary, with its training support

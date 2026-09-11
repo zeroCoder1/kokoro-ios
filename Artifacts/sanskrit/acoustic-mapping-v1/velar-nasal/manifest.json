@@ -25,12 +25,15 @@
       "warnings": [],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.8,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "velar-nasal/velar-nasal_0_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "exact"
+      "word_fidelity_per_mapper": "exact",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "सङ्ग",
@@ -59,12 +62,15 @@
       "warnings": [],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.925,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "velar-nasal/velar-nasal_1_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "exact"
+      "word_fidelity_per_mapper": "exact",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "गङ्गा",
@@ -95,12 +101,15 @@
       "warnings": [],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 1.95,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "velar-nasal/velar-nasal_2_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "exact"
+      "word_fidelity_per_mapper": "exact",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     },
     {
       "source": "सङ्गोऽस्तु",
@@ -137,12 +146,15 @@
       "warnings": [],
       "voice": "hf_alpha",
       "speed": 0.8,
-      "model": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
       "duration_seconds": 2.3,
       "commit": "3ef6dcc2b5238e9897b7be5f78d43c2cff5093cc",
       "output_path": "velar-nasal/velar-nasal_3_baseline.wav",
       "mapping_quality_describes": "the word, per the mapper",
-      "word_fidelity_per_mapper": "exact"
+      "word_fidelity_per_mapper": "exact",
+      "model_file": "kokoro-v1_0.safetensors",
+      "model_source": "kokoro-v1_0 (hexgrad/Kokoro-82M)",
+      "model_sha256": "unrecorded (predates digest provenance)",
+      "model_size_bytes": null
     }
   ]
 }

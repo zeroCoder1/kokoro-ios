@@ -66,6 +66,12 @@ def load_edge(refs: Path):
         return None
 
 
+#: What a reference column says when the tool could not be run at all. It must
+#: not look like an empty phoneme string, or a broken install reads as a
+#: reference that simply agreed with nothing.
+UNAVAILABLE = "<unavailable>"
+
+
 def espeak_hindi(text: str) -> str:
     """espeak-ng Hindi IPA. A proxy: there is no Sanskrit voice."""
     try:
@@ -73,8 +79,16 @@ def espeak_hindi(text: str) -> str:
             ["espeak-ng", "-v", "hi", "-q", "--ipa", text],
             capture_output=True, text=True, timeout=20,
         )
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        return ""
+    except FileNotFoundError:
+        return UNAVAILABLE
+    except subprocess.TimeoutExpired:
+        return UNAVAILABLE
+    # A non-zero exit used to read as "espeak had nothing to say", which is how
+    # a missing voice or a broken install quietly removed a whole reference
+    # column from the comparison.
+    if out.returncode != 0:
+        detail = " ".join(out.stderr.split())[:120]
+        return f"{UNAVAILABLE} (exit {out.returncode}{': ' + detail if detail else ''})"
     return " ".join(out.stdout.split())
 
 

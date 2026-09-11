@@ -85,13 +85,21 @@ import Testing
     }
     speeds.append(speed)
   }
+  // "contains one valid name" let SA_MODES=whole,splti through and produced a
+  // whole-only sweep that looked deliberate. Every name must be known.
   let modes = setting("SA_MODES", default: "whole,split")
+  let known: Set<String> = ["whole", "split"]
   guard !speeds.isEmpty else {
     Issue.record("no usable speeds in SA_SPEEDS='\(env["SA_SPEEDS"] ?? "")'")
     return
   }
-  guard modes.contains("whole") || modes.contains("split") else {
-    Issue.record("no usable modes in SA_MODES='\(env["SA_MODES"] ?? "")'")
+  for mode in modes where !known.contains(mode) {
+    Issue.record("error: unknown SA_MODES value '\(mode)'; "
+                 + "expected \(known.sorted().joined(separator: " or "))")
+    return
+  }
+  guard !modes.isEmpty else {
+    Issue.record("error: SA_MODES is empty")
     return
   }
 

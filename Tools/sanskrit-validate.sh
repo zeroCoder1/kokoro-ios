@@ -261,5 +261,5 @@ import Testing
 SWIFT
 
 SA_MODEL="$model" SA_VOICES="$voices" SA_VOICE="$voice" SA_OUT="$out" \
-SA_COMMIT="$(git rev-parse HEAD)" \
+SA_COMMIT="$(git rev-parse HEAD)$(git diff --quiet HEAD 2>/dev/null || echo '-dirty')" \
   swift test --filter zzValidate 2>&1 | grep -E "^WROTE|^MANIFEST|^error:|error:"
