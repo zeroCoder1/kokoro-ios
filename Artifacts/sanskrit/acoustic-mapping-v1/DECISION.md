@@ -74,7 +74,7 @@ syllabicity, not a judgement of quality.
 
 ## 2. Sanskrit ए — `BASELINE_BETTER` (for now)
 
-`ɛː` separates ए from ई measurably better in **all seven** minimal pairs:
+`ɛː` separates ए from ई measurably better in **all six pairs tabulated here**:
 
 | pair | `eː` baseline | `ɛː` candidate |
 |---|---|---|
@@ -85,7 +85,19 @@ syllabicity, not a judgement of quality.
 | समवेता / समवीता | 4.5 | 7.0 |
 | फलेषु / फलीषु | 4.2 | 7.5 |
 
-Consistent, ~40% more separation, and `ɛ` is better trained (1792 vs 1171).
+Consistent: every pair improves, by 41% to 79%, a mean of **56%** per pair
+(7.0 dB to 10.6 dB across the six). `ɛ` is also better trained, 1792 against
+1171.
+
+Seven pairs were rendered, not six. The experiment also covered मे / मी — it is
+in `e-vowel/manifest.json` with the other twelve words — but its separation
+figures were never carried into this table and cannot be recovered: the
+measurement lives nowhere else, and the audio is regenerable output that git
+does not keep. Re-rendering it would not repair the row either, because the
+decoder is non-deterministic and the number would not belong beside the other
+six. The claim above is therefore scoped to what is shown, and an earlier
+version of it said "all seven" while listing six and summarised the gain as
+~40% when the tabulated rows give 56%.
 
 **Rejected for production anyway.** Sanskrit ए is **close-mid**; `ɛ` is
 open-mid. Adopting it would trade phonetic accuracy for separation on a
@@ -106,9 +118,16 @@ Tail zero-crossing rate, where frication needs > 0.15:
 | पाण्डवाः | 0.019 | 0.135 |
 | नमः | 0.082 | 0.148 |
 
-Inconsistent — better on two words, markedly worse on two others — and nothing
-reaches threshold. With `ç` at one training occurrence, this is noise rather
-than signal. `h` remains, with `KOKORO_APPROXIMATED_VISARGA` on every use.
+Inconsistent — better on three of these words and markedly worse on two — and
+**nothing reaches the 0.15 threshold** except नमः at 0.148, which is inside the
+noise. With `ç` at one training occurrence, this is noise rather than signal.
+`h` remains, with `KOKORO_APPROXIMATED_VISARGA` on every use.
+
+Eight words were rendered; five are tabulated. युयुत्सवः, मामकाः and दुःख are
+in `visarga/manifest.json` but their tail measurements were not carried into
+this table, so the verdict rests on the five shown. It does not turn on the
+missing three: no symbol reaches threshold in any environment tested, which is
+the finding that matters.
 
 **`ACOUSTIC_MODEL_LIMITATION: VISARGA`** stands, now tested over `h`, `x`,
 `ɸ`, `s` and `ç` across five voices.
