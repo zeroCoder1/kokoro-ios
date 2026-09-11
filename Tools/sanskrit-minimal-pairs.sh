@@ -94,7 +94,16 @@ import Testing
 
   for line in try String(contentsOfFile: specPath, encoding: .utf8).split(separator: "\n") {
     let columns = line.components(separatedBy: "\t")
-    guard columns.count >= 3, !columns[0].hasPrefix("#") else { continue }
+    // A comment or a blank line is skipped. Anything else that is not exactly
+    // three columns is malformed, and silently skipping it leaves a partial
+    // manifest that reads later as a completed run.
+    if columns[0].hasPrefix("#") || line.trimmingCharacters(in: .whitespaces).isEmpty {
+      continue
+    }
+    guard columns.count == 3 else {
+      Issue.record("error: spec row has \(columns.count) columns, expected 3: \(line)")
+      return
+    }
     let (identifier, kind, value) = (columns[0], columns[1], columns[2])
 
     let phonemes: String

@@ -71,8 +71,22 @@ enum SanskritNormalizer {
         previousWasDevanagari = true
         continue
       }
-      if character == ":", previousWasDevanagari {
-        output.append(visarga)
+      if character == ":" {
+        if previousWasDevanagari {
+          output.append(visarga)
+          // A visarga cannot follow a visarga, so the *next* colon is not a
+          // typed visarga however it was written. Without this reset राम::
+          // became रामःः — two visargas, two `h` tokens, and a syllable that
+          // is not in the source.
+          previousWasDevanagari = false
+          continue
+        }
+        // A colon anywhere else is not Sanskrit. It is in Kokoro's
+        // vocabulary, so left alone it would reach the model as a stray
+        // punctuation token with nothing said about it — the silent kind of
+        // loss this pipeline reports everywhere else.
+        warnings.append(.unknownScalar("':' is not a visarga here; dropped"))
+        previousWasDevanagari = false
         continue
       }
       output.append(character)

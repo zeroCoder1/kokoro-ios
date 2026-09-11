@@ -73,8 +73,18 @@ import Testing
     let raw = env[key].flatMap { $0.isEmpty ? nil : $0 } ?? fallback
     return raw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
   }
-  let speeds: [Float] = setting("SA_SPEEDS", default: "0.80,0.65,0.55,0.50,0.46,0.42")
-    .compactMap { Float($0) }
+  // compactMap would drop a typo and keep going, and Float alone accepts 0,
+  // negatives and infinities — all of which reach `Int(pause * sampleRate)`
+  // and the duration arithmetic. Reject the whole setting instead.
+  var speeds: [Float] = []
+  for value in setting("SA_SPEEDS", default: "0.80,0.65,0.55,0.50,0.46,0.42") {
+    guard let speed = Float(value), speed.isFinite, speed > 0 else {
+      Issue.record("error: bad SA_SPEEDS value '\(value)'; "
+                   + "expected finite numbers greater than zero")
+      return
+    }
+    speeds.append(speed)
+  }
   let modes = setting("SA_MODES", default: "whole,split")
   guard !speeds.isEmpty else {
     Issue.record("no usable speeds in SA_SPEEDS='\(env["SA_SPEEDS"] ?? "")'")

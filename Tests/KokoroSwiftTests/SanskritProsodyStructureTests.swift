@@ -685,3 +685,47 @@ private func division(_ text: String) -> String {
     #expect(report.duplicated.isEmpty)
   }
 }
+
+// MARK: - A typed colon becomes a visarga, once
+
+// A Latin colon directly after Devanagari is how a visarga gets typed on a
+// keyboard that has no `ः`. A *second* colon is not a second visarga: nothing
+// in Sanskrit takes two, and converting it invents a syllable.
+
+@Test func onlyTheColonThatFollowsALetterBecomesAVisarga() {
+  #expect(SanskritNormalizer.normalize("राम:").text == "रामः")
+  // Counted in scalars, not Characters: `ः` is a combining mark, so `मः` is
+  // one grapheme cluster and a Character filter never sees the visarga.
+  func visargas(_ text: String) -> Int {
+    text.unicodeScalars.filter { $0 == "\u{0903}" }.count
+  }
+  // The run case: the second colon has a visarga before it, not a letter.
+  let run = SanskritNormalizer.normalize("राम::").text
+  #expect(visargas(run) == 1, "राम:: gave \(run)")
+  #expect(run != "रामःः")
+  // Three in a row is the same story.
+  #expect(visargas(SanskritNormalizer.normalize("राम:::").text) == 1)
+  #expect(visargas(SanskritNormalizer.normalize("रामः").text) == 1)
+  // A colon with no Devanagari before it is not a visarga at all, and does not
+  // reach the model as a stray punctuation token either.
+  let leading = SanskritNormalizer.normalize(":राम")
+  #expect(visargas(leading.text) == 0)
+  #expect(!leading.text.contains(":"))
+  #expect(leading.warnings.contains { $0.text.contains("not a visarga here") })
+  // The extra colons in a run are reported the same way.
+  #expect(SanskritNormalizer.normalize("राम::").warnings
+            .contains { $0.text.contains("not a visarga here") })
+  #expect(!SanskritPhonemizer.phonemize("राम::").contains(":"))
+  // An already-typed visarga is untouched, and the two spellings agree.
+  #expect(SanskritNormalizer.normalize("रामः").text == "रामः")
+  #expect(SanskritNormalizer.normalize("राम:").text
+          == SanskritNormalizer.normalize("रामः").text)
+}
+
+/// The double colon must not reach the model as two `h` tokens.
+@Test func aColonRunAddsNoPhoneme() {
+  #expect(SanskritPhonemizer.phonemize("राम:") == SanskritPhonemizer.phonemize("रामः"))
+  let doubled = SanskritPhonemizer.phonemize("राम::")
+  #expect(!doubled.hasSuffix("hh"), "राम:: produced two visargas: \(doubled)")
+  #expect(doubled.filter { $0 == "h" }.count <= 1, "\(doubled)")
+}
