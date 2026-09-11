@@ -85,7 +85,9 @@ import Testing
       // The duration intent is applied per segment, so the scale lines up
       // with the tokens of that call. It changes no phoneme.
       let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
-        segment.phonemes, intent: delivery.intent
+        segment.phonemes,
+        visargaTokenIndices: segment.visargaTokenIndices,
+        intent: delivery.intent
       )
       let piece = try tts.generateAudio(
         voice: voice, phonemes: segment.phonemes, speed: speed, durationScale: scale

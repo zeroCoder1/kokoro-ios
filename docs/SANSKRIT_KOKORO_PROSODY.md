@@ -188,6 +188,33 @@ question, and it belongs with the segmental gaps in
 `Tools/sanskrit-pace-experiment.sh` and `Tools/sanskrit-pace-render.sh` are
 kept so the sweep can be re-run against any future model.
 
+## Two defects found in review
+
+Both in `durationScaleForPhonemes`, which derived its decisions from the Kokoro
+phoneme string. Recorded because the lesson is structural: that string is
+lossy, and the structured layers above it already hold what the planner needs.
+
+**Visarga was inferred from a word-final `h`.** `ः` and a virāma-closed `ह्`
+both reach Kokoro as `h`, so the 1.3× visarga repair also fired on कह् — a
+distinction the frontend deliberately preserves (कः, कह, कह् and कहा are four
+distinct canonical forms, asserted by test). The phonology keeps visarga as
+`SanskritConsonant.visarga`, separate from `.ha`, and the mapper's `spans`
+trace each one to its scalar range, so `SanskritProsody` now computes exact
+token positions and hands them to the planner. The heuristic remains only for
+callers with no phonology to hand, and says so.
+
+**`heldCodaScale` reached consonants that close nothing.** It applied to any
+consonant not directly preceded by a vowel, and both the space token and the
+length mark `ː` reset that context — so word-initial consonants and consonants
+after a long vowel were lengthened as though they were the closing half-letter
+of a conjunct. `ː` now continues its vowel, and a word break marks what follows
+as opening a syllable rather than closing a cluster.
+
+The shipped deliveries use `.closureRepairs`, whose `heldCodaScale` is 1.0, and
+the scale produced for all three validation verses is byte-identical before and
+after both fixes. The experimental `.recitation` intent is what was wrong, and
+`docs/SANSKRIT_MODEL_DECISION.md` withdraws the A/B taken with it.
+
 ## Design consequences
 
 **Prosodic intent is separate from prosodic realization.** The syllable layer

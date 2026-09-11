@@ -89,7 +89,10 @@ import Testing
       // Anything else is a typo. Falling through to "raw phonemes" would send
       // Devanagari to the tokenizer and produce a plausible-looking but
       // meaningless comparison.
-      print("error: unknown kind '\(kind)' for \(identifier); expected deva or phonemes")
+      // Issue.record rather than print: a printed line still leaves the
+      // test passing, and `swift test | grep` would report a malformed spec
+      // as a successful run with a partial manifest.
+      Issue.record("error: unknown kind '\(kind)' for \(identifier); expected deva or phonemes")
       return
     }
     let audit = SanskritTokenAudit.audit(phonemes: phonemes)

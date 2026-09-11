@@ -178,8 +178,17 @@ enum SanskritProsodyPlanner {
   /// with any single call's tokens. This derives one for exactly the phonemes
   /// being sent. Returns `nil` for the neutral intent, so the default path is
   /// byte identical to having no prosody layer at all.
+  /// - Parameter visargaTokenIndices: Token positions that a visarga actually
+  ///   occupies, from `SanskritProsody`, which has the phonology to hand and
+  ///   knows a visarga from a ह्.
+  ///
+  ///   Pass it. Without it this function has to guess from the Kokoro stream,
+  ///   where `ः` and a word-final `ह्` are both `h`, so the guess applies the
+  ///   visarga repair to कह् as well as to कः — a distinction the frontend
+  ///   deliberately preserves and this layer would undo.
   static func durationScaleForPhonemes(
     _ phonemes: String,
+    visargaTokenIndices: Set<Int>? = nil,
     intent: SanskritProsodyIntent = .neutral
   ) -> [Float]? {
     guard intent != .neutral else { return nil }
@@ -187,15 +196,34 @@ enum SanskritProsodyPlanner {
     guard !tokens.isEmpty else { return nil }
     let vocab = (try? KokoroConfig.loadConfig().vocab) ?? [:]
     var scale: [Float] = []
-    var previousWasVowel = false
-    // Positions of every `h` that closes a word — a visarga, since Sanskrit ह
-    // never ends a word. Its syllable is the vowel run just before it.
+    // A vowel, or the length mark that rides with one: both leave us *after* a
+    // vowel. Treating `ː` as a consonant is what made a consonant following a
+    // long vowel look like a cluster member.
+    var previousWasVowelish = false
+    // Nothing precedes us inside this word, so a consonant here opens a
+    // syllable rather than closing one.
+    var atWordStart = true
+
     let kept = phonemes.unicodeScalars.filter { vocab[String($0)] != nil }
-    var visargaPositions: Set<Int> = []
-    for (index, scalar) in kept.enumerated() where scalar == "h" {
-      let next = index + 1 < kept.count ? kept[kept.index(kept.startIndex, offsetBy: index + 1)] : " "
-      guard next == " " || ",.;:!?".unicodeScalars.contains(next) || index == kept.count - 1
-      else { continue }
+    func scalar(_ index: Int) -> Unicode.Scalar {
+      kept[kept.index(kept.startIndex, offsetBy: index)]
+    }
+    let breaks = " ,.;:!?".unicodeScalars
+
+    // Where the visargas are. Exact when the caller knows; otherwise the
+    // word-final `h` heuristic this function used to rely on alone.
+    var visargaPositions: Set<Int> = visargaTokenIndices ?? []
+    let anchors: [Int] = visargaTokenIndices.map { Array($0).sorted() } ?? {
+      var found: [Int] = []
+      for (index, value) in kept.enumerated() where value == "h" {
+        let next = index + 1 < kept.count ? scalar(index + 1) : " "
+        guard breaks.contains(next) || index == kept.count - 1 else { continue }
+        found.append(index)
+      }
+      return found
+    }()
+
+    for index in anchors {
       visargaPositions.insert(index)
       // ...and the vowel before it, but **only if that vowel is already
       // long**.
@@ -206,13 +234,11 @@ enum SanskritProsodyPlanner {
       // the a is genuinely *short*, and lengthening it turns वः into वाः — a
       // different vowel, and the exact error reported as "युयुत्सवाह". The
       // visarga's own duration is scaled in both cases; the vowel's is not.
-      let lengthMark = index >= 1
-        && kept[kept.index(kept.startIndex, offsetBy: index - 1)] == "ː"
+      let lengthMark = index >= 1 && scalar(index - 1) == "ː"
       guard lengthMark else { continue }
       var back = index - 1
       while back >= 0 {
-        let previous = kept[kept.index(kept.startIndex, offsetBy: back)]
-        let isVowelish = "aeiouɑɐɒæɔəɛɜɨɪɯøœʊʌɤː".unicodeScalars.contains(previous)
+        let isVowelish = "aeiouɑɐɒæɔəɛɜɨɪɯøœʊʌɤː".unicodeScalars.contains(scalar(back))
         if !isVowelish { break }
         visargaPositions.insert(back)
         back -= 1
@@ -253,14 +279,25 @@ enum SanskritProsodyPlanner {
         scale.append(intent.guruVowelScale)
       } else if scalar == "ʰ" {
         scale.append(intent.aspirationScale)
-      } else if !previousWasVowel, !scale.isEmpty {
-        // A consonant directly after another consonant is a cluster member —
-        // the closing half-letter the reference says to hold.
+      } else if breaks.contains(scalar) {
+        // A word break or punctuation. Not a phoneme, and what follows it
+        // opens a word rather than closing a cluster.
+        scale.append(1.0)
+      } else if !previousWasVowelish, !atWordStart, !scale.isEmpty {
+        // A consonant directly after another consonant *inside a word* is a
+        // cluster member — the closing half-letter the reference says to hold.
         scale.append(intent.heldCodaScale)
       } else {
         scale.append(1.0)
       }
-      previousWasVowel = isVowel
+      if breaks.contains(scalar) {
+        atWordStart = true
+        previousWasVowelish = false
+      } else {
+        atWordStart = false
+        // The length mark continues its vowel rather than interrupting it.
+        previousWasVowelish = isVowel || scalar == "ː"
+      }
       if visargaPositions.contains(position), let last = scale.indices.last {
         scale[last] *= intent.visargaSyllableScale
       }

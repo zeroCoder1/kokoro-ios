@@ -66,9 +66,24 @@ import Testing
       अभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम् ॥
       """, 32),
   ]
-  let speeds: [Float] = (env["SA_SPEEDS"] ?? "0.80,0.65,0.55,0.50,0.46,0.42")
-    .split(separator: ",").compactMap { Float($0) }
-  let modes = (env["SA_MODES"] ?? "whole,split").split(separator: ",").map(String.init)
+  // The shell exports these unconditionally, so an unset variable arrives as
+  // "" rather than absent. Empty means "use the default", or the sweep would
+  // silently render nothing and still write a manifest.
+  func setting(_ key: String, default fallback: String) -> [String] {
+    let raw = env[key].flatMap { $0.isEmpty ? nil : $0 } ?? fallback
+    return raw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+  }
+  let speeds: [Float] = setting("SA_SPEEDS", default: "0.80,0.65,0.55,0.50,0.46,0.42")
+    .compactMap { Float($0) }
+  let modes = setting("SA_MODES", default: "whole,split")
+  guard !speeds.isEmpty else {
+    Issue.record("no usable speeds in SA_SPEEDS='\(env["SA_SPEEDS"] ?? "")'")
+    return
+  }
+  guard modes.contains("whole") || modes.contains("split") else {
+    Issue.record("no usable modes in SA_MODES='\(env["SA_MODES"] ?? "")'")
+    return
+  }
 
   var rows: [String] = []
   func record(_ name: String, _ audio: [Float], _ fields: String) throws {
@@ -93,7 +108,9 @@ import Testing
       var wholeAudio: [Float] = []
       for segment in whole {
         let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
-          segment.phonemes, intent: SanskritDelivery.recitation.intent
+          segment.phonemes,
+          visargaTokenIndices: segment.visargaTokenIndices,
+          intent: SanskritDelivery.recitation.intent
         )
         wholeAudio += try tts.generateAudio(
           voice: voice, phonemes: segment.phonemes, speed: speed, durationScale: scale
@@ -110,7 +127,9 @@ import Testing
       var splitAudio: [Float] = []
       for segment in split {
         let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
-          segment.phonemes, intent: SanskritDelivery.recitation.intent
+          segment.phonemes,
+          visargaTokenIndices: segment.visargaTokenIndices,
+          intent: SanskritDelivery.recitation.intent
         )
         let piece = try tts.generateAudio(
           voice: voice, phonemes: segment.phonemes, speed: speed, durationScale: scale
@@ -125,6 +144,10 @@ import Testing
     }
   }
 
+  guard !rows.isEmpty else {
+    Issue.record("sweep rendered nothing; manifest not written")
+    return
+  }
   let json = "{\n  \"renders\": [\n" + rows.joined(separator: ",\n") + "\n  ]\n}\n"
   try json.write(toFile: root + "/manifest.json", atomically: true, encoding: .utf8)
   print("MANIFEST \(root)/manifest.json")

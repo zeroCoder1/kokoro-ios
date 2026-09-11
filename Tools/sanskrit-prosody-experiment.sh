@@ -68,7 +68,11 @@ import Testing
       // The scale is derived per segment so it lines up with that segment's
       // own tokens; nil intent means the model's prediction stands.
       let scale = intent == .neutral ? nil
-        : SanskritProsodyPlanner.durationScaleForPhonemes(segment.phonemes, intent: intent)
+        : SanskritProsodyPlanner.durationScaleForPhonemes(
+          segment.phonemes,
+          visargaTokenIndices: segment.visargaTokenIndices,
+          intent: intent
+        )
       let piece = try tts.generateAudio(
         voice: voice, phonemes: segment.phonemes,
         speed: delivery.speed, durationScale: scale

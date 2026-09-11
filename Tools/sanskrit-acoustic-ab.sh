@@ -132,6 +132,12 @@ import Testing
               "decoded_tokens": [\(audit.decoded.map { quote($0) }.joined(separator: ", "))],
               "round_trip_ok": \(audit.roundTrips),
               "mapping_quality": \(quote(quality)),
+              "mapping_quality_describes": \(quote(
+                profile.quality.isEmpty ? "the word, per the mapper"
+                                        : "this profile's override only")),
+              "word_fidelity_per_mapper": \(quote(
+                unsupported ? "unsupported"
+                : approximated ? "approximation" : "exact")),
               "warnings": [\(result.warnings.map { quote($0.text) }.joined(separator: ", "))],
               "voice": \(quote(voiceName)),
               "speed": \(speed),

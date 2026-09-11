@@ -27,9 +27,21 @@ public final class KokoroTTS {
   public enum KokoroTTSError: LocalizedError {
     /// Thrown when input text exceeds maximum token count
     case tooManyTokens
+    /// A delivery whose speed or pauses cannot be rendered.
+    ///
+    /// `SanskritDelivery.speed` and its pause fields are mutable and public,
+    /// so a caller can build one this code cannot honour. Zero or non-finite
+    /// speed makes the pause division infinite and the sample count trap;
+    /// negative values ask for an array of negative length.
+    case invalidDelivery(reason: String)
 
     public var errorDescription: String? {
-      "This speech chunk is too long for Kokoro."
+      switch self {
+      case .tooManyTokens:
+        return "This speech chunk is too long for Kokoro."
+      case let .invalidDelivery(reason):
+        return "This Sanskrit delivery cannot be rendered: \(reason)."
+      }
     }
   }
 
@@ -251,12 +263,36 @@ public final class KokoroTTS {
   /// reported omission into a silent one. `KOKORO_UNSUPPORTED` means a sound
   /// was lost; `KOKORO_APPROXIMATION` and `KOKORO_APPROXIMATED_VISARGA` mean
   /// one was rendered inexactly.
+  /// Rejects a delivery that cannot be rendered, rather than trapping inside
+  /// the sample-count arithmetic.
+  static func validate(_ delivery: SanskritDelivery) throws {
+    guard delivery.speed.isFinite, delivery.speed > 0 else {
+      throw KokoroTTSError.invalidDelivery(
+        reason: "speed must be finite and greater than zero, got \(delivery.speed)"
+      )
+    }
+    let pauses = [
+      ("wordBoundary", delivery.prosody.wordBoundary),
+      ("padaPause", delivery.prosody.padaPause),
+      ("versePause", delivery.prosody.versePause),
+      ("sentencePause", delivery.prosody.sentencePause),
+    ]
+    for (name, value) in pauses {
+      guard value.isFinite, value >= 0 else {
+        throw KokoroTTSError.invalidDelivery(
+          reason: "\(name) must be finite and not negative, got \(value)"
+        )
+      }
+    }
+  }
+
   @discardableResult
   public func generateSanskritAudio(
     voice: MLXArray,
     text: String,
     delivery: SanskritDelivery = .recitation
   ) throws -> (audio: [Float], warnings: [String]) {
+    try Self.validate(delivery)
     let sampleRate = Double(Constants.samplingRate)
     var audio: [Float] = []
     let analysis = SanskritProsody.analyze(text, configuration: delivery.prosody)
@@ -264,7 +300,9 @@ public final class KokoroTTS {
       // Derived per segment so the multiplier lines up with that call's own
       // tokens rather than the whole verse's.
       let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
-        segment.phonemes, intent: delivery.intent
+        segment.phonemes,
+        visargaTokenIndices: segment.visargaTokenIndices,
+        intent: delivery.intent
       )
       let piece = try generateAudio(
         voice: voice, phonemes: segment.phonemes,
@@ -273,7 +311,7 @@ public final class KokoroTTS {
       audio += AudioSegments.trimmingEdgeSilence(piece, sampleRate: sampleRate)
       // A slower delivery wants proportionally longer breaks.
       let pause = segment.pauseAfter / Double(delivery.speed)
-      audio += [Float](repeating: 0, count: Int(pause * sampleRate))
+      audio += [Float](repeating: 0, count: max(0, Int(pause * sampleRate)))
     }
     return (audio, analysis.warnings.map(\.text))
   }

@@ -42,8 +42,11 @@ import Testing
     "fast": .fast, "unshaped": .unshaped,
   ]
   guard let delivery = deliveries[deliveryName] else {
-    print("error: unknown delivery '\(deliveryName)'; "
-          + "expected one of \(deliveries.keys.sorted().joined(separator: ", "))")
+    // Issue.record rather than print, so the run actually fails: these
+    // scripts set pipefail, and a passing test would exit 0 having rendered
+    // nothing.
+    Issue.record("error: unknown delivery '\(deliveryName)'; "
+                 + "expected one of \(deliveries.keys.sorted().joined(separator: ", "))")
     return
   }
   let tts = try KokoroTTS(modelPath: URL(fileURLWithPath: modelPath), g2p: .sanskrit)
@@ -72,7 +75,9 @@ import Testing
     var audio: [Float] = []
     for segment in segments {
       let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
-        segment.phonemes, intent: delivery.intent
+        segment.phonemes,
+        visargaTokenIndices: segment.visargaTokenIndices,
+        intent: delivery.intent
       )
       let piece = try tts.generateAudio(
         voice: voice, phonemes: segment.phonemes, speed: delivery.speed, durationScale: scale

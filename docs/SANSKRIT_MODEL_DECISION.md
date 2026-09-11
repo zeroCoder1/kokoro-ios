@@ -76,6 +76,24 @@ it. That is independent confirmation that the akṣara parser, the phonology, th
 vowel-length model and the syllabifier are jointly correct —
 `Artifacts/sanskrit/diagnostics/gita-meter-analysis.md`.
 
+### The prosody experiment's numbers are withdrawn
+
+The figures below were produced by `durationScaleForPhonemes` before a defect
+found in review: `heldCodaScale` was applied to any consonant not directly
+preceded by a vowel, and both the space token and the length mark `ː` reset
+that context. So the experimental `.recitation` intent was lengthening
+**word-initial consonants and consonants following a long vowel**, neither of
+which is the conjunct half-letter it was meant to hold.
+
+The A/B therefore changed durations it did not intend to change, and the
+comparison below cannot support a conclusion about guru/laghu shaping. It is
+kept for the record; the experiment needs re-running.
+
+The **shipped** path is unaffected. `SanskritDelivery`'s deliveries all use
+`.closureRepairs`, whose `heldCodaScale` is 1.0, and the scale it produces for
+all three validation verses is byte-identical before and after the fix — so
+every rendered artifact and every measurement taken from one still stands.
+
 ### What the prosody experiment actually showed
 
 Honest, and mixed. Same phonemes, same tokens, only the per-token duration

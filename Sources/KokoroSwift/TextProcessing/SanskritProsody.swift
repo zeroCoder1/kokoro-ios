@@ -202,6 +202,13 @@ enum SanskritProsody {
     let pauseAfter: TimeInterval
     /// The boundary that ended this stretch, for diagnostics.
     let boundary: SanskritBoundary?
+    /// Token positions this segment's visargas occupy.
+    ///
+    /// Taken from the phonology, which keeps `ः` as `SanskritConsonant.visarga`
+    /// and a virāma-closed ह as `.ha`. Both reach Kokoro as `h`, so a duration
+    /// rule reading the phoneme stream cannot tell कः from कह् — this is how
+    /// that distinction survives into timing.
+    var visargaTokenIndices: Set<Int> = []
   }
 
   /// Segments plus everything the pipeline had to say about the input.
@@ -210,6 +217,39 @@ enum SanskritProsody {
     /// Normalizer, parser, phonology and mapper warnings, in pipeline order.
     /// Dropped Devanagari and every approximation appears here.
     var warnings: [SanskritWarning] = []
+  }
+
+  /// Token positions occupied by a visarga, from the phonology rather than by
+  /// guessing at a word-final `h`.
+  ///
+  /// `mapped.spans` is parallel to the phonology segments and gives each one's
+  /// scalar range in the phoneme string; a token index is the count of
+  /// vocabulary-bearing scalars before it.
+  static func visargaTokens(
+    phonology: SanskritPhonology.Result,
+    mapped: SanskritKokoroMapper.Result
+  ) -> Set<Int> {
+    let vocab = (try? KokoroConfig.loadConfig().vocab) ?? [:]
+    let scalars = Array(mapped.phonemes.unicodeScalars)
+    // Scalar offset -> token index, for the scalars Kokoro actually tokenizes.
+    var tokenForScalar = [Int](repeating: -1, count: scalars.count)
+    var token = -1
+    for (offset, scalar) in scalars.enumerated() where vocab[String(scalar)] != nil {
+      token += 1
+      tokenForScalar[offset] = token
+    }
+
+    var indices: Set<Int> = []
+    for (index, segment) in phonology.segments.enumerated() {
+      guard case let .consonant(consonant) = segment, consonant == .visarga,
+            index < mapped.spans.count
+      else { continue }
+      for offset in mapped.spans[index] where offset < tokenForScalar.count {
+        let token = tokenForScalar[offset]
+        if token >= 0 { indices.insert(token) }
+      }
+    }
+    return indices
   }
 
   /// Splits at every boundary the configuration gives a non-zero pause to.
@@ -250,7 +290,8 @@ enum SanskritProsody {
       segments.append(Segment(
         phonemes: mapped.phonemes,
         pauseAfter: boundary.map(configuration.pause(for:)) ?? 0,
-        boundary: boundary
+        boundary: boundary,
+        visargaTokenIndices: visargaTokens(phonology: phonology, mapped: mapped)
       ))
     }
 

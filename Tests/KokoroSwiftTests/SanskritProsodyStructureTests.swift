@@ -527,3 +527,103 @@ private func division(_ text: String) -> String {
   #expect(visargaWarnings.count >= 2,
           "only \(visargaWarnings.count) visarga warnings for two segments")
 }
+
+// MARK: - The duration planner reads structure, not the phoneme stream
+
+// `ः` and a virāma-closed `ह्` both reach Kokoro as `h`. The frontend keeps
+// them apart — कः, कह, कह् and कहा are four distinct canonical forms — and a
+// duration rule that infers visarga from a word-final `h` undoes that,
+// applying the 1.3× repair to कह्.
+
+@Test func visargaRepairReachesTheVisargaAndNotAFinalHa() {
+  let intent = SanskritProsodyIntent.closureRepairs
+  #expect(intent.visargaSyllableScale != 1.0, "the repair is off; this test proves nothing")
+
+  func scale(_ word: String) -> [Float] {
+    let analysis = SanskritProsody.analyze(word, configuration: .none)
+    guard let segment = analysis.segments.first else { return [] }
+    return SanskritProsodyPlanner.durationScaleForPhonemes(
+      segment.phonemes,
+      visargaTokenIndices: segment.visargaTokenIndices,
+      intent: intent
+    ) ?? []
+  }
+
+  // कः — a visarga. Something must be scaled.
+  let visarga = scale("कः")
+  #expect(visarga.contains { $0 != 1.0 }, "कः got no visarga repair: \(visarga)")
+
+  // कह् — a closed ह्, not a visarga. Nothing may be scaled.
+  let closedHa = scale("कह्")
+  #expect(closedHa.allSatisfy { $0 == 1.0 },
+          "कह् was treated as a visarga: \(closedHa)")
+
+  // They reach Kokoro as the same phonemes, which is exactly why the phoneme
+  // stream cannot be the source of this decision.
+  #expect(SanskritPhonemizer.phonemize("कः") == SanskritPhonemizer.phonemize("कह्"))
+  // And the phonology does keep them apart.
+  #expect(SanskritProsody.analyze("कः", configuration: .none)
+            .segments.first?.visargaTokenIndices.isEmpty == false)
+  #expect(SanskritProsody.analyze("कह्", configuration: .none)
+            .segments.first?.visargaTokenIndices.isEmpty == true)
+}
+
+/// `heldCodaScale` is for the closing half-letter of a conjunct. It must not
+/// reach a consonant that opens a word, nor one that follows a long vowel —
+/// both of which happened while `ː` and the space token reset the vowel
+/// context.
+@Test func heldCodaReachesOnlyClusterInteriors() {
+  var intent = SanskritProsodyIntent.neutral
+  intent.heldCodaScale = 2.0          // exaggerated so any misfire is obvious
+
+  func scale(_ phonemes: String) -> [Float] {
+    SanskritProsodyPlanner.durationScaleForPhonemes(phonemes, intent: intent) ?? []
+  }
+
+  // Two words: the second word's initial consonant opens a syllable.
+  let twoWords = scale("kaː maː")
+  #expect(twoWords.allSatisfy { $0 == 1.0 },
+          "a word-initial consonant was held: \(twoWords)")
+
+  // A consonant after a long vowel closes nothing.
+  let afterLong = scale("maːta")
+  #expect(afterLong.allSatisfy { $0 == 1.0 },
+          "a consonant after a long vowel was held: \(afterLong)")
+
+  // A real cluster interior is still held.
+  let cluster = scale("tatsa")
+  #expect(cluster.contains { $0 == 2.0 }, "a cluster interior was not held: \(cluster)")
+}
+
+// MARK: - A delivery a caller built by hand
+
+// speed and the pause fields are mutable and public, so a caller can ask for
+// something the renderer cannot express. It used to trap inside the sample
+// count.
+
+@Test func anUnrenderableDeliveryIsRejectedRatherThanTrapping() {
+  var zero = SanskritDelivery.recitation
+  zero.speed = 0
+  #expect(throws: KokoroTTS.KokoroTTSError.self) { try KokoroTTS.validate(zero) }
+
+  var negative = SanskritDelivery.recitation
+  negative.speed = -0.5
+  #expect(throws: KokoroTTS.KokoroTTSError.self) { try KokoroTTS.validate(negative) }
+
+  var notFinite = SanskritDelivery.recitation
+  notFinite.speed = .nan
+  #expect(throws: KokoroTTS.KokoroTTSError.self) { try KokoroTTS.validate(notFinite) }
+
+  var negativePause = SanskritDelivery.recitation
+  negativePause.prosody.padaPause = -1
+  #expect(throws: KokoroTTS.KokoroTTSError.self) { try KokoroTTS.validate(negativePause) }
+
+  var infinitePause = SanskritDelivery.recitation
+  infinitePause.prosody.versePause = .infinity
+  #expect(throws: KokoroTTS.KokoroTTSError.self) { try KokoroTTS.validate(infinitePause) }
+
+  // Every shipped delivery passes.
+  for delivery in [SanskritDelivery.learning, .recitation, .fast, .unshaped] {
+    #expect(throws: Never.self) { try KokoroTTS.validate(delivery) }
+  }
+}
