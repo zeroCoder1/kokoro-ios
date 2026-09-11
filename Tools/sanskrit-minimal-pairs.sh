@@ -148,6 +148,13 @@ import Testing
     }
   }
 
+  // rows[0] is the header. A spec that was empty or all comments would
+  // otherwise write a header-only manifest and report success — the false
+  // completion the checks above exist to prevent.
+  guard rows.count > 1 else {
+    Issue.record("error: spec produced no rows; manifest not written")
+    return
+  }
   try rows.joined(separator: "\n").write(
     toFile: outputDirectory + "/manifest.tsv", atomically: true, encoding: .utf8
   )

@@ -231,7 +231,31 @@ Two things the suite deliberately does not do:
 
 - `.misaki` - MisakiSwift, the default English G2P processor
 - `.hindi` - Native Hindi G2P with number expansion, acronym and Latin handling, and English switching
+- `.sanskrit` - Classical Sanskrit in Devanagari, sharing no rules with `.hindi`
 - `.eSpeakNG` - eSpeak NG, an optional processor whose dependency is commented out by default
+
+### Sanskrit
+
+`.sanskrit` pairs with `Language.sa` and its own entry point, which returns the
+warnings alongside the audio. Unsupported input is dropped rather than
+substituted, so a caller that ignores them turns a reported omission into a
+silent one:
+
+```swift
+let tts = try KokoroTTS(modelPath: modelPath, g2p: .sanskrit)
+let (audio, warnings) = try tts.generateSanskritAudio(
+  voice: voiceEmbedding,
+  text: "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।",
+  delivery: .recitation          // .learning, .fast and .unshaped also exist
+)
+if !warnings.isEmpty { print(warnings.joined(separator: "\n")) }
+```
+
+`SanskritDelivery` carries the speaking rate and the pause lengths; the pause
+values are seconds at speed 1.0 and are divided by the delivery's speed when
+rendered, so `renderedPadaPause` is the figure a listener hears. Two sounds are
+known approximations and one contrast is not reachable in the base model — see
+`docs/SANSKRIT.md` and `docs/SANSKRIT_FINE_TUNING_REQUIREMENTS.md`.
 
 ## Model Files
 

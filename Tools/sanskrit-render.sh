@@ -115,6 +115,7 @@ SA_MODEL="$model" SA_VOICES="$voices" SA_OUT="$out" \
 
 # The three names §36 of the brief asks for, from the primary voice. The
 # per-voice files stay alongside them for comparison.
+missing=0
 for verse in bg_01_01 bg_02_47 bg_04_07; do
   source_file="$out/${verse}_${primary}.wav"
   if [[ -f "$source_file" ]]; then
@@ -122,5 +123,13 @@ for verse in bg_01_01 bg_02_47 bg_04_07; do
     echo "PRIMARY $verse.wav  <- $primary"
   else
     echo "MISSING $source_file — no primary copy for $verse" >&2
+    missing=$((missing + 1))
   fi
 done
+# The plain bg_*.wav files are what the README tells a reviewer to listen to.
+# Logging their absence and exiting 0 reports a completed render that is not
+# one.
+if (( missing > 0 )); then
+  echo "error: $missing of 3 primary renders missing; is --voice '$primary' present in the voices directory?" >&2
+  exit 1
+fi

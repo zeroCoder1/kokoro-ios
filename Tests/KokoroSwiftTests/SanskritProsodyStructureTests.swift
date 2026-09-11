@@ -729,3 +729,50 @@ private func division(_ text: String) -> String {
   #expect(!doubled.hasSuffix("hh"), "राम:: produced two visargas: \(doubled)")
   #expect(doubled.filter { $0 == "h" }.count <= 1, "\(doubled)")
 }
+
+/// The colon rewrite is scoped to scalars that can actually bear a visarga.
+///
+/// "Follows Devanagari" was too broad: the block also holds digits, the
+/// daṇḍas, the virāma, the anusvāra, the avagraha and the visarga itself, and
+/// a visarga cannot follow any of them. Each of these produced a spurious one.
+@Test func onlyASyllableThatCanCloseTakesATypedVisarga() {
+  func visargas(_ text: String) -> Int {
+    text.unicodeScalars.filter { $0 == "\u{0903}" }.count
+  }
+  // Takes one: a consonant with its inherent a, and a vowel sign.
+  #expect(visargas(SanskritNormalizer.normalize("राम:").text) == 1)
+  #expect(visargas(SanskritNormalizer.normalize("रामा:").text) == 1)
+  #expect(visargas(SanskritNormalizer.normalize("अ:").text) == 1)
+
+  // Takes none, and each says so.
+  for input in ["अध्याय १:",   // a Devanagari digit
+                "राम।:",       // a daṇḍa
+                "क्:",         // a virāma: क् is not कः
+                "रामं:",       // an anusvāra
+                "रामऽ:",       // an avagraha
+                "रामः:",       // an existing visarga
+                "ॐ:"] {        // expands to ओम्, which ends in a virāma
+    let result = SanskritNormalizer.normalize(input)
+    #expect(visargas(result.text) <= visargas(input),
+            "\(input) gained a visarga: \(result.text)")
+    #expect(result.warnings.contains { $0.text.contains("not a visarga here") },
+            "\(input) dropped a colon silently")
+  }
+
+  // रामः: keeps the one it was written with and no more.
+  #expect(visargas(SanskritNormalizer.normalize("रामः:").text) == 1)
+  #expect(SanskritNormalizer.normalize("रामः:").text
+          == SanskritNormalizer.normalize("रामः").text)
+}
+
+/// The predicate itself, over the block boundaries it switches on.
+@Test func canBearVisargaAcceptsVowelsAndConsonantsOnly() {
+  for scalar in ["अ", "आ", "औ", "क", "ह", "ॠ", "क़", "ा", "ी", "ौ", "ॢ"] {
+    #expect(SanskritNormalizer.canBearVisarga(scalar.unicodeScalars.first!),
+            "\(scalar) should bear a visarga")
+  }
+  for scalar in ["ं", "ः", "ँ", "्", "ऽ", "़", "।", "॥", "०", "९", "ॐ"] {
+    #expect(!SanskritNormalizer.canBearVisarga(scalar.unicodeScalars.first!),
+            "\(scalar) should not bear a visarga")
+  }
+}
