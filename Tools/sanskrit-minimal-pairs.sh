@@ -53,8 +53,24 @@ import Testing
         let outputDirectory = environment["SA_OUT"]
   else { return }
   let filter = environment["SA_VOICE_FILTER"] ?? ""
-  let speeds = (environment["SA_SPEEDS"] ?? "1.0")
-    .split(whereSeparator: \.isWhitespace).compactMap { Float($0) }
+  // compactMap used to swallow a typo: `--speeds typo` produced an empty array
+  // and then a header-only manifest that looked like a completed run. Reject
+  // the whole setting instead, and refuse a speed the renderer cannot use.
+  let requested = (environment["SA_SPEEDS"] ?? "1.0")
+    .split(whereSeparator: \.isWhitespace).map(String.init)
+  var speeds: [Float] = []
+  for value in requested {
+    guard let speed = Float(value), speed.isFinite, speed > 0 else {
+      Issue.record("error: bad --speeds value '\(value)'; "
+                   + "expected finite numbers greater than zero")
+      return
+    }
+    speeds.append(speed)
+  }
+  guard !speeds.isEmpty else {
+    Issue.record("error: --speeds is empty")
+    return
+  }
 
   let tts = try KokoroTTS(modelPath: URL(fileURLWithPath: modelPath), g2p: .sanskrit)
   var voices: [(String, MLXArray)] = []
@@ -64,6 +80,14 @@ import Testing
     if !filter.isEmpty, !filter.split(separator: ",").contains(where: { name == $0 }) { continue }
     let url = URL(fileURLWithPath: voiceDirectory).appendingPathComponent(file)
     if let voice = try MLX.loadArrays(url: url)["voice"] { voices.append((name, voice)) }
+  }
+  // An empty directory, a filter that matches nothing, or files with no
+  // `voice` array would otherwise write a header-only manifest and report
+  // success — an absent input read later as completed evidence.
+  guard !voices.isEmpty else {
+    Issue.record("error: no voices loaded from \(voiceDirectory)"
+                 + (filter.isEmpty ? "" : " matching filter '\(filter)'"))
+    return
   }
 
   var rows = ["filename\tid\tinput\tcanonical\tdesired_ipa\tkokoro_phonemes\ttoken_ids\tvoice\tspeed\twarnings"]

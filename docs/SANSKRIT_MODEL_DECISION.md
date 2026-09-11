@@ -56,6 +56,12 @@ Can current Kokoro preserve the timing?
 | natural phrase rhythm | **mostly** | syllables merge above 0.80; at 0.80 all three pādas are at or within one of their true syllable count |
 | daṇḍa / verse pauses | **yes** | supplied by the prosody layer, since the model does not differentiate `।` from `॥` |
 
+> The guru/laghu row rests on the *mechanism* — per-token duration control,
+> which is proven by test — and not on the A/B below, which is withdrawn. The
+> visarga repair is separately measured against references. The broader
+> guru/laghu shaping has no validated whole-verse evidence either way until
+> that experiment is re-run.
+
 **Prosody is in much better shape than segments**, and the reason is a finding
 from this pass: duration is predicted per token and only then divided by a
 global `speed`. That makes per-phoneme timing directly available without
@@ -105,14 +111,19 @@ multiplier differs:
 | **BG 2.47** | 9160 → 9160 ms | **26 → 29** | **0.686 → 0.763** |
 | BG 4.7 | 9465 → 9440 ms | 10 → 9 | 0.610 → 0.549 |
 
-It **redistributes** time rather than adding it — the totals are unchanged,
-which is the success criterion §Y sets out. It measurably helps the verse that
-needed it most (BG 2.47, the one with the 24-phoneme compound): three more
-articulated nuclei and an 11% wider spread. It is neutral on BG 1.1 and
-slightly negative by this metric on BG 4.7.
+**None of that can be concluded from this run.** The scale it compares was
+produced by the defect described above, so the variants differ in the
+durations of word-initial consonants and of consonants after long vowels as
+well as in the guru/laghu shaping the experiment was testing. Whatever moved
+BG 2.47's nucleus count, the experiment cannot attribute it to the intended
+mechanism.
 
-So the mechanism works and the effect is real but small and not uniform. It
-stays **off by default** pending listening.
+What stands: the totals are unchanged, so the layer **redistributes** time
+rather than adding it, which is a property of the mechanism rather than of the
+scale it was given. Everything else here is **pending a re-run** with the
+corrected planner.
+
+It stays **off by default** regardless — it always was.
 
 ## The ten original questions
 
@@ -156,8 +167,10 @@ sounds need a model that has heard them.
 ## Next steps
 
 1. **Ship 0.80 recitation.** Measured, available today.
-2. **Listen to the prosody experiment** and decide whether
-   `SanskritProsodyIntent.recitation` should become the default.
+2. **Re-run the prosody experiment** with the corrected duration planner, then
+   listen, and only then decide whether `SanskritProsodyIntent.recitation`
+   should become the default. The measurements recorded above predate the
+   held-coda fix and cannot support that decision.
 3. **Settle the REVIEW_REQUIRED items**: ऋ as `ɾɪ` vs `ɾu`, and whether the
    voice resolves `ɲ` from `n`.
 4. **Fine-tune a Sanskrit voice**, labelling with `SanskritPhonemizer` rather

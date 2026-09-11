@@ -4,7 +4,10 @@ Bhagavad Gita 1.1, 2.47 and 4.7 through the current Kokoro voices, for **Gate 3
 review**: whether the existing voices can render correct Sanskrit acceptably.
 
 **The audio is not in git.** It is ~27 MB of regenerable output, so
-`Artifacts/` is ignored and this note is what is tracked. Regenerate with:
+`.gitignore` excludes `/Artifacts/**/*.wav` — the WAV files only. Everything
+else under `Artifacts/` is tracked, and deliberately: the manifests, TSV
+tables and reports are the evidence the decisions rest on, and they are no use
+if they are not in the history. Regenerate the audio with:
 
 ```bash
 Tools/sanskrit-render.sh --model <kokoro.safetensors> --voices <voices-dir>

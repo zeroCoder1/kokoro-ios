@@ -627,3 +627,61 @@ private func division(_ text: String) -> String {
     #expect(throws: Never.self) { try KokoroTTS.validate(delivery) }
   }
 }
+
+// MARK: - The token audit aligns rather than compares by position
+
+// `ɭ` is the one Sanskrit sound with no token at all, so it is the natural
+// probe: a dropped scalar used to shift every symbol after it and report each
+// one as a substitution.
+
+@Test func aDroppedSymbolDoesNotMisreportTheSymbolsAfterIt() {
+  let report = SanskritTokenAudit.audit(phonemes: "aɭb")
+  #expect(report.decoded == ["a", "b"], "decoded \(report.decoded)")
+  #expect(report.unknown == ["ɭ"])
+  // ɭ is dropped, and b — which came back untouched — is not a substitution.
+  #expect(report.dropped == ["ɭ"], "dropped \(report.dropped)")
+  #expect(report.substituted.isEmpty,
+          "spurious substitutions: \(report.substituted.map { "\($0.intended)→\($0.decoded)" })")
+  #expect(report.duplicated.isEmpty)
+  #expect(!report.roundTrips)
+}
+
+@Test func alignmentSurvivesSeveralDropsAndALongTail() {
+  let report = SanskritTokenAudit.audit(phonemes: "ɭkaɭɾaːmah")
+  #expect(report.dropped == ["ɭ", "ɭ"], "dropped \(report.dropped)")
+  #expect(report.substituted.isEmpty,
+          "spurious substitutions: \(report.substituted.map { "\($0.intended)→\($0.decoded)" })")
+  // Everything that has a token survived, in order.
+  #expect(report.decoded.joined() == "kaɾaːmah")
+}
+
+/// The aligner itself, on the cases the audit depends on.
+@Test func alignmentClassifiesDropsInsertionsAndSubstitutions() {
+  func classify(_ a: [String], _ b: [String]) -> [(Int?, Int?)] {
+    SanskritTokenAudit.align(a, b).map { ($0.intended, $0.decoded) }
+  }
+  // Identical: every position matches.
+  #expect(classify(["a", "b"], ["a", "b"]).allSatisfy { $0.0 != nil && $0.1 != nil })
+  // A pure drop in the middle.
+  let drop = classify(["a", "x", "b"], ["a", "b"])
+  #expect(drop.filter { $0.1 == nil }.count == 1)
+  #expect(drop.filter { $0.0 == nil }.isEmpty)
+  // A pure insertion.
+  let insert = classify(["a", "b"], ["a", "x", "b"])
+  #expect(insert.filter { $0.0 == nil }.count == 1)
+  // An empty side.
+  #expect(classify([], ["a"]).count == 1)
+  #expect(classify(["a"], []).count == 1)
+}
+
+/// A clean round trip must stay clean — the aligner must not invent findings.
+@Test func realSanskritStillRoundTripsClean() {
+  for word in ["धर्मक्षेत्रे", "युयुत्सवः", "मामकाः", "सृजाम्यहम्", "अभ्युत्थानम्",
+               "कर्मण्येवाधिकारस्ते", "सङ्गोऽस्त्वकर्मणि"] {
+    let report = SanskritTokenAudit.audit(text: word)
+    #expect(report.roundTrips, "\(word): \(report.summary)")
+    #expect(report.substituted.isEmpty)
+    #expect(report.dropped.isEmpty)
+    #expect(report.duplicated.isEmpty)
+  }
+}

@@ -65,6 +65,40 @@ enum SanskritTokenAudit {
     return Dictionary(vocab.map { ($0.value, $0.key) }, uniquingKeysWith: { first, _ in first })
   }
 
+  /// Longest-common-subsequence alignment of two symbol sequences.
+  ///
+  /// Returns one entry per aligned position: both indices for a match, only
+  /// `intended` for a symbol that did not survive, only `decoded` for one that
+  /// appeared. Sequences here are a phoneme string long, so the quadratic
+  /// table is not worth avoiding.
+  static func align(
+    _ intended: [String], _ decoded: [String]
+  ) -> [(intended: Int?, decoded: Int?)] {
+    let n = intended.count, m = decoded.count
+    var lengths = [[Int]](repeating: [Int](repeating: 0, count: m + 1), count: n + 1)
+    for i in stride(from: n - 1, through: 0, by: -1) {
+      for j in stride(from: m - 1, through: 0, by: -1) {
+        lengths[i][j] = intended[i] == decoded[j]
+          ? lengths[i + 1][j + 1] + 1
+          : Swift.max(lengths[i + 1][j], lengths[i][j + 1])
+      }
+    }
+    var out: [(intended: Int?, decoded: Int?)] = []
+    var i = 0, j = 0
+    while i < n, j < m {
+      if intended[i] == decoded[j] {
+        out.append((i, j)); i += 1; j += 1
+      } else if lengths[i + 1][j] >= lengths[i][j + 1] {
+        out.append((i, nil)); i += 1
+      } else {
+        out.append((nil, j)); j += 1
+      }
+    }
+    while i < n { out.append((i, nil)); i += 1 }
+    while j < m { out.append((nil, j)); j += 1 }
+    return out
+  }
+
   static func audit(phonemes: String) -> Report {
     let reverse = reverseVocabulary()
     let vocab = (try? KokoroConfig.loadConfig().vocab) ?? [:]
@@ -77,22 +111,46 @@ enum SanskritTokenAudit {
     let decoded = tokenIDs.map { reverse[$0] ?? "<\($0)>" }
     let unknown = symbols.filter { vocab[$0] == nil }
 
-    var substituted: [(position: Int, intended: String, decoded: String)] = []
-    for index in 0 ..< min(symbols.count, decoded.count) where symbols[index] != decoded[index] {
-      substituted.append((index, symbols[index], decoded[index]))
-    }
+    // Aligned, not compared position by position.
+    //
+    // A dropped scalar shifts everything after it, so `aɭb` — where only ɭ is
+    // unspellable — used to decode as `ab` and report `ɭ → b` as a
+    // substitution even though b came back untouched. This report is used as
+    // experiment evidence, so a spurious substitution is worse than no report.
+    let alignment = align(symbols, decoded)
 
-    func counts(_ values: [String]) -> [String: Int] {
-      values.reduce(into: [:]) { $0[$1, default: 0] += 1 }
+    var substituted: [(position: Int, intended: String, decoded: String)] = []
+    var dropped: [String] = []
+    var duplicated: [String] = []
+    var index = 0
+    while index < alignment.count {
+      // Collect the run of unmatched symbols on each side, then pair them off:
+      // a pair is a substitution, a leftover intended symbol is a drop, and a
+      // leftover decoded symbol is an insertion.
+      var onlyIntended: [(Int, String)] = []
+      var onlyDecoded: [String] = []
+      while index < alignment.count, alignment[index].decoded == nil,
+            let i = alignment[index].intended {
+        onlyIntended.append((i, symbols[i])); index += 1
+      }
+      while index < alignment.count, alignment[index].intended == nil,
+            let j = alignment[index].decoded {
+        onlyDecoded.append(decoded[j]); index += 1
+      }
+      if onlyIntended.isEmpty, onlyDecoded.isEmpty { index += 1; continue }
+      for (offset, entry) in onlyIntended.enumerated() {
+        if offset < onlyDecoded.count {
+          substituted.append((entry.0, entry.1, onlyDecoded[offset]))
+        } else {
+          dropped.append(entry.1)
+        }
+      }
+      if onlyDecoded.count > onlyIntended.count {
+        duplicated += onlyDecoded[onlyIntended.count...]
+      }
     }
-    let before = counts(symbols)
-    let after = counts(decoded)
-    let dropped = before.compactMap { symbol, count in
-      after[symbol, default: 0] < count ? symbol : nil
-    }.sorted()
-    let duplicated = after.compactMap { symbol, count in
-      count > before[symbol, default: 0] ? symbol : nil
-    }.sorted()
+    dropped.sort()
+    duplicated.sort()
 
     return Report(
       phonemes: phonemes, symbols: symbols, tokenIDs: tokenIDs, decoded: decoded,
