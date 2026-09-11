@@ -776,3 +776,29 @@ private func division(_ text: String) -> String {
             "\(scalar) should not bear a visarga")
   }
 }
+
+/// A nukta modifies the consonant before it, so it is transparent to the
+/// typed-visarga rule: ज़ still carries its inherent a.
+///
+/// NFC leaves these forms decomposed — the precomposed letters are on the
+/// composition-exclusion list — so the nukta arrives as its own scalar and
+/// would otherwise clear the carrier state.
+@Test func aNuktaDoesNotBlockATypedVisarga() {
+  func visargas(_ text: String) -> Int {
+    text.unicodeScalars.filter { $0 == "\u{0903}" }.count
+  }
+  for (plain, withNukta) in [("ज:", "ज़:"), ("क:", "क़:"), ("ड:", "ड़:"), ("फ:", "फ़:")] {
+    #expect(visargas(SanskritNormalizer.normalize(withNukta).text) == 1,
+            "\(withNukta) lost its visarga")
+    #expect(visargas(SanskritNormalizer.normalize(plain).text)
+            == visargas(SanskritNormalizer.normalize(withNukta).text))
+    #expect(SanskritNormalizer.normalize(withNukta).warnings.isEmpty,
+            "\(withNukta) reported a dropped colon")
+  }
+  // Still works across a vowel sign after the nukta.
+  #expect(visargas(SanskritNormalizer.normalize("ज़ा:").text) == 1)
+  // And the nukta itself still bears nothing on its own.
+  #expect(!SanskritNormalizer.canBearVisarga("\u{093C}"))
+  // NFC really does leave the form decomposed, which is why this matters.
+  #expect("ज़".precomposedStringWithCanonicalMapping.unicodeScalars.count == 2)
+}

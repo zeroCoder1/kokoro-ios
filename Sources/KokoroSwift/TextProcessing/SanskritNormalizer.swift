@@ -41,6 +41,9 @@ enum SanskritNormalizer {
   /// not derail the parser. Dropped, and reported.
   private static let vedicAccents: Set<Unicode.Scalar> = ["\u{0951}", "\u{0952}"]
 
+  /// `़`. Modifies the consonant it follows; never a syllable of its own.
+  private static let nukta: Unicode.Scalar = "\u{093C}"
+
   /// A Latin colon standing in for a visarga. Common in typed and OCR'd
   /// Sanskrit, where `रामः` is entered as `राम:`.
   ///
@@ -96,7 +99,15 @@ enum SanskritNormalizer {
         continue
       }
       output.append(character)
-      previousCanBearVisarga = canBearVisarga(scalar)
+      // A nukta modifies the consonant before it rather than replacing it, so
+      // it is transparent here: ज़ still carries its inherent a, and ज़: is a
+      // visarga exactly as ज: is. NFC leaves these forms decomposed — the
+      // precomposed letters are on the composition-exclusion list — so the
+      // nukta really does arrive as its own scalar and would otherwise clear
+      // the carrier.
+      if scalar != nukta {
+        previousCanBearVisarga = canBearVisarga(scalar)
+      }
     }
 
     return Result(text: collapsingWhitespace(output), warnings: warnings)

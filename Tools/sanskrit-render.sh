@@ -130,6 +130,6 @@ done
 # Logging their absence and exiting 0 reports a completed render that is not
 # one.
 if (( missing > 0 )); then
-  echo "error: $missing of 3 primary renders missing; is --voice '$primary' present in the voices directory?" >&2
+  echo "error: $missing of 3 primary renders missing; is --primary '$primary' present in the voices directory?" >&2
   exit 1
 fi
