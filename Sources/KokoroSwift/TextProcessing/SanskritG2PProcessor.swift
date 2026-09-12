@@ -3,11 +3,26 @@ import MLXUtilsLibrary
 
 /// Kokoro's Sanskrit front end.
 ///
-/// Devanagari goes to `SanskritPhonemizer`. Anything else is dropped with a
-/// warning rather than guessed at: Classical Sanskrit recitation has no Latin
-/// and no digits in it, and there is no defensible way to speak an English
-/// word in a Sanskrit voice. This is a deliberate difference from
-/// `HindiG2PProcessor`, which mixes scripts because Hindi news does.
+/// Devanagari goes to `SanskritPhonemizer`. Anything else is dropped rather
+/// than guessed at: Classical Sanskrit recitation has no Latin and no digits in
+/// it, and there is no defensible way to speak an English word in a Sanskrit
+/// voice. This is a deliberate difference from `HindiG2PProcessor`, which mixes
+/// scripts because Hindi news does.
+///
+/// **The drop is reported, but not on this path.** `G2PProcessor` returns a
+/// phoneme string and optional tokens, with no channel for a warning, so a
+/// caller reaching Sanskrit through `generateAudio(voice:language:text:speed:)`
+/// gets the dropped input and no notice of it. The warnings exist; two places
+/// expose them:
+///
+///   * `KokoroTTS.generateSanskritAudio(voice:text:delivery:)` returns them
+///     alongside the audio, and is the intended entry point for Sanskrit;
+///   * `SanskritPhonemizer.analyze(_:options:)` returns them with the full
+///     pipeline trace, for inspection without synthesis.
+///
+/// Widening the protocol would change the Hindi and Misaki paths for a problem
+/// neither has, so the limitation is documented here rather than designed
+/// around. Do not describe this path as warning-free.
 ///
 /// The Hindi engine is not reachable from here, by construction — no schwa
 /// deletion, no lexical overrides, no `kʃ`/`ɡj` conjunct readings, no number

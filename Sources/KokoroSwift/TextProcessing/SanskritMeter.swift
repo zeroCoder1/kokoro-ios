@@ -48,7 +48,14 @@ enum SanskritMeter {
   ) -> SanskritMeterAnalysis {
     var analysis = SanskritMeterAnalysis()
     let normalized = SanskritNormalizer.normalize(text)
-    let units = SanskritAksharaParser.parse(normalized.text).units
+    let parsed = SanskritAksharaParser.parse(normalized.text)
+    let units = parsed.units
+    // Both collections were discarded here, so `report` printed "WARNINGS
+    // none" over input the pipeline had quietly dropped — a metre analysis
+    // claiming a clean parse of text it never saw in full. A syllable count
+    // that looks right because characters went missing is the one failure this
+    // diagnostic exists to catch.
+    analysis.warnings += normalized.warnings.map(\.text) + parsed.warnings.map(\.text)
 
     // Split the units at pause boundaries; each stretch is a pāda group.
     var stretch: [SanskritUnit] = []

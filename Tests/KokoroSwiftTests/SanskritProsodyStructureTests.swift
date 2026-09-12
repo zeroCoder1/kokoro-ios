@@ -923,3 +923,37 @@ private func division(_ text: String) -> String {
     }
   }
 }
+
+// MARK: - The meter diagnostic reports what the pipeline dropped
+
+// It discarded the normalizer's and the parser's warnings, so `report` printed
+// "WARNINGS none" over text the pipeline had quietly removed. A syllable count
+// that looks plausible because characters went missing is the one failure this
+// diagnostic exists to catch.
+
+@Test func theMeterReportsDroppedInput() {
+  let mixed = SanskritMeter.analyze("धर्म hello क्षेत्रे ।")
+  #expect(mixed.warnings.contains { $0.contains("not Devanagari") },
+          "the dropped Latin text was not reported: \(mixed.warnings)")
+
+  let strayColon = SanskritMeter.analyze("राम:: ।")
+  #expect(strayColon.warnings.contains { $0.contains("not a visarga here") },
+          "the dropped colon was not reported: \(strayColon.warnings)")
+
+  // The report text itself must stop claiming a clean analysis.
+  let report = SanskritMeter.report("धर्म hello क्षेत्रे ।")
+  #expect(report.contains("not Devanagari"))
+  #expect(!report.contains("WARNINGS\n  none"))
+}
+
+/// And a genuinely clean verse still reports nothing, so the channel stays
+/// meaningful.
+@Test func theMeterStaysSilentOnCleanInput() {
+  let verse = "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।\nमामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ॥"
+  let analysis = SanskritMeter.analyze(verse)
+  #expect(analysis.warnings.isEmpty, "clean verse warned: \(analysis.warnings)")
+  #expect(SanskritMeter.report(verse).contains("none"))
+  // The anuṣṭubh scan is the evidence this diagnostic exists for; it must not
+  // have been disturbed by adding the channel.
+  #expect(analysis.padaSyllableCounts.reduce(0, +) == 32)
+}
