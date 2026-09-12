@@ -1,0 +1,51 @@
+filename	id	input	canonical	desired_ipa	kokoro_phonemes	token_ids	voice	speed	warnings
+sanjaya_af_heart_s0.80.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	af_heart	0.8	
+sanjaya_hf_alpha_s0.80.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hf_alpha	0.8	
+sanjaya_hf_beta_s0.80.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hf_beta	0.8	
+sanjaya_hm_omega_s0.80.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hm_omega	0.8	
+sanjaya_hm_psi_s0.80.wav	sanjaya	सञ्जय	saYjaya	saɲɟaja	saɲɟaja	61 43 114 90 43 52 43	hm_psi	0.8	
+sanjayaa_af_heart_s0.80.wav	sanjayaa	सञ्जया	saYjayA	saɲɟajaː	saɲɟajaː	61 43 114 90 43 52 43 158	af_heart	0.8	
+sanjayaa_hf_alpha_s0.80.wav	sanjayaa	सञ्जया	saYjayA	saɲɟajaː	saɲɟajaː	61 43 114 90 43 52 43 158	hf_alpha	0.8	
+sanjayaa_hf_beta_s0.80.wav	sanjayaa	सञ्जया	saYjayA	saɲɟajaː	saɲɟajaː	61 43 114 90 43 52 43 158	hf_beta	0.8	
+sanjayaa_hm_omega_s0.80.wav	sanjayaa	सञ्जया	saYjayA	saɲɟajaː	saɲɟajaː	61 43 114 90 43 52 43 158	hm_omega	0.8	
+sanjayaa_hm_psi_s0.80.wav	sanjayaa	सञ्जया	saYjayA	saɲɟajaː	saɲɟajaː	61 43 114 90 43 52 43 158	hm_psi	0.8	
+karmani_af_heart_s0.80.wav	karmani	कर्मणि	karmaRi	kaɾmaɳi	kaɾmaɳi	53 43 125 55 43 113 51	af_heart	0.8	
+karmani_hf_alpha_s0.80.wav	karmani	कर्मणि	karmaRi	kaɾmaɳi	kaɾmaɳi	53 43 125 55 43 113 51	hf_alpha	0.8	
+karmani_hf_beta_s0.80.wav	karmani	कर्मणि	karmaRi	kaɾmaɳi	kaɾmaɳi	53 43 125 55 43 113 51	hf_beta	0.8	
+karmani_hm_omega_s0.80.wav	karmani	कर्मणि	karmaRi	kaɾmaɳi	kaɾmaɳi	53 43 125 55 43 113 51	hm_omega	0.8	
+karmani_hm_psi_s0.80.wav	karmani	कर्मणि	karmaRi	kaɾmaɳi	kaɾmaɳi	53 43 125 55 43 113 51	hm_psi	0.8	
+karmanii_af_heart_s0.80.wav	karmanii	कर्मणी	karmaRI	kaɾmaɳiː	kaɾmaɳiː	53 43 125 55 43 113 51 158	af_heart	0.8	
+karmanii_hf_alpha_s0.80.wav	karmanii	कर्मणी	karmaRI	kaɾmaɳiː	kaɾmaɳiː	53 43 125 55 43 113 51 158	hf_alpha	0.8	
+karmanii_hf_beta_s0.80.wav	karmanii	कर्मणी	karmaRI	kaɾmaɳiː	kaɾmaɳiː	53 43 125 55 43 113 51 158	hf_beta	0.8	
+karmanii_hm_omega_s0.80.wav	karmanii	कर्मणी	karmaRI	kaɾmaɳiː	kaɾmaɳiː	53 43 125 55 43 113 51 158	hm_omega	0.8	
+karmanii_hm_psi_s0.80.wav	karmanii	कर्मणी	karmaRI	kaɾmaɳiː	kaɾmaɳiː	53 43 125 55 43 113 51 158	hm_psi	0.8	
+aham_af_heart_s0.80.wav	aham	अहम्	aham	aham	aham	43 50 43 55	af_heart	0.8	
+aham_hf_alpha_s0.80.wav	aham	अहम्	aham	aham	aham	43 50 43 55	hf_alpha	0.8	
+aham_hf_beta_s0.80.wav	aham	अहम्	aham	aham	aham	43 50 43 55	hf_beta	0.8	
+aham_hm_omega_s0.80.wav	aham	अहम्	aham	aham	aham	43 50 43 55	hm_omega	0.8	
+aham_hm_psi_s0.80.wav	aham	अहम्	aham	aham	aham	43 50 43 55	hm_psi	0.8	
+ahama_af_heart_s0.80.wav	ahama	अहम	ahama	ahama	ahama	43 50 43 55 43	af_heart	0.8	
+ahama_hf_alpha_s0.80.wav	ahama	अहम	ahama	ahama	ahama	43 50 43 55 43	hf_alpha	0.8	
+ahama_hf_beta_s0.80.wav	ahama	अहम	ahama	ahama	ahama	43 50 43 55 43	hf_beta	0.8	
+ahama_hm_omega_s0.80.wav	ahama	अहम	ahama	ahama	ahama	43 50 43 55 43	hm_omega	0.8	
+ahama_hm_psi_s0.80.wav	ahama	अहम	ahama	ahama	ahama	43 50 43 55 43	hm_psi	0.8	
+tat_af_heart_s0.80.wav	tat	तत्	tat	tat	tat	62 43 62	af_heart	0.8	
+tat_hf_alpha_s0.80.wav	tat	तत्	tat	tat	tat	62 43 62	hf_alpha	0.8	
+tat_hf_beta_s0.80.wav	tat	तत्	tat	tat	tat	62 43 62	hf_beta	0.8	
+tat_hm_omega_s0.80.wav	tat	तत्	tat	tat	tat	62 43 62	hm_omega	0.8	
+tat_hm_psi_s0.80.wav	tat	तत्	tat	tat	tat	62 43 62	hm_psi	0.8	
+tata_af_heart_s0.80.wav	tata	तत	tata	tata	tata	62 43 62 43	af_heart	0.8	
+tata_hf_alpha_s0.80.wav	tata	तत	tata	tata	tata	62 43 62 43	hf_alpha	0.8	
+tata_hf_beta_s0.80.wav	tata	तत	tata	tata	tata	62 43 62 43	hf_beta	0.8	
+tata_hm_omega_s0.80.wav	tata	तत	tata	tata	tata	62 43 62 43	hm_omega	0.8	
+tata_hm_psi_s0.80.wav	tata	तत	tata	tata	tata	62 43 62 43	hm_psi	0.8	
+yuyutsavah_af_heart_s0.80.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	af_heart	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+yuyutsavah_hf_alpha_s0.80.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hf_alpha	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+yuyutsavah_hf_beta_s0.80.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hf_beta	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+yuyutsavah_hm_omega_s0.80.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hm_omega	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+yuyutsavah_hm_psi_s0.80.wav	yuyutsavah	युयुत्सवः	yuyutsavaH	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hm_psi	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_af_heart_s0.80.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	af_heart	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hf_alpha_s0.80.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hf_alpha	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hf_beta_s0.80.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hf_beta	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hm_omega_s0.80.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hm_omega	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)
+mamakah_hm_psi_s0.80.wav	mamakah	मामकाः	mAmakAH	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hm_psi	0.8	KOKORO_APPROXIMATED_VISARGA: ḥ → h (the traditional echo vowel is unspellable in Kokoro; h alone avoids a spurious syllable)

@@ -1,0 +1,38 @@
+filename	id	input	canonical	desired_ipa	kokoro_phonemes	token_ids	voice	speed	warnings
+ke_hf_alpha.wav	ke	के	ke	keː	keː	53 47 158	hf_alpha	1.0	
+kii_hf_alpha.wav	kii	की	kI	kiː	kiː	53 51 158	hf_alpha	1.0	
+te_hf_alpha.wav	te	ते	te	teː	teː	62 47 158	hf_alpha	1.0	
+tii_hf_alpha.wav	tii	ती	tI	tiː	tiː	62 51 158	hf_alpha	1.0	
+me_hf_alpha.wav	me	मे	me	meː	meː	55 47 158	hf_alpha	1.0	
+mii_hf_alpha.wav	mii	मी	mI	miː	miː	55 51 158	hf_alpha	1.0	
+se_hf_alpha.wav	se	से	se	seː	seː	61 47 158	hf_alpha	1.0	
+sii_hf_alpha.wav	sii	सी	sI	siː	siː	61 51 158	hf_alpha	1.0	
+le_hf_alpha.wav	le	ले	le	leː	leː	54 47 158	hf_alpha	1.0	
+lii_hf_alpha.wav	lii	ली	lI	liː	liː	54 51 158	hf_alpha	1.0	
+ve_hf_alpha.wav	ve	वे	ve	ʋeː	ʋeː	136 47 158	hf_alpha	1.0	
+vii_hf_alpha.wav	vii	वी	vI	ʋiː	ʋiː	136 51 158	hf_alpha	1.0	
+re_hf_alpha.wav	re	रे	re	ɾeː	ɾeː	125 47 158	hf_alpha	1.0	
+rii_hf_alpha.wav	rii	री	rI	ɾiː	ɾiː	125 51 158	hf_alpha	1.0	
+pe_hf_alpha.wav	pe	पे	pe	peː	peː	58 47 158	hf_alpha	1.0	
+pii_hf_alpha.wav	pii	पी	pI	piː	piː	58 51 158	hf_alpha	1.0	
+kshetre_hf_alpha.wav	kshetre	क्षेत्रे	kzetre	kʂeːtɾeː	kʂeːtɾeː	53 130 47 158 62 125 47 158	hf_alpha	1.0	
+kshetrii_hf_alpha.wav	kshetrii	क्षेत्री	kzetrI	kʂeːtɾiː	kʂeːtɾiː	53 130 47 158 62 125 51 158	hf_alpha	1.0	
+samaveta_hf_alpha.wav	samaveta	समवेता	samavetA	samaʋeːtaː	samaʋeːtaː	61 43 55 43 136 47 158 62 43 158	hf_alpha	1.0	
+samavita_hf_alpha.wav	samavita	समवीता	samavItA	samaʋiːtaː	samaʋiːtaː	61 43 55 43 136 51 158 62 43 158	hf_alpha	1.0	
+phaleshu_hf_alpha.wav	phaleshu	फलेषु	Palezu	pʰaleːʂu	pʰaleːʂu	58 162 43 54 47 158 130 63	hf_alpha	1.0	
+phalishu_hf_alpha.wav	phalishu	फलीषु	PalIzu	pʰaliːʂu	pʰaliːʂu	58 162 43 54 51 158 130 63	hf_alpha	1.0	
+adhikaraste_hf_alpha.wav	adhikaraste	अधिकारस्ते	aDikAraste	adʰikaːɾasteː	adʰikaːɾasteː	43 46 162 51 53 43 158 125 43 61 62 47 158	hf_alpha	1.0	
+adhikarasti_hf_alpha.wav	adhikarasti	अधिकारस्ती	aDikArastI	adʰikaːɾastiː	adʰikaːɾastiː	43 46 162 51 53 43 158 125 43 61 62 51 158	hf_alpha	1.0	
+raw_ke_hf_alpha.wav	raw_ke	keː	(raw phonemes)	keː	keː	53 47 158	hf_alpha	1.0	
+raw_kii_hf_alpha.wav	raw_kii	kiː	(raw phonemes)	kiː	kiː	53 51 158	hf_alpha	1.0	
+raw_ke_stress_hf_alpha.wav	raw_ke_stress	kˈeː	(raw phonemes)	kˈeː	kˈeː	53 156 47 158	hf_alpha	1.0	
+raw_kii_stress_hf_alpha.wav	raw_kii_stress	kˈiː	(raw phonemes)	kˈiː	kˈiː	53 156 51 158	hf_alpha	1.0	
+raw_te_hf_alpha.wav	raw_te	teː	(raw phonemes)	teː	teː	62 47 158	hf_alpha	1.0	
+raw_tii_hf_alpha.wav	raw_tii	tiː	(raw phonemes)	tiː	tiː	62 51 158	hf_alpha	1.0	
+raw_te_stress_hf_alpha.wav	raw_te_stress	tˈeː	(raw phonemes)	tˈeː	tˈeː	62 156 47 158	hf_alpha	1.0	
+raw_tii_stress_hf_alpha.wav	raw_tii_stress	tˈiː	(raw phonemes)	tˈiː	tˈiː	62 156 51 158	hf_alpha	1.0	
+raw_kshetre_hf_alpha.wav	raw_kshetre	kʂeːtɾeː	(raw phonemes)	kʂeːtɾeː	kʂeːtɾeː	53 130 47 158 62 125 47 158	hf_alpha	1.0	
+raw_kshetre_stress_hf_alpha.wav	raw_kshetre_stress	kʂˈeːtɾeː	(raw phonemes)	kʂˈeːtɾeː	kʂˈeːtɾeː	53 130 156 47 158 62 125 47 158	hf_alpha	1.0	
+raw_kshetre_espeak_hf_alpha.wav	raw_kshetre_espeak	kʃˈeːtɾeː	(raw phonemes)	kʃˈeːtɾeː	kʃˈeːtɾeː	53 131 156 47 158 62 125 47 158	hf_alpha	1.0	
+raw_e_only_hf_alpha.wav	raw_e_only	eː	(raw phonemes)	eː	eː	47 158	hf_alpha	1.0	
+raw_i_only_hf_alpha.wav	raw_i_only	iː	(raw phonemes)	iː	iː	51 158	hf_alpha	1.0	

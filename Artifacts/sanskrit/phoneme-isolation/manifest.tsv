@@ -1,0 +1,17 @@
+filename	id	input	canonical	desired_ipa	kokoro_phonemes	token_ids	voice	speed	warnings
+v_ka_hf_alpha.wav	v_ka	kaː	(raw phonemes)	kaː	kaː	53 43 158	hf_alpha	1.0	
+v_ke_hf_alpha.wav	v_ke	keː	(raw phonemes)	keː	keː	53 47 158	hf_alpha	1.0	
+v_ki_hf_alpha.wav	v_ki	kiː	(raw phonemes)	kiː	kiː	53 51 158	hf_alpha	1.0	
+v_ko_hf_alpha.wav	v_ko	koː	(raw phonemes)	koː	koː	53 57 158	hf_alpha	1.0	
+v_ku_hf_alpha.wav	v_ku	kuː	(raw phonemes)	kuː	kuː	53 63 158	hf_alpha	1.0	
+v_e_short_hf_alpha.wav	v_e_short	ke	(raw phonemes)	ke	ke	53 47	hf_alpha	1.0	
+v_i_short_hf_alpha.wav	v_i_short	ki	(raw phonemes)	ki	ki	53 51	hf_alpha	1.0	
+v_o_short_hf_alpha.wav	v_o_short	ko	(raw phonemes)	ko	ko	53 57	hf_alpha	1.0	
+v_eps_hf_alpha.wav	v_eps	kɛ	(raw phonemes)	kɛ	kɛ	53 86	hf_alpha	1.0	
+v_epsl_hf_alpha.wav	v_epsl	kɛː	(raw phonemes)	kɛː	kɛː	53 86 158	hf_alpha	1.0	
+v_A_hf_alpha.wav	v_A	kA	(raw phonemes)	kA	kA	53 24	hf_alpha	1.0	
+v_eI_hf_alpha.wav	v_eI	keɪ	(raw phonemes)	keɪ	keɪ	53 47 102	hf_alpha	1.0	
+v_schwa_hf_alpha.wav	v_schwa	kə	(raw phonemes)	kə	kə	53 83	hf_alpha	1.0	
+v_ae_hf_alpha.wav	v_ae	kæ	(raw phonemes)	kæ	kæ	53 72	hf_alpha	1.0	
+v_hi_ke_hf_alpha.wav	v_hi_ke	kˈeː	(raw phonemes)	kˈeː	kˈeː	53 156 47 158	hf_alpha	1.0	
+v_hi_ki_hf_alpha.wav	v_hi_ki	kˈi	(raw phonemes)	kˈi	kˈi	53 156 51	hf_alpha	1.0	

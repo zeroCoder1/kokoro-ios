@@ -1,0 +1,959 @@
+import Foundation
+import Testing
+@testable import KokoroSwift
+
+// Phonetic features, syllabification, weight, mātrās and conjunct holding.
+//
+// Names follow this package's convention — descriptive, no `test` prefix.
+// Linguistic rules from sanskritguide.com, quoted where they are applied.
+
+private func syllables(_ text: String) -> [SanskritSyllable] {
+  let units = SanskritAksharaParser.parse(SanskritNormalizer.normalize(text).text).units
+  return SanskritSyllabifier.syllabify(units).syllables
+}
+
+private func pattern(_ text: String) -> String {
+  syllables(text).map { $0.weight == .guru ? "G" : "L" }.joined()
+}
+
+private func division(_ text: String) -> String {
+  syllables(text).map(\.slp1).joined(separator: "-")
+}
+
+// MARK: - Consonant features
+
+@Test func velarConsonantFeatures() {
+  #expect(SanskritConsonant.ka.place == .velar)
+  #expect(SanskritConsonant.ka.voicing == .voiceless)
+  #expect(SanskritConsonant.ka.aspiration == .unaspirated)
+  #expect(SanskritConsonant.ka.manner == .stop)
+  #expect(SanskritConsonant.kha.aspiration == .aspirated)
+  #expect(SanskritConsonant.ga.voicing == .voiced)
+  #expect(SanskritConsonant.gha.voicing == .voiced)
+  #expect(SanskritConsonant.gha.aspiration == .aspirated)
+  #expect(SanskritConsonant.nga.manner == .nasal)
+  #expect(SanskritConsonant.nga.place == .velar)
+}
+
+/// The whole varga system: columns 1 and 2 voiceless, 3 and 4 voiced, 5 nasal;
+/// columns 2 and 4 aspirated; every member of a varga shares its place.
+@Test func everyVargaFollowsTheSameFeaturePattern() {
+  let vargas: [(place: SanskritPlace, members: [SanskritConsonant])] = [
+    (.velar, [.ka, .kha, .ga, .gha, .nga]),
+    (.palatal, [.ca, .cha, .ja, .jha, .nya]),
+    (.retroflex, [.tta, .ttha, .dda, .ddha, .nna]),
+    (.dental, [.ta, .tha, .da, .dha, .na]),
+    (.labial, [.pa, .pha, .ba, .bha, .ma]),
+  ]
+  for (place, members) in vargas {
+    for consonant in members {
+      #expect(consonant.place == place, "\(consonant.rawValue) is not \(place)")
+    }
+    #expect(members[0].voicing == .voiceless && members[1].voicing == .voiceless)
+    #expect(members[2].voicing == .voiced && members[3].voicing == .voiced)
+    #expect(members[4].voicing == .voiced)
+    #expect(members[0].aspiration == .unaspirated && members[2].aspiration == .unaspirated)
+    #expect(members[1].aspiration == .aspirated && members[3].aspiration == .aspirated)
+    let allStops = members[0 ..< 4].allSatisfy { $0.manner == .stop }
+    #expect(allStops)
+    #expect(members[4].manner == .nasal)
+    // Every stop and nasal is sparśa — the class the syllabifier tests.
+    let allSparsha = members.allSatisfy { $0.isSparsha }
+    #expect(allSparsha)
+  }
+}
+
+/// Aspirated stops are single phonemes, not stop + ह.
+@Test func aspiratedStopIsSingleCanonicalPhonemeNotStopPlusHa() {
+  for aspirated in [SanskritConsonant.kha, .gha, .cha, .jha, .ttha,
+                    .ddha, .tha, .dha, .pha, .bha] {
+    #expect(aspirated.isSingleAspiratedPhoneme, "\(aspirated.rawValue) is not one phoneme")
+    #expect(aspirated.manner == .stop)
+    #expect(aspirated.aspiration == .aspirated)
+    // One canonical symbol, not two.
+    #expect(aspirated.rawValue.count == 1)
+    #expect(aspirated.unaspiratedCounterpart != nil)
+    #expect(aspirated.unaspiratedCounterpart?.place == aspirated.place)
+  }
+  // ख is not क + ह at the canonical layer, and the two are different words.
+  // A bare consonant carries its inherent vowel, so ख is `Ka` — one consonant
+  // symbol, not two.
+  #expect(SanskritPhonemizer.analyze("ख").canonical == "Ka")
+  #expect(SanskritPhonemizer.analyze("ख्").canonical == "K")
+  #expect(SanskritPhonemizer.analyze("कह").canonical == "kaha")
+  #expect(SanskritPhonemizer.analyze("ख").canonical != SanskritPhonemizer.analyze("क्ह").canonical)
+  #expect(SanskritPhonemizer.analyze("थ").canonical != SanskritPhonemizer.analyze("त्ह").canonical)
+  #expect(SanskritPhonemizer.analyze("ध").canonical != SanskritPhonemizer.analyze("द्ह").canonical)
+  #expect(SanskritPhonemizer.analyze("भ").canonical != SanskritPhonemizer.analyze("ब्ह").canonical)
+}
+
+@Test func shaSsaSaHaveDifferentArticulation() {
+  #expect(SanskritConsonant.sha.place == .palatal)
+  #expect(SanskritConsonant.ssa.place == .retroflex)
+  #expect(SanskritConsonant.sa.place == .dental)
+  for sibilant in [SanskritConsonant.sha, .ssa, .sa] {
+    #expect(sibilant.manner == .sibilant)
+    #expect(sibilant.voicing == .voiceless)
+    #expect(!sibilant.isSparsha, "a sibilant must not close a syllable as sparśa")
+  }
+  #expect(Set([SanskritConsonant.sha, .ssa, .sa].map(\.place)).count == 3)
+}
+
+@Test func fiveNasalsHaveDifferentPlacesOfArticulation() {
+  let nasals: [SanskritConsonant] = [.nga, .nya, .nna, .na, .ma]
+  #expect(Set(nasals.map(\.place)).count == 5)
+  for nasal in nasals {
+    #expect(nasal.manner == .nasal)
+    #expect(nasal.voicing == .voiced)
+    #expect(nasal.isSparsha)
+  }
+  // The homorganic rule derives from the place, not a table.
+  #expect(SanskritPlace.velar.nasal == .nga)
+  #expect(SanskritPlace.palatal.nasal == .nya)
+  #expect(SanskritPlace.retroflex.nasal == .nna)
+  #expect(SanskritPlace.dental.nasal == .na)
+  #expect(SanskritPlace.labial.nasal == .ma)
+}
+
+/// Retroflex and dental must not merge at any stage.
+@Test func retroflexAndDentalSeriesStayApart() {
+  for (retroflex, dental) in [("ट", "त"), ("ठ", "थ"), ("ड", "द"), ("ढ", "ध"), ("ण", "न")] {
+    let r = SanskritPhonemizer.analyze(retroflex + "ा")
+    let d = SanskritPhonemizer.analyze(dental + "ा")
+    #expect(r.canonical != d.canonical, "\(retroflex)/\(dental) canonical collapsed")
+    #expect(r.kokoroPhonemes != d.kokoroPhonemes, "\(retroflex)/\(dental) IPA collapsed")
+    #expect(SanskritTokenAudit.audit(text: retroflex + "ा").tokenIDs
+            != SanskritTokenAudit.audit(text: dental + "ा").tokenIDs)
+  }
+}
+
+// MARK: - Syllabification
+
+/// The reference's own worked examples.
+@Test func syllabificationMatchesTheReferenceExamples() {
+  // "the n terminates the first syllable" — man-tra, not mant-ra
+  #expect(division("मन्त्र") == "man-tra")
+  // kṛt-snam: the closing consonant contributes to weight
+  #expect(division("कृत्स्नम्") == "kft-snam")
+  // saṁ-trā-ṇa: an anusvāra closes the syllable
+  #expect(division("संत्राण") == "san-trA-Ra")
+  // dhar-ma: a non-sparśa cluster leaves only its last consonant as onset
+  #expect(division("धर्म") == "Dar-ma")
+  // "every syllable must begin with a consonant if possible"
+  #expect(division("मत") == "ma-ta")
+  #expect(division("मय") == "ma-ya")
+  // the holding example: not सिध, and not सिदध either
+  #expect(division("सिद्ध") == "sid-Da")
+}
+
+/// An akṣara is orthographic; a syllable is phonological.
+///
+/// Both hold exactly one vowel, so their *counts* agree. What differs is where
+/// the consonants go: मन्त्र is written म + न्त्र and spoken man-tra, so the
+/// n moves from the second unit to the first.
+@Test func aksharasAndSyllablesDivideTheWordDifferently() {
+  let result = SanskritPhonemizer.analyze("मन्त्र")
+  var aksharas: [String] = []
+  for unit in result.units {
+    if case let .akshara(akshara) = unit {
+      aksharas.append(akshara.onset.map(\.rawValue).joined() + (akshara.vowel?.rawValue ?? ""))
+    }
+  }
+  #expect(aksharas == ["ma", "ntra"])              // orthographic
+  #expect(division("मन्त्र") == "man-tra")         // phonological
+  #expect(aksharas.count == syllables("मन्त्र").count)
+  #expect(aksharas.joined(separator: "-") != division("मन्त्र"))
+
+  // धर्म divides differently too: written ध + र्म, spoken dhar-ma.
+  #expect(division("धर्म") == "Dar-ma")
+}
+
+// MARK: - Weight and mātrās
+
+@Test func shortOpenSyllableIsLaghu() {
+  #expect(pattern("क") == "L")
+  #expect(pattern("मत") == "LL")
+  #expect(pattern("मय") == "LL")
+  #expect(syllables("क")[0].weight.matras == 1)
+  #expect(syllables("क")[0].weightReason == .shortOpenSyllable)
+}
+
+@Test func longVowelSyllableIsGuru() {
+  for word in ["का", "की", "कू", "कॄ"] {
+    #expect(pattern(word) == "G", "\(word) is not guru")
+    #expect(syllables(word)[0].weightReason == .longVowel)
+    #expect(syllables(word)[0].matras == 2)
+  }
+}
+
+@Test func closedSyllableIsGuru() {
+  #expect(syllables("मन्त्र")[0].weight == .guru)
+  #expect(syllables("मन्त्र")[0].weightReason == .closedByConsonant)
+  #expect(syllables("धर्म")[0].weight == .guru)
+  // ...and the open second syllable stays light.
+  #expect(syllables("धर्म")[1].weight == .laghu)
+}
+
+@Test func anusvaraAndVisargaCloseTheSyllable() {
+  // Before a continuant the anusvāra stays a nasalised vowel, and *that* is
+  // what closes the syllable as an anusvāra.
+  let nasalised = syllables("संस्कृत")
+  #expect(nasalised.first?.endsWithAnusvara == true)
+  #expect(nasalised.first?.weight == .guru)
+  #expect(nasalised.first?.weightReason == .anusvara)
+
+  // Word-finally it resolves to a real म, so the syllable is closed by a
+  // consonant instead. Either way it is guru, which is what metre needs.
+  let final = syllables("अहं")
+  #expect(final.last?.weight == .guru)
+  #expect(final.last?.weightReason == .closedByConsonant)
+
+  let visarga = syllables("रामः")
+  #expect(visarga.last?.endsWithVisarga == true)
+  #expect(visarga.last?.weight == .guru)
+  #expect(visarga.last?.weightReason == .visarga)
+  // मामकाः: the final syllable is heavy from the visarga *and* the long ā.
+  #expect(pattern("मामकाः") == "GLG")
+}
+
+/// e, ai, o and au are long for prosody, whatever a macron-less transcription
+/// might suggest. This is separate from phoneme identity.
+@Test func eAiOAuAreAllLongForProsody() {
+  for word in ["के", "कै", "को", "कौ"] {
+    #expect(pattern(word) == "G", "\(word) was treated as light")
+    #expect(syllables(word)[0].weightReason == .longVowel)
+    #expect(syllables(word)[0].matras == 2)
+  }
+  for vowel in [SanskritVowel.e, .ai, .o, .au] {
+    #expect(vowel.isProsodicallyLong)
+    #expect(vowel.nucleusMatras == 2)
+  }
+  // ...while their phoneme identities stay distinct from each other.
+  #expect(Set(["के", "कै", "को", "कौ"].map { SanskritPhonemizer.phonemize($0) }).count == 4)
+}
+
+@Test func matrasFollowWeight() {
+  for syllable in syllables("धर्मक्षेत्रे") {
+    #expect(syllable.matras == (syllable.weight == .guru ? 2 : 1))
+  }
+  #expect(syllables("अभ्युत्थानम्").reduce(0) { $0 + $1.matras } == 8)
+  #expect(syllables("मत").reduce(0) { $0 + $1.matras } == 2)
+}
+
+// MARK: - Holding
+
+@Test func conjunctCodaCreatesHoldingMetadata() {
+  for word in ["मन्त्र", "सिद्ध", "तत्त्व", "अभ्युत्थानम्", "धर्मक्षेत्रे"] {
+    let held = syllables(word).filter(\.holdClosingConsonant)
+    #expect(!held.isEmpty, "\(word) has no held syllable")
+    for syllable in held { #expect(!syllable.coda.isEmpty) }
+  }
+  // An open light syllable is never held.
+  let noneHeld = syllables("मत").allSatisfy { !$0.holdClosingConsonant }
+  #expect(noneHeld)
+}
+
+/// Holding is duration, never an inserted vowel. सिद्ध must not become
+/// सिध (a lost consonant) and must not become सिदध (a gained vowel).
+@Test func holdingDoesNotInsertVowel() {
+  let siddha = SanskritPhonemizer.phonemize("सिद्ध")
+  #expect(siddha == "siddʰa")
+  #expect(siddha.filter { "aeiouɪʊ".contains($0) }.count == 2)
+  #expect(siddha != SanskritPhonemizer.phonemize("सिध"))
+  #expect(siddha != SanskritPhonemizer.phonemize("सिदध"))
+
+  // The prosody plan expresses holding as a scale, never as extra phonemes.
+  var intent = SanskritProsodyIntent.recitation
+  intent.heldCodaScale = 2.0
+  let plain = SanskritPhonemizer.phonemize("सिद्ध")
+  let planned = SanskritProsodyPlanner.durationScale(for: "सिद्ध", intent: intent)
+  #expect(SanskritPhonemizer.phonemize("सिद्ध") == plain, "planning changed the phonemes")
+  #expect(planned?.count == SanskritPhonemizer.analyze("सिद्ध").tokens.count)
+}
+
+// MARK: - Prosody plan
+
+@Test func theProsodyPlanCarriesLinguisticIntentNotPhonemes() {
+  let plan = SanskritProsodyPlanner.plan(for: "धर्मक्षेत्रे", intent: .recitation)
+  #expect(plan.units.count == syllables("धर्मक्षेत्रे").count)
+  #expect(plan.weightPattern == pattern("धर्मक्षेत्रे"))
+  #expect(plan.totalMatras == syllables("धर्मक्षेत्रे").reduce(0) { $0 + $1.matras })
+  for unit in plan.units {
+    #expect(unit.matras == unit.weight.matras)
+    #expect(unit.preferredDurationScale != nil)
+  }
+  // A guru syllable asks for more time than a laghu one.
+  let guru = plan.units.first { $0.weight == .guru }?.preferredDurationScale ?? 0
+  let laghu = plan.units.first { $0.weight == .laghu }?.preferredDurationScale ?? 0
+  if laghu > 0 { #expect(guru > laghu) }
+}
+
+/// The neutral intent must be a true no-op, so the default path is unchanged.
+@Test func neutralProsodyIntentChangesNothing() {
+  #expect(SanskritProsodyPlanner.durationScale(for: "धर्मक्षेत्रे", intent: .neutral) == nil)
+  for verse in ["धर्मक्षेत्रे कुरुक्षेत्रे", "मामकाः पाण्डवाश्चैव"] {
+    let before = SanskritPhonemizer.phonemize(verse)
+    _ = SanskritProsodyPlanner.durationScale(for: verse, intent: .recitation)
+    #expect(SanskritPhonemizer.phonemize(verse) == before, "planning mutated the phonemes")
+  }
+}
+
+/// The scale has one entry per token and never reorders or replaces one.
+@Test func durationScaleIsParallelToTokensAndChangesNoPhoneme() {
+  for text in ["धर्मक्षेत्रे", "अभ्युत्थानम्", "मामकाः",
+               "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।"] {
+    let result = SanskritPhonemizer.analyze(text)
+    let scale = SanskritProsodyPlanner.durationScale(for: text, intent: .recitation)
+    #expect(scale?.count == result.tokens.count, "\(text): scale is not parallel to tokens")
+    let allPositive = scale?.allSatisfy { $0 > 0 } ?? false
+    #expect(allPositive, "\(text): non-positive scale")
+    // Applying a plan cannot change what is said.
+    #expect(SanskritPhonemizer.analyze(text).kokoroPhonemes == result.kokoroPhonemes)
+    #expect(SanskritPhonemizer.analyze(text).tokens == result.tokens)
+  }
+}
+
+// MARK: - Boundaries
+
+/// A source newline is typography. It must not become a pause, and must not
+/// change a single phoneme.
+@Test func displayLineBreakDoesNotChangeCanonicalPhonology() {
+  let oneLine = "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।"
+  let wrapped = "धर्मक्षेत्रे कुरुक्षेत्रे\nसमवेता युयुत्सवः ।"
+  #expect(SanskritPhonemizer.phonemize(oneLine) == SanskritPhonemizer.phonemize(wrapped))
+  #expect(SanskritPhonemizer.analyze(oneLine).canonical
+          == SanskritPhonemizer.analyze(wrapped).canonical)
+  #expect(pattern(oneLine) == pattern(wrapped))
+
+  #expect(SanskritBoundary.displayLineBreak.isPause == false)
+  #expect(SanskritProsodyConfiguration.default.pause(for: .displayLineBreak) == 0)
+  // It is its own kind, distinct from every other boundary.
+  for other in [SanskritBoundary.word, .pada, .verse, .elision] {
+    #expect(SanskritBoundary.displayLineBreak != other)
+  }
+}
+
+/// A daṇḍa is a recitation pause. It must not silently rewrite the phonology
+/// of the syllable in front of it.
+@Test func dandaDoesNotChangeThePrecedingSyllablePhonology() {
+  let bare = SanskritPhonemizer.analyze("युयुत्सवः")
+  let withDanda = SanskritPhonemizer.analyze("युयुत्सवः ।")
+  #expect(withDanda.canonical.hasPrefix(bare.canonical))
+  #expect(withDanda.kokoroPhonemes.hasPrefix(bare.kokoroPhonemes))
+  // Line-final heaviness is a metrical convention and is opt-in, so plain
+  // syllabification does not apply it.
+  let units = SanskritAksharaParser.parse(SanskritNormalizer.normalize("मत").text).units
+  #expect(SanskritSyllabifier.syllabify(units).syllables.last?.weight == .laghu)
+  #expect(SanskritSyllabifier.syllabify(units, lineFinalIsHeavy: true)
+    .syllables.last?.weight == .guru)
+}
+
+// MARK: - Metre
+
+/// Twelve pādas across three verses, every one matching the anuṣṭubh pathyā
+/// cadence — L G G at 5-7 in an odd pāda, L G L in an even one. Nothing in the
+/// implementation knows the pattern, so this is independent evidence that the
+/// syllabifier, vowel lengths and phonology are jointly right.
+@Test func gitaVersesScanAsAnushtubh() {
+  let verses = [
+    "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।\nमामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ॥",
+    "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ॥",
+    "यदा यदा हि धर्मस्य ग्लानिर्भवति भारत ।\nअभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम् ॥",
+  ]
+  for verse in verses {
+    let analysis = SanskritMeter.analyze(verse)
+    #expect(analysis.warnings.isEmpty, "\(verse): \(analysis.warnings)")
+    #expect(analysis.padaSyllableCounts == [16, 16], "\(analysis.padaSyllableCounts)")
+
+    for half in analysis.padas {
+      let weights = half.weights
+      #expect(weights.count == 16)
+      // Two anuṣṭubh pādas per printed half.
+      for (offset, isEven) in [(0, false), (8, true)] {
+        #expect(weights[offset + 4] == .laghu, "syllable 5 must be laghu")
+        #expect(weights[offset + 5] == .guru, "syllable 6 must be guru")
+        #expect(weights[offset + 6] == (isEven ? .laghu : .guru),
+                "syllable 7 cadence wrong")
+      }
+    }
+  }
+}
+
+// MARK: - Visarga length repair
+
+/// A visarga-final syllable is guru, but *why* it is guru decides what may be
+/// lengthened. In मामकाः the ā is genuinely long and the model under-realises
+/// it, so restoring its duration is a repair. In युयुत्सवः the a is genuinely
+/// short, and lengthening it turns वः into वाः — a different vowel, and the
+/// error reported as "युयुत्सवाह". The visarga's own duration is scaled in
+/// both cases; the vowel's only when it is already long.
+@Test func visargaLengtheningNeverLengthensAShortVowel() {
+  // Long vowel before the visarga: the vowel is repaired.
+  for word in ["मामकाः", "पाण्डवाः", "भूः", "धीः", "हरेः", "गुरोः"] {
+    let phonemes = SanskritPhonemizer.phonemize(word)
+    guard let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
+      phonemes, intent: .closureRepairs
+    ) else { Issue.record("\(word): no scale"); continue }
+    #expect(scale[scale.count - 1] > 1.0, "\(word): the visarga was not lengthened")
+    #expect(scale[scale.count - 2] > 1.0, "\(word): its long vowel was not repaired")
+  }
+
+  // Short vowel before the visarga: only the visarga is scaled.
+  for word in ["युयुत्सवः", "रामः", "योगः", "अर्जुनः", "नमः", "पुनः", "कः"] {
+    let phonemes = SanskritPhonemizer.phonemize(word)
+    guard let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
+      phonemes, intent: .closureRepairs
+    ) else { Issue.record("\(word): no scale"); continue }
+    #expect(scale[scale.count - 1] > 1.0, "\(word): the visarga was not lengthened")
+    #expect(scale[scale.count - 2] == 1.0,
+            "\(word): a SHORT vowel was lengthened — वः would become वाः")
+  }
+
+  // And no repair touches a phoneme.
+  for word in ["मामकाः", "युयुत्सवः"] {
+    let before = SanskritPhonemizer.phonemize(word)
+    _ = SanskritProsodyPlanner.durationScaleForPhonemes(before, intent: .closureRepairs)
+    #expect(SanskritPhonemizer.phonemize(word) == before)
+  }
+  // A word with no visarga gets no visarga repair.
+  let none = SanskritProsodyPlanner.durationScaleForPhonemes(
+    SanskritPhonemizer.phonemize("कर्म"), intent: .visargaLengthOnly
+  )
+  #expect(none?.allSatisfy { $0 == 1.0 } == true)
+}
+
+/// `prepareInputTensors` wraps the token sequence in a padding token at each
+/// end, so the duration tensor is two longer than the phoneme count. A scale
+/// built per phoneme must still line up.
+///
+/// This is a regression test: the first version of the duration control was
+/// silently ignored for every input, because the caller supplied one entry per
+/// phoneme and the check demanded one per padded token.
+@Test func durationScaleIsSizedForPhonemesNotPaddedTokens() {
+  for word in ["मामकाः", "धर्मक्षेत्रे", "अभ्युत्थानम्"] {
+    let phonemes = SanskritPhonemizer.phonemize(word)
+    let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
+      phonemes, intent: .recitation
+    )
+    let tokens = Tokenizer.tokenize(phonemizedText: phonemes)
+    #expect(scale?.count == tokens.count,
+            "\(word): scale is \(scale?.count ?? -1) for \(tokens.count) phoneme tokens")
+    // The model pads to tokens.count + 2; the mismatch must not be the
+    // caller's to reconcile.
+    #expect(scale?.count != tokens.count + 2)
+  }
+}
+
+// MARK: - The pause unit
+
+// `padaPause` is the value at speed 1.0 and the renderer divides it by speed,
+// so the configured number and the audible gap are two different figures.
+// Diagnostics used to record the first and produce the second. These pin both.
+
+@Test func renderedPauseIsTheConfiguredValueDividedBySpeed() {
+  for delivery in [SanskritDelivery.learning, .recitation, .fast, .unshaped] {
+    #expect(delivery.renderedPadaPause
+            == delivery.prosody.padaPause / Double(delivery.speed))
+    #expect(delivery.renderedVersePause
+            == delivery.prosody.versePause / Double(delivery.speed))
+  }
+  // The figures the preset doc comments quote.
+  #expect(abs(SanskritDelivery.recitation.renderedPadaPause - 0.625) < 0.001)
+  #expect(abs(SanskritDelivery.recitation.renderedVersePause - 1.250) < 0.001)
+  #expect(abs(SanskritDelivery.learning.renderedPadaPause - 0.921) < 0.001)
+  #expect(abs(SanskritDelivery.learning.renderedVersePause - 1.711) < 0.001)
+  // At speed 1.0 the two figures coincide, which is what makes the unit
+  // "seconds at speed 1.0" rather than an arbitrary scale.
+  #expect(SanskritDelivery.fast.renderedPadaPause
+          == SanskritDelivery.fast.prosody.padaPause)
+}
+
+/// A slower delivery must not end up with a *shorter* audible break than a
+/// faster one, which is the whole reason the division is there.
+@Test func aSlowerDeliveryPausesLonger() {
+  #expect(SanskritDelivery.learning.renderedPadaPause
+          > SanskritDelivery.recitation.renderedPadaPause)
+  #expect(SanskritDelivery.recitation.renderedPadaPause
+          > SanskritDelivery.fast.renderedPadaPause)
+}
+
+/// `unshaped` is a controlled A/B against `recitation`, so everything except
+/// the duration intent has to match it. Its doc comment used to claim it was
+/// the model's raw timing, which it is not.
+@Test func unshapedDiffersFromRecitationOnlyInTheDurationIntent() {
+  #expect(SanskritDelivery.unshaped.speed == SanskritDelivery.recitation.speed)
+  #expect(SanskritDelivery.unshaped.prosody == SanskritDelivery.recitation.prosody)
+  #expect(SanskritDelivery.unshaped.intent == .neutral)
+  #expect(SanskritDelivery.recitation.intent != .neutral)
+  // Neutral means no opinion at all, so the planner returns nothing to apply.
+  let phonemes = SanskritPhonemizer.phonemize("धर्मक्षेत्रे")
+  let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
+    phonemes, intent: SanskritDelivery.unshaped.intent
+  )
+  #expect(scale == nil || scale?.allSatisfy { $0 == 1.0 } == true)
+}
+
+// MARK: - Warnings survive the prosody layer
+
+// The public entry point returns these. `segments(for:)` drops them, and a
+// caller that never sees them turns a reported omission into a silent one.
+
+@Test func analyzeReportsWhatSegmentsDiscards() {
+  // Non-Devanagari is dropped, and the drop is reported.
+  let mixed = SanskritProsody.analyze("धर्म hello क्षेत्रे")
+  #expect(!mixed.warnings.isEmpty, "dropped Latin text raised no warning")
+  #expect(mixed.warnings.contains { $0.text.hasPrefix("KOKORO_UNSUPPORTED")
+            || $0.text.contains("not Devanagari") },
+          "no warning named the dropped input: \(mixed.warnings.map(\.text))")
+
+  // An approximation is reported even though the audio is perfectly renderable.
+  let visarga = SanskritProsody.analyze("रामः ।")
+  #expect(visarga.warnings.contains { $0.text.hasPrefix("KOKORO_APPROXIMATED_VISARGA") })
+
+  // And the segments are unchanged by collecting them.
+  #expect(SanskritProsody.analyze("रामः ।").segments
+          == SanskritProsody.segments(for: "रामः ।"))
+}
+
+/// Warnings are collected across every segment, not just the first.
+@Test func warningsAreCollectedFromEverySegment() {
+  let verse = "रामः ।\nमामकाः ॥"
+  let analysis = SanskritProsody.analyze(verse)
+  #expect(analysis.segments.count == 2)
+  let visargaWarnings = analysis.warnings.filter {
+    $0.text.hasPrefix("KOKORO_APPROXIMATED_VISARGA")
+  }
+  // One per visarga: रामः and मामकाः are in different segments.
+  #expect(visargaWarnings.count >= 2,
+          "only \(visargaWarnings.count) visarga warnings for two segments")
+}
+
+// MARK: - The duration planner reads structure, not the phoneme stream
+
+// `ः` and a virāma-closed `ह्` both reach Kokoro as `h`. The frontend keeps
+// them apart — कः, कह, कह् and कहा are four distinct canonical forms — and a
+// duration rule that infers visarga from a word-final `h` undoes that,
+// applying the 1.3× repair to कह्.
+
+@Test func visargaRepairReachesTheVisargaAndNotAFinalHa() {
+  let intent = SanskritProsodyIntent.closureRepairs
+  #expect(intent.visargaSyllableScale != 1.0, "the repair is off; this test proves nothing")
+
+  func scale(_ word: String) -> [Float] {
+    let analysis = SanskritProsody.analyze(word, configuration: .none)
+    guard let segment = analysis.segments.first else { return [] }
+    return SanskritProsodyPlanner.durationScaleForPhonemes(
+      segment.phonemes,
+      visargaTokenIndices: segment.visargaTokenIndices,
+      intent: intent
+    ) ?? []
+  }
+
+  // कः — a visarga. Something must be scaled.
+  let visarga = scale("कः")
+  #expect(visarga.contains { $0 != 1.0 }, "कः got no visarga repair: \(visarga)")
+
+  // कह् — a closed ह्, not a visarga. Nothing may be scaled.
+  let closedHa = scale("कह्")
+  #expect(closedHa.allSatisfy { $0 == 1.0 },
+          "कह् was treated as a visarga: \(closedHa)")
+
+  // They reach Kokoro as the same phonemes, which is exactly why the phoneme
+  // stream cannot be the source of this decision.
+  #expect(SanskritPhonemizer.phonemize("कः") == SanskritPhonemizer.phonemize("कह्"))
+  // And the phonology does keep them apart.
+  #expect(SanskritProsody.analyze("कः", configuration: .none)
+            .segments.first?.visargaTokenIndices.isEmpty == false)
+  #expect(SanskritProsody.analyze("कह्", configuration: .none)
+            .segments.first?.visargaTokenIndices.isEmpty == true)
+}
+
+/// `heldCodaScale` is for the closing half-letter of a conjunct. It must not
+/// reach a consonant that opens a word, nor one that follows a long vowel —
+/// both of which happened while `ː` and the space token reset the vowel
+/// context.
+@Test func heldCodaReachesOnlyClusterInteriors() {
+  var intent = SanskritProsodyIntent.neutral
+  intent.heldCodaScale = 2.0          // exaggerated so any misfire is obvious
+
+  func scale(_ phonemes: String) -> [Float] {
+    SanskritProsodyPlanner.durationScaleForPhonemes(phonemes, intent: intent) ?? []
+  }
+
+  // Two words: the second word's initial consonant opens a syllable.
+  let twoWords = scale("kaː maː")
+  #expect(twoWords.allSatisfy { $0 == 1.0 },
+          "a word-initial consonant was held: \(twoWords)")
+
+  // A consonant after a long vowel closes nothing.
+  let afterLong = scale("maːta")
+  #expect(afterLong.allSatisfy { $0 == 1.0 },
+          "a consonant after a long vowel was held: \(afterLong)")
+
+  // A real cluster interior is still held.
+  let cluster = scale("tatsa")
+  #expect(cluster.contains { $0 == 2.0 }, "a cluster interior was not held: \(cluster)")
+}
+
+// MARK: - A delivery a caller built by hand
+
+// speed and the pause fields are mutable and public, so a caller can ask for
+// something the renderer cannot express. It used to trap inside the sample
+// count.
+
+@Test func anUnrenderableDeliveryIsRejectedRatherThanTrapping() {
+  var zero = SanskritDelivery.recitation
+  zero.speed = 0
+  #expect(throws: KokoroTTS.KokoroTTSError.self) { try KokoroTTS.validate(zero) }
+
+  var negative = SanskritDelivery.recitation
+  negative.speed = -0.5
+  #expect(throws: KokoroTTS.KokoroTTSError.self) { try KokoroTTS.validate(negative) }
+
+  var notFinite = SanskritDelivery.recitation
+  notFinite.speed = .nan
+  #expect(throws: KokoroTTS.KokoroTTSError.self) { try KokoroTTS.validate(notFinite) }
+
+  var negativePause = SanskritDelivery.recitation
+  negativePause.prosody.padaPause = -1
+  #expect(throws: KokoroTTS.KokoroTTSError.self) { try KokoroTTS.validate(negativePause) }
+
+  var infinitePause = SanskritDelivery.recitation
+  infinitePause.prosody.versePause = .infinity
+  #expect(throws: KokoroTTS.KokoroTTSError.self) { try KokoroTTS.validate(infinitePause) }
+
+  // Every shipped delivery passes.
+  for delivery in [SanskritDelivery.learning, .recitation, .fast, .unshaped] {
+    #expect(throws: Never.self) { try KokoroTTS.validate(delivery) }
+  }
+}
+
+// MARK: - The token audit aligns rather than compares by position
+
+// `ɭ` is the one Sanskrit sound with no token at all, so it is the natural
+// probe: a dropped scalar used to shift every symbol after it and report each
+// one as a substitution.
+
+@Test func aDroppedSymbolDoesNotMisreportTheSymbolsAfterIt() {
+  let report = SanskritTokenAudit.audit(phonemes: "aɭb")
+  #expect(report.decoded == ["a", "b"], "decoded \(report.decoded)")
+  #expect(report.unknown == ["ɭ"])
+  // ɭ is dropped, and b — which came back untouched — is not a substitution.
+  #expect(report.dropped == ["ɭ"], "dropped \(report.dropped)")
+  #expect(report.substituted.isEmpty,
+          "spurious substitutions: \(report.substituted.map { "\($0.intended)→\($0.decoded)" })")
+  #expect(report.duplicated.isEmpty)
+  #expect(!report.roundTrips)
+}
+
+@Test func alignmentSurvivesSeveralDropsAndALongTail() {
+  let report = SanskritTokenAudit.audit(phonemes: "ɭkaɭɾaːmah")
+  #expect(report.dropped == ["ɭ", "ɭ"], "dropped \(report.dropped)")
+  #expect(report.substituted.isEmpty,
+          "spurious substitutions: \(report.substituted.map { "\($0.intended)→\($0.decoded)" })")
+  // Everything that has a token survived, in order.
+  #expect(report.decoded.joined() == "kaɾaːmah")
+}
+
+/// The aligner itself, on the cases the audit depends on.
+@Test func alignmentClassifiesDropsInsertionsAndSubstitutions() {
+  func classify(_ a: [String], _ b: [String]) -> [(Int?, Int?)] {
+    SanskritTokenAudit.align(a, b).map { ($0.intended, $0.decoded) }
+  }
+  // Identical: every position matches.
+  #expect(classify(["a", "b"], ["a", "b"]).allSatisfy { $0.0 != nil && $0.1 != nil })
+  // A pure drop in the middle.
+  let drop = classify(["a", "x", "b"], ["a", "b"])
+  #expect(drop.filter { $0.1 == nil }.count == 1)
+  #expect(drop.filter { $0.0 == nil }.isEmpty)
+  // A pure insertion.
+  let insert = classify(["a", "b"], ["a", "x", "b"])
+  #expect(insert.filter { $0.0 == nil }.count == 1)
+  // An empty side.
+  #expect(classify([], ["a"]).count == 1)
+  #expect(classify(["a"], []).count == 1)
+}
+
+/// A clean round trip must stay clean — the aligner must not invent findings.
+@Test func realSanskritStillRoundTripsClean() {
+  for word in ["धर्मक्षेत्रे", "युयुत्सवः", "मामकाः", "सृजाम्यहम्", "अभ्युत्थानम्",
+               "कर्मण्येवाधिकारस्ते", "सङ्गोऽस्त्वकर्मणि"] {
+    let report = SanskritTokenAudit.audit(text: word)
+    #expect(report.roundTrips, "\(word): \(report.summary)")
+    #expect(report.substituted.isEmpty)
+    #expect(report.dropped.isEmpty)
+    #expect(report.duplicated.isEmpty)
+  }
+}
+
+// MARK: - A typed colon becomes a visarga, once
+
+// A Latin colon directly after Devanagari is how a visarga gets typed on a
+// keyboard that has no `ः`. A *second* colon is not a second visarga: nothing
+// in Sanskrit takes two, and converting it invents a syllable.
+
+@Test func onlyTheColonThatFollowsALetterBecomesAVisarga() {
+  #expect(SanskritNormalizer.normalize("राम:").text == "रामः")
+  // Counted in scalars, not Characters: `ः` is a combining mark, so `मः` is
+  // one grapheme cluster and a Character filter never sees the visarga.
+  func visargas(_ text: String) -> Int {
+    text.unicodeScalars.filter { $0 == "\u{0903}" }.count
+  }
+  // The run case: the second colon has a visarga before it, not a letter.
+  let run = SanskritNormalizer.normalize("राम::").text
+  #expect(visargas(run) == 1, "राम:: gave \(run)")
+  #expect(run != "रामःः")
+  // Three in a row is the same story.
+  #expect(visargas(SanskritNormalizer.normalize("राम:::").text) == 1)
+  #expect(visargas(SanskritNormalizer.normalize("रामः").text) == 1)
+  // A colon with no Devanagari before it is not a visarga at all, and does not
+  // reach the model as a stray punctuation token either.
+  let leading = SanskritNormalizer.normalize(":राम")
+  #expect(visargas(leading.text) == 0)
+  #expect(!leading.text.contains(":"))
+  #expect(leading.warnings.contains { $0.text.contains("not a visarga here") })
+  // The extra colons in a run are reported the same way.
+  #expect(SanskritNormalizer.normalize("राम::").warnings
+            .contains { $0.text.contains("not a visarga here") })
+  #expect(!SanskritPhonemizer.phonemize("राम::").contains(":"))
+  // An already-typed visarga is untouched, and the two spellings agree.
+  #expect(SanskritNormalizer.normalize("रामः").text == "रामः")
+  #expect(SanskritNormalizer.normalize("राम:").text
+          == SanskritNormalizer.normalize("रामः").text)
+}
+
+/// The double colon must not reach the model as two `h` tokens.
+@Test func aColonRunAddsNoPhoneme() {
+  #expect(SanskritPhonemizer.phonemize("राम:") == SanskritPhonemizer.phonemize("रामः"))
+  let doubled = SanskritPhonemizer.phonemize("राम::")
+  #expect(!doubled.hasSuffix("hh"), "राम:: produced two visargas: \(doubled)")
+  #expect(doubled.filter { $0 == "h" }.count <= 1, "\(doubled)")
+}
+
+/// The colon rewrite is scoped to scalars that can actually bear a visarga.
+///
+/// "Follows Devanagari" was too broad: the block also holds digits, the
+/// daṇḍas, the virāma, the anusvāra, the avagraha and the visarga itself, and
+/// a visarga cannot follow any of them. Each of these produced a spurious one.
+@Test func onlyASyllableThatCanCloseTakesATypedVisarga() {
+  func visargas(_ text: String) -> Int {
+    text.unicodeScalars.filter { $0 == "\u{0903}" }.count
+  }
+  // Takes one: a consonant with its inherent a, and a vowel sign.
+  #expect(visargas(SanskritNormalizer.normalize("राम:").text) == 1)
+  #expect(visargas(SanskritNormalizer.normalize("रामा:").text) == 1)
+  #expect(visargas(SanskritNormalizer.normalize("अ:").text) == 1)
+
+  // Takes none, and each says so.
+  for input in ["अध्याय १:",   // a Devanagari digit
+                "राम।:",       // a daṇḍa
+                "क्:",         // a virāma: क् is not कः
+                "रामं:",       // an anusvāra
+                "रामऽ:",       // an avagraha
+                "रामः:",       // an existing visarga
+                "ॐ:"] {        // expands to ओम्, which ends in a virāma
+    let result = SanskritNormalizer.normalize(input)
+    #expect(visargas(result.text) <= visargas(input),
+            "\(input) gained a visarga: \(result.text)")
+    #expect(result.warnings.contains { $0.text.contains("not a visarga here") },
+            "\(input) dropped a colon silently")
+  }
+
+  // रामः: keeps the one it was written with and no more.
+  #expect(visargas(SanskritNormalizer.normalize("रामः:").text) == 1)
+  #expect(SanskritNormalizer.normalize("रामः:").text
+          == SanskritNormalizer.normalize("रामः").text)
+}
+
+/// The predicate itself, over the block boundaries it switches on.
+@Test func canBearVisargaAcceptsVowelsAndConsonantsOnly() {
+  for scalar in ["अ", "आ", "औ", "क", "ह", "ॠ", "क़", "ा", "ी", "ौ", "ॢ"] {
+    #expect(SanskritNormalizer.canBearVisarga(scalar.unicodeScalars.first!),
+            "\(scalar) should bear a visarga")
+  }
+  for scalar in ["ं", "ः", "ँ", "्", "ऽ", "़", "।", "॥", "०", "९", "ॐ"] {
+    #expect(!SanskritNormalizer.canBearVisarga(scalar.unicodeScalars.first!),
+            "\(scalar) should not bear a visarga")
+  }
+}
+
+/// A nukta modifies the consonant before it, so it is transparent to the
+/// typed-visarga rule: ज़ still carries its inherent a.
+///
+/// NFC leaves these forms decomposed — the precomposed letters are on the
+/// composition-exclusion list — so the nukta arrives as its own scalar and
+/// would otherwise clear the carrier state.
+@Test func aNuktaDoesNotBlockATypedVisarga() {
+  func visargas(_ text: String) -> Int {
+    text.unicodeScalars.filter { $0 == "\u{0903}" }.count
+  }
+  for (plain, withNukta) in [("ज:", "ज़:"), ("क:", "क़:"), ("ड:", "ड़:"), ("फ:", "फ़:")] {
+    #expect(visargas(SanskritNormalizer.normalize(withNukta).text) == 1,
+            "\(withNukta) lost its visarga")
+    #expect(visargas(SanskritNormalizer.normalize(plain).text)
+            == visargas(SanskritNormalizer.normalize(withNukta).text))
+    #expect(SanskritNormalizer.normalize(withNukta).warnings.isEmpty,
+            "\(withNukta) reported a dropped colon")
+  }
+  // Still works across a vowel sign after the nukta.
+  #expect(visargas(SanskritNormalizer.normalize("ज़ा:").text) == 1)
+  // And the nukta itself still bears nothing on its own.
+  #expect(!SanskritNormalizer.canBearVisarga("\u{093C}"))
+  // NFC really does leave the form decomposed, which is why this matters.
+  #expect("ज़".precomposedStringWithCanonicalMapping.unicodeScalars.count == 2)
+}
+
+// MARK: - A source line break is reported, and changes nothing audible
+
+// `displayLineBreak` was declared, switched on in five places, and never once
+// constructed: normalization collapsed every whitespace run to a space before
+// the parser could see a newline.
+
+@Test func aSourceNewlineProducesTheDisplayLineBreakBoundary() {
+  func boundaries(_ text: String) -> [SanskritBoundary] {
+    SanskritAksharaParser.parse(SanskritNormalizer.normalize(text).text).units
+      .compactMap { if case let .boundary(b) = $0 { return b }; return nil }
+  }
+  // A newline that is the only separator is where the boundary shows up.
+  #expect(boundaries("राम\nलक्ष्मण") == [.displayLineBreak])
+  #expect(boundaries("राम लक्ष्मण") == [.word])
+
+  // Beside a daṇḍa it is absorbed: `।` followed by a newline is one break, and
+  // the daṇḍa is the one that carries the pause. That is why the Gītā verses,
+  // whose line breaks all sit on a daṇḍa, show none.
+  #expect(boundaries("राम ।\nलक्ष्मण") == [.pada])
+  #expect(boundaries("राम\n।लक्ष्मण") == [.pada])
+  let verse = "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।\nमामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ॥"
+  #expect(!boundaries(verse).contains(.displayLineBreak))
+
+  // The normalizer keeps the newline rather than flattening it to a space.
+  #expect(SanskritNormalizer.normalize(verse).text.contains("\n"))
+  // Runs collapse: many blank lines are still one break.
+  let padded = SanskritNormalizer.normalize("राम \n\n\n  \n लक्ष्मण").text
+  #expect(padded == "राम\nलक्ष्मण", "\(padded)")
+  // And a plain space stays a space.
+  #expect(SanskritNormalizer.normalize("राम   लक्ष्मण").text == "राम लक्ष्मण")
+}
+
+/// Typography, not a pause. The boundary must reach diagnostics and nothing
+/// else — same phonemes, same tokens, no silence.
+@Test func aLineBreakIsTypographyAndNotAPause() {
+  for verse in ["धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।\nमामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ॥",
+                "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन ।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ॥"] {
+    let multiline = SanskritPhonemizer.analyze(verse)
+    let oneLine = SanskritPhonemizer.analyze(
+      verse.replacingOccurrences(of: "\n", with: " ")
+    )
+    #expect(multiline.kokoroPhonemes == oneLine.kokoroPhonemes,
+            "a line break changed the phonemes")
+    #expect(multiline.tokens == oneLine.tokens, "a line break changed the tokens")
+    #expect(multiline.canonical == oneLine.canonical)
+  }
+  // It carries no silence under any delivery.
+  #expect(SanskritBoundary.displayLineBreak.isPause == false)
+  for delivery in [SanskritDelivery.learning, .recitation, .fast, .unshaped] {
+    #expect(delivery.prosody.pause(for: .displayLineBreak) == 0)
+  }
+  // So it never splits a verse into an extra segment.
+  let verse = "राम ।\nलक्ष्मण ॥"
+  #expect(SanskritProsody.segments(for: verse).count
+          == SanskritProsody.segments(for: "राम । लक्ष्मण ॥").count)
+}
+
+// MARK: - Whole-text duration scaling joins on the right key
+
+// `Result.alignment` holds only the aksharas that produced sound, so every
+// boundary in the source shifts its array positions away from the unit indices
+// `SanskritSyllable.aksharaIndices` carries. Keying by position dropped every
+// syllable after the first space or daṇḍa.
+
+@Test func alignmentEntriesCarryTheirUnitIndex() {
+  let result = SanskritPhonemizer.analyze("क क")
+  // Three units — akshara, boundary, akshara — but two alignment entries.
+  #expect(result.units.count == 3)
+  #expect(result.alignment.count == 2)
+  // The second entry is unit 2, not unit 1.
+  #expect(result.alignment.map(\.unitIndex) == [0, 2])
+  // Every entry names a unit that really is an akshara.
+  for entry in result.alignment {
+    guard case .akshara = result.units[entry.unitIndex] else {
+      Issue.record("alignment \(entry.unitIndex) is not an akshara")
+      continue
+    }
+  }
+}
+
+@Test func durationScaleReachesSyllablesAfterABoundary() {
+  var intent = SanskritProsodyIntent.neutral
+  intent.guruVowelScale = 2.0
+  intent.laghuVowelScale = 0.5
+
+  // Both aksharas are the same syllable type, so both must be scaled. Keying
+  // by array position left the second one at 1.0.
+  let pair = SanskritProsodyPlanner.durationScale(for: "क क", intent: intent) ?? []
+  #expect(pair.filter { $0 == 0.5 }.count == 2, "क क scaled \(pair)")
+
+  // And across a whole pāda, every word is reached.
+  for text in ["राम लक्ष्मण", "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः"] {
+    let scale = SanskritProsodyPlanner.durationScale(for: text, intent: intent) ?? []
+    #expect(scale.contains { $0 != 1.0 }, "\(text) went unscaled")
+    // The last word is scaled too, not just the first.
+    let tail = scale.suffix(scale.count / 3)
+    #expect(tail.contains { $0 != 1.0 }, "\(text): nothing scaled after the boundaries")
+  }
+}
+
+/// A syllable may draw on two aksharas, so two syllables can name the same one.
+/// Multiplying twice produced a factor no syllable asked for — 4.0 from a guru
+/// scale of 2.0.
+@Test func noTokenIsScaledTwice() {
+  var intent = SanskritProsodyIntent.neutral
+  intent.guruVowelScale = 2.0
+  intent.laghuVowelScale = 0.5
+  intent.heldCodaScale = 3.0
+  let largest = max(intent.guruVowelScale, max(intent.laghuVowelScale, intent.heldCodaScale))
+  for text in ["क क", "राम लक्ष्मण", "सिद्ध", "मन्त्र", "कृत्स्नम्",
+               "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः"] {
+    let scale = SanskritProsodyPlanner.durationScale(for: text, intent: intent) ?? []
+    for (index, value) in scale.enumerated() {
+      #expect(value <= largest,
+              "\(text) token \(index) reached \(value), above the largest single factor \(largest)")
+      #expect(value >= intent.laghuVowelScale,
+              "\(text) token \(index) fell to \(value)")
+    }
+  }
+}
+
+// MARK: - The meter diagnostic reports what the pipeline dropped
+
+// It discarded the normalizer's and the parser's warnings, so `report` printed
+// "WARNINGS none" over text the pipeline had quietly removed. A syllable count
+// that looks plausible because characters went missing is the one failure this
+// diagnostic exists to catch.
+
+@Test func theMeterReportsDroppedInput() {
+  let mixed = SanskritMeter.analyze("धर्म hello क्षेत्रे ।")
+  #expect(mixed.warnings.contains { $0.contains("not Devanagari") },
+          "the dropped Latin text was not reported: \(mixed.warnings)")
+
+  let strayColon = SanskritMeter.analyze("राम:: ।")
+  #expect(strayColon.warnings.contains { $0.contains("not a visarga here") },
+          "the dropped colon was not reported: \(strayColon.warnings)")
+
+  // The report text itself must stop claiming a clean analysis.
+  let report = SanskritMeter.report("धर्म hello क्षेत्रे ।")
+  #expect(report.contains("not Devanagari"))
+  #expect(!report.contains("WARNINGS\n  none"))
+}
+
+/// And a genuinely clean verse still reports nothing, so the channel stays
+/// meaningful.
+@Test func theMeterStaysSilentOnCleanInput() {
+  let verse = "धर्मक्षेत्रे कुरुक्षेत्रे समवेता युयुत्सवः ।\nमामकाः पाण्डवाश्चैव किमकुर्वत सञ्जय ॥"
+  let analysis = SanskritMeter.analyze(verse)
+  #expect(analysis.warnings.isEmpty, "clean verse warned: \(analysis.warnings)")
+  #expect(SanskritMeter.report(verse).contains("none"))
+  // The anuṣṭubh scan is the evidence this diagnostic exists for; it must not
+  // have been disturbed by adding the channel.
+  #expect(analysis.padaSyllableCounts.reduce(0, +) == 32)
+}

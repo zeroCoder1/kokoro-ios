@@ -1,0 +1,313 @@
+import Foundation
+
+/// How long a pause each Sanskrit boundary is worth.
+///
+/// **The unit is seconds at speed 1.0.** The renderer divides each value by
+/// the delivery's speed, so a pause keeps its proportion to the syllables
+/// around it rather than its absolute length — `recitation`'s 0.50 is 0.625 s
+/// of silence at its speed of 0.80, and `learning`'s 0.70 is 0.921 s at 0.76.
+/// `SanskritDelivery.renderedPadaPause` and `renderedVersePause` compute the
+/// figure a listener actually hears, and diagnostics record that one.
+///
+/// The alternative — absolute seconds, with no division — was considered and
+/// not taken: every measurement under `Artifacts/sanskrit/` was produced with
+/// the division in place, so switching would change the shipped audio while
+/// silently invalidating that evidence.
+///
+/// **These are not part of G2P.** They
+/// exist because Kokoro's punctuation does not deliver a *differentiated*
+/// pause. Measured on this model at verse length, with the same phonemes and
+/// only the separator changed:
+///
+///     separator between the two pādas   longest internal silence
+///     none (plain space)                   350 ms
+///     `,`  (daṇḍa)                         385 ms
+///     `.`  (double daṇḍa)                  355 ms
+///
+/// The model does insert a substantial gap on its own — about 350 ms — but it
+/// inserts roughly the same one whether the punctuation is there or not, and
+/// `।` and `॥` come out identical. So the phoneme stream still carries `,`
+/// and `.`, because the model uses them for intonation and final lengthening,
+/// and this layer supplies the *differentiated duration* the model will not.
+/// That is the same mechanism `generateContinuousAudio` uses between
+/// sentences.
+///
+/// The defaults are **totals, not additions**: each stretch is trimmed of the
+/// decoder's own edge silence first, so the configured value is the whole gap.
+/// They are set above the model's natural 350 ms, or configuring a pause would
+/// make the verse *less* separated than leaving it alone.
+///
+/// `wordBoundary` defaults to zero: the space token measurably does its job,
+/// and pausing between every word would sound like dictation rather than
+/// recitation.
+public struct SanskritProsodyConfiguration: Equatable, Sendable {
+  /// Extra silence at an ordinary word boundary. Zero by default — the space
+  /// token already separates words.
+  public var wordBoundary: TimeInterval
+  /// `।` — a pāda or half-verse break.
+  public var padaPause: TimeInterval
+  /// `॥` — the end of a verse.
+  public var versePause: TimeInterval
+  /// Sentence punctuation carried over from the source.
+  public var sentencePause: TimeInterval
+
+  public init(
+    wordBoundary: TimeInterval = 0.0,
+    padaPause: TimeInterval = 0.50,
+    versePause: TimeInterval = 1.00,
+    sentencePause: TimeInterval = 0.50
+  ) {
+    self.wordBoundary = wordBoundary
+    self.padaPause = padaPause
+    self.versePause = versePause
+    self.sentencePause = sentencePause
+  }
+
+  /// Recitation pacing: a clear half-verse break and a longer verse break.
+  public static let `default` = SanskritProsodyConfiguration()
+
+  /// No added silence at all — one call, exactly the previous behaviour.
+  /// Use this to hear what the model does on its own.
+  public static let none = SanskritProsodyConfiguration(
+    wordBoundary: 0, padaPause: 0, versePause: 0, sentencePause: 0
+  )
+
+  func pause(for boundary: SanskritBoundary) -> TimeInterval {
+    switch boundary {
+    case .word: return wordBoundary
+    case .pada: return padaPause
+    case .verse: return versePause
+    case .sentence: return sentencePause
+    // Neither of these is a pause: an avagraha is an elision inside continuous
+    // speech, and a source newline is typography.
+    case .elision, .displayLineBreak: return 0
+    }
+  }
+}
+
+/// A speaking rate paired with the pauses that suit it.
+///
+/// Sanskrit is not English at 1.0. Measured over three pādas — identical
+/// phonemes and token ids at every rate, only `speed` changed — by counting
+/// separately articulated energy nuclei against the syllables each pāda
+/// actually has. The figure is how many syllables went missing:
+///
+///     speed   BG 1.1 (16)   BG 2.47 (18)   BG 4.7 (18)
+///     0.72         ok            -3            ok
+///     0.76         ok            -3            ok
+///     0.80         ok            -1            ok      ← best across all three
+///     0.84         ok            -4            ok
+///     0.88         -1            -6            -2
+///     0.92         ok            -6            -5
+///     1.00         ok            -8            -2
+///
+/// BG 2.47's first pāda is the discriminating one: it contains
+/// कर्मण्येवाधिकारस्ते, twenty-four phonemes in a single orthographic word, and
+/// it never reaches its full syllable count. 0.80 is where it comes closest and
+/// where the other two are clean, so that is the recitation default — it
+/// replaces 0.84, which loses four syllables there.
+///
+/// This measures articulation, not beauty. Treat the values as a starting
+/// point for listening rather than a settled answer.
+public struct SanskritDelivery: Equatable, Sendable {
+  public var speed: Float
+  public var prosody: SanskritProsodyConfiguration
+  /// Per-token duration intent applied on top of the model's own prediction.
+  ///
+  /// Defaults to `.visargaLengthOnly` rather than the fuller `.recitation`,
+  /// because those are two different levels of evidence. The visarga repair is
+  /// measured against references — काः was arriving at the duration of a short
+  /// क, and 1.3× restores it — while the broader guru/laghu scaling has not
+  /// shown a consistent whole-verse effect and stays out until listening says
+  /// otherwise.
+  var intent: SanskritProsodyIntent = .closureRepairs
+
+  /// A delivery with the standard Sanskrit duration intent.
+  public init(speed: Float, prosody: SanskritProsodyConfiguration) {
+    self.speed = speed
+    self.prosody = prosody
+    self.intent = .closureRepairs
+  }
+
+  init(speed: Float, prosody: SanskritProsodyConfiguration, intent: SanskritProsodyIntent) {
+    self.speed = speed
+    self.prosody = prosody
+    self.intent = intent
+  }
+
+  /// The half-verse silence this delivery actually produces, in seconds.
+  ///
+  /// `prosody.padaPause` is the value at speed 1.0; this is what a listener
+  /// hears.
+  public var renderedPadaPause: TimeInterval { prosody.padaPause / Double(speed) }
+  /// The verse-end silence this delivery actually produces, in seconds.
+  public var renderedVersePause: TimeInterval { prosody.versePause / Double(speed) }
+
+  /// Deliberate pace for following along word by word, with long pauses.
+  ///
+  /// Pauses render at 0.921 s and 1.711 s — 0.70 and 1.30 divided by 0.76.
+  public static let learning = SanskritDelivery(
+    speed: 0.76,
+    prosody: SanskritProsodyConfiguration(padaPause: 0.70, versePause: 1.30),
+    intent: .closureRepairs
+  )
+
+  /// The default for recitation. The slowest rate at which every syllable
+  /// still resolves separately, without sounding laboured.
+  ///
+  /// Pauses render at 0.625 s and 1.25 s — 0.50 and 1.00 divided by 0.80.
+  public static let recitation = SanskritDelivery(
+    speed: 0.80,
+    prosody: SanskritProsodyConfiguration(padaPause: 0.50, versePause: 1.00),
+    intent: .closureRepairs
+  )
+
+  /// The voice's own pace. Measurably degraded — BG 2.47's first pāda loses
+  /// eight of its eighteen syllables here. Kept for review and for callers who
+  /// ask for it; not recommended for recitation.
+  public static let fast = SanskritDelivery(
+    speed: 1.0,
+    prosody: SanskritProsodyConfiguration(padaPause: 0.40, versePause: 0.80),
+    intent: .closureRepairs
+  )
+
+  /// The model's own **per-token** timing: the duration intent is neutral, so
+  /// `predictDurations` runs unmodified.
+  ///
+  /// It is otherwise the recitation delivery — speed 0.80 and the same 0.50 /
+  /// 1.00 pauses — because holding those constant is what makes it a
+  /// controlled A/B against `recitation`. It is **not** an unshaped render in
+  /// any wider sense; for that, pass `SanskritProsodyConfiguration.none` at
+  /// speed 1.0.
+  public static let unshaped = SanskritDelivery(
+    speed: 0.80,
+    prosody: SanskritProsodyConfiguration(padaPause: 0.50, versePause: 1.00),
+    intent: .neutral
+  )
+}
+
+/// Splits a Sanskrit text into stretches that are synthesized separately and
+/// rejoined with real silence.
+///
+/// Strictly a **prosody** layer sitting after G2P, not part of it. The
+/// phonemes for a given stretch are exactly what `SanskritPhonemizer` produces
+/// for it; nothing here changes a phoneme. Splitting is safe because the
+/// phonological rules never look across a pause anyway — the anusvāra and
+/// visarga lookaheads both stop at one.
+enum SanskritProsody {
+  struct Segment: Equatable {
+    /// What to synthesize.
+    let phonemes: String
+    /// Silence to append after it, in seconds.
+    let pauseAfter: TimeInterval
+    /// The boundary that ended this stretch, for diagnostics.
+    let boundary: SanskritBoundary?
+    /// Token positions this segment's visargas occupy.
+    ///
+    /// Taken from the phonology, which keeps `ः` as `SanskritConsonant.visarga`
+    /// and a virāma-closed ह as `.ha`. Both reach Kokoro as `h`, so a duration
+    /// rule reading the phoneme stream cannot tell कः from कह् — this is how
+    /// that distinction survives into timing.
+    var visargaTokenIndices: Set<Int> = []
+  }
+
+  /// Segments plus everything the pipeline had to say about the input.
+  struct Analysis {
+    var segments: [Segment] = []
+    /// Normalizer, parser, phonology and mapper warnings, in pipeline order.
+    /// Dropped Devanagari and every approximation appears here.
+    var warnings: [SanskritWarning] = []
+  }
+
+  /// Token positions occupied by a visarga, from the phonology rather than by
+  /// guessing at a word-final `h`.
+  ///
+  /// `mapped.spans` is parallel to the phonology segments and gives each one's
+  /// scalar range in the phoneme string; a token index is the count of
+  /// vocabulary-bearing scalars before it.
+  static func visargaTokens(
+    phonology: SanskritPhonology.Result,
+    mapped: SanskritKokoroMapper.Result
+  ) -> Set<Int> {
+    let vocab = (try? KokoroConfig.loadConfig().vocab) ?? [:]
+    let scalars = Array(mapped.phonemes.unicodeScalars)
+    // Scalar offset -> token index, for the scalars Kokoro actually tokenizes.
+    var tokenForScalar = [Int](repeating: -1, count: scalars.count)
+    var token = -1
+    for (offset, scalar) in scalars.enumerated() where vocab[String(scalar)] != nil {
+      token += 1
+      tokenForScalar[offset] = token
+    }
+
+    var indices: Set<Int> = []
+    for (index, segment) in phonology.segments.enumerated() {
+      guard case let .consonant(consonant) = segment, consonant == .visarga,
+            index < mapped.spans.count
+      else { continue }
+      for offset in mapped.spans[index] where offset < tokenForScalar.count {
+        let token = tokenForScalar[offset]
+        if token >= 0 { indices.insert(token) }
+      }
+    }
+    return indices
+  }
+
+  /// Splits at every boundary the configuration gives a non-zero pause to.
+  /// With `.none` this returns a single segment and the result is identical
+  /// to one `generateAudio` call.
+  ///
+  /// Discards warnings. Prefer `analyze` wherever the caller can report them:
+  /// unsupported input is dropped, and dropping it *silently* is what this
+  /// project's own rules forbid.
+  static func segments(
+    for text: String,
+    options: SanskritOptions = .default,
+    configuration: SanskritProsodyConfiguration = .default
+  ) -> [Segment] {
+    analyze(text, options: options, configuration: configuration).segments
+  }
+
+  static func analyze(
+    _ text: String,
+    options: SanskritOptions = .default,
+    configuration: SanskritProsodyConfiguration = .default
+  ) -> Analysis {
+    let normalized = SanskritNormalizer.normalize(text)
+    let parsed = SanskritAksharaParser.parse(normalized.text)
+
+    var analysis = Analysis()
+    analysis.warnings = normalized.warnings + parsed.warnings
+    var segments: [Segment] = []
+    var pending: [SanskritUnit] = []
+
+    func flush(endedBy boundary: SanskritBoundary?) {
+      guard !pending.isEmpty else { return }
+      let phonology = SanskritPhonology.apply(to: pending, options: options)
+      let mapped = SanskritKokoroMapper.map(phonology.segments, options: options)
+      analysis.warnings += phonology.warnings + mapped.warnings
+      pending.removeAll(keepingCapacity: true)
+      guard !mapped.phonemes.isEmpty else { return }
+      segments.append(Segment(
+        phonemes: mapped.phonemes,
+        pauseAfter: boundary.map(configuration.pause(for:)) ?? 0,
+        boundary: boundary,
+        visargaTokenIndices: visargaTokens(phonology: phonology, mapped: mapped)
+      ))
+    }
+
+    for unit in parsed.units {
+      // A boundary the configuration pauses at ends the stretch, and stays in
+      // it: the punctuation token still reaches the model, so intonation and
+      // final lengthening are the model's own rather than an abrupt cut.
+      if case let .boundary(boundary) = unit, configuration.pause(for: boundary) > 0 {
+        pending.append(unit)
+        flush(endedBy: boundary)
+        continue
+      }
+      pending.append(unit)
+    }
+    flush(endedBy: nil)
+    analysis.segments = segments
+    return analysis
+  }
+}

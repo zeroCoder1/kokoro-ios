@@ -1,0 +1,392 @@
+import Foundation
+
+// The prosodic intent layer.
+//
+// Sanskrit recitation is timed, not stressed. English prosody makes one
+// syllable prominent and reduces its neighbours; Sanskrit gives a guru
+// syllable two mātrās and a laghu one, and holds the closing consonant of a
+// conjunct. Those are duration facts, and this layer records them as intent —
+// separately from whether Kokoro can act on them.
+//
+//     Sanskrit phonology  →  syllables + weight  →  prosodic intent
+//                                                        ↓
+//                                            Kokoro realization (optional)
+//
+// The goal is **not** "make Sanskrit slower". A global slowdown lengthens guru
+// and laghu alike and preserves nothing. The goal is to keep the contrasts:
+// long vowels long, closed syllables heavy, conjunct codas held, light
+// syllables comparatively light, and the phrase still continuous.
+
+/// One syllable's prosodic intent.
+struct SanskritProsodicUnit: Equatable, Sendable {
+  var syllable: SanskritSyllable
+  var matras: Int
+  var weight: SanskritSyllableWeight
+  /// Whether the closing consonant of a conjunct should be given time.
+  var holdCoda: Bool
+  /// What follows this syllable.
+  var boundaryAfter: SanskritBoundary?
+  /// How much longer or shorter than the model's own prediction this syllable
+  /// wants to be. `nil` means "no opinion" — the model's prediction stands.
+  var preferredDurationScale: Float?
+}
+
+/// How strongly the linguistic intent should be pushed onto the model.
+///
+/// The values are deliberately gentle. Kokoro's own duration predictor is not
+/// ignorant of length — it produced 1.40× for भू against भु unprompted — so
+/// this corrects a tendency rather than dictating a timing grid. Pushed hard
+/// it would sound metronomic, which is the failure mode the brief names.
+struct SanskritProsodyIntent: Equatable, Sendable {
+  /// Multiplier for the vowel of a guru syllable.
+  var guruVowelScale: Float
+  /// Multiplier for the vowel of a laghu syllable.
+  var laghuVowelScale: Float
+  /// Multiplier for a consonant closing a conjunct — the "holding" the
+  /// reference describes. Duration and clear articulation, never an inserted
+  /// vowel.
+  var heldCodaScale: Float
+  /// Multiplier for the aspiration mark, so an aspirated stop keeps its
+  /// release.
+  var aspirationScale: Float
+  /// Multiplier for a word-final **short** vowel. **Experimental, and 1.0 in
+  /// every shipped delivery.**
+  ///
+  /// The measurement behind it is real: the model applies utterance-final
+  /// lengthening — an English habit — and collapses length contrasts that
+  /// Sanskrit needs. कर्मणि against कर्मणी measured 1.02, भवति against भवती
+  /// 1.08, and scaling the final vowel to 0.80 restores कर्मणि to 0.79 of
+  /// कर्मणी.
+  ///
+  /// It is nevertheless **not** production behaviour, because it is applied to
+  /// every word-final short vowel with no evidence that every one of them is
+  /// over-long. सञ्जय, कदाचन and भारत all end in a perfectly valid short a,
+  /// and a rule that shortens all of them is a guess dressed as a repair. It
+  /// changes duration only — never a phoneme, never a token — but a blanket
+  /// duration rule still needs per-context evidence it does not yet have.
+  ///
+  /// Contrast the visarga repair below, which is scoped to one phonological
+  /// environment and distinguishes long from short within it.
+  var finalShortVowelScale: Float
+  /// Multiplier for a syllable closed by a visarga.
+  ///
+  /// This one is not a preference, it is a repair. A visarga-final syllable is
+  /// guru — a long vowel *and* a closing visarga — yet the model gives it
+  /// barely more time than a light one. Measured on मामकाः at 0.80:
+  ///
+  ///     maːmaka   (short a)            330 ms
+  ///     maːmakaː  (long ā)             390 ms
+  ///     maːmakaːh (ours)               360 ms   ← 9% over the *short* form
+  ///     maːmakaːh + 1.25×              450 ms
+  ///
+  /// So काः was arriving barely longer than क, which is why it is heard as
+  /// मामक. Scaling restores the duration the phonology already specifies; it
+  /// adds no phoneme and changes no token. It does **not** make the visarga
+  /// audible — that is a separate, unfixable limitation — so the result is a
+  /// correctly long final syllable rather than a correctly pronounced one.
+  var visargaSyllableScale: Float
+
+  /// No opinion at all: every scale is 1.0, so the model's own prediction
+  /// stands untouched. This is what production uses until listening says
+  /// otherwise.
+  static let neutral = SanskritProsodyIntent(
+    guruVowelScale: 1.0, laghuVowelScale: 1.0, heldCodaScale: 1.0,
+    aspirationScale: 1.0, finalShortVowelScale: 1.0, visargaSyllableScale: 1.0
+  )
+
+  /// The experimental setting. Guru vowels get a little more time, laghu
+  /// vowels a little less, held codas and aspiration a little more. The
+  /// contrast between guru and laghu widens by about 25% without either
+  /// leaving the range the model already produces.
+  static let recitation = SanskritProsodyIntent(
+    guruVowelScale: 1.15, laghuVowelScale: 0.92, heldCodaScale: 1.20,
+    aspirationScale: 1.15, finalShortVowelScale: 0.80, visargaSyllableScale: 1.30
+  )
+
+  /// What the shipped deliveries use: the visarga repair only.
+  ///
+  /// Scoped to one phonological environment — a syllable closed by a visarga —
+  /// and it distinguishes a long vowel there from a short one, so it is not a
+  /// blanket rule. The final-short-vowel scale is deliberately 1.0 here; see
+  /// `experimentalFinalVowel`.
+  static let closureRepairs = SanskritProsodyIntent(
+    guruVowelScale: 1.0, laghuVowelScale: 1.0, heldCodaScale: 1.0,
+    aspirationScale: 1.0, finalShortVowelScale: 1.0, visargaSyllableScale: 1.30
+  )
+
+  /// The visarga repair plus the experimental final-short-vowel scale, for
+  /// A/B listening. Not shipped.
+  static let experimentalFinalVowel = SanskritProsodyIntent(
+    guruVowelScale: 1.0, laghuVowelScale: 1.0, heldCodaScale: 1.0,
+    aspirationScale: 1.0, finalShortVowelScale: 0.80, visargaSyllableScale: 1.30
+  )
+
+  /// The visarga repair on its own, for isolating it in an experiment.
+  static let visargaLengthOnly = SanskritProsodyIntent(
+    guruVowelScale: 1.0, laghuVowelScale: 1.0, heldCodaScale: 1.0,
+    aspirationScale: 1.0, finalShortVowelScale: 1.0, visargaSyllableScale: 1.30
+  )
+}
+
+enum SanskritProsodyPlanner {
+  struct Plan {
+    var units: [SanskritProsodicUnit] = []
+    var warnings: [String] = []
+
+    var totalMatras: Int { units.reduce(0) { $0 + $1.matras } }
+    /// `G`/`L` per syllable, for diagnostics.
+    var weightPattern: String {
+      units.map { $0.weight == .guru ? "G" : "L" }.joined()
+    }
+  }
+
+  static func plan(
+    for text: String,
+    options: SanskritOptions = .default,
+    intent: SanskritProsodyIntent = .neutral
+  ) -> Plan {
+    let normalized = SanskritNormalizer.normalize(text)
+    let units = SanskritAksharaParser.parse(normalized.text).units
+    let syllabified = SanskritSyllabifier.syllabify(units, options: options)
+
+    var plan = Plan(warnings: syllabified.warnings)
+    for syllable in syllabified.syllables {
+      plan.units.append(SanskritProsodicUnit(
+        syllable: syllable,
+        matras: syllable.matras,
+        weight: syllable.weight,
+        holdCoda: syllable.holdClosingConsonant,
+        boundaryAfter: nil,
+        preferredDurationScale: syllable.weight == .guru
+          ? intent.guruVowelScale : intent.laghuVowelScale
+      ))
+    }
+    return plan
+  }
+
+  /// A per-token duration multiplier for phonemes already produced.
+  ///
+  /// **This changes no phoneme.** It is a parallel array of multipliers, one
+  /// per Kokoro token, applied to the model's own predicted durations. The
+  /// token sequence, its order and its identity are untouched — which is the
+  /// whole reason for doing timing this way rather than by repeating tokens.
+  /// Repetition would turn a long vowel into two vowels and a held consonant
+  /// into a geminate, both of which are different phonemes.
+  ///
+  /// `SanskritProsody` splits a verse into pādas and synthesizes each one
+  /// separately, so a scale computed over the whole verse would not line up
+  /// with any single call's tokens. This derives one for exactly the phonemes
+  /// being sent. Returns `nil` for the neutral intent, so the default path is
+  /// byte identical to having no prosody layer at all.
+  /// - Parameter visargaTokenIndices: Token positions that a visarga actually
+  ///   occupies, from `SanskritProsody`, which has the phonology to hand and
+  ///   knows a visarga from a ह्.
+  ///
+  ///   Pass it. Without it this function has to guess from the Kokoro stream,
+  ///   where `ः` and a word-final `ह्` are both `h`, so the guess applies the
+  ///   visarga repair to कह् as well as to कः — a distinction the frontend
+  ///   deliberately preserves and this layer would undo.
+  static func durationScaleForPhonemes(
+    _ phonemes: String,
+    visargaTokenIndices: Set<Int>? = nil,
+    intent: SanskritProsodyIntent = .neutral
+  ) -> [Float]? {
+    guard intent != .neutral else { return nil }
+    let tokens = Tokenizer.tokenize(phonemizedText: phonemes)
+    guard !tokens.isEmpty else { return nil }
+    let vocab = (try? KokoroConfig.loadConfig().vocab) ?? [:]
+    var scale: [Float] = []
+    // A vowel, or the length mark that rides with one: both leave us *after* a
+    // vowel. Treating `ː` as a consonant is what made a consonant following a
+    // long vowel look like a cluster member.
+    var previousWasVowelish = false
+    // Nothing precedes us inside this word, so a consonant here opens a
+    // syllable rather than closing one.
+    var atWordStart = true
+
+    let kept = phonemes.unicodeScalars.filter { vocab[String($0)] != nil }
+    func scalar(_ index: Int) -> Unicode.Scalar {
+      kept[kept.index(kept.startIndex, offsetBy: index)]
+    }
+    let breaks = " ,.;:!?".unicodeScalars
+
+    // Where the visargas are. Exact when the caller knows; otherwise the
+    // word-final `h` heuristic this function used to rely on alone.
+    var visargaPositions: Set<Int> = visargaTokenIndices ?? []
+    let anchors: [Int] = visargaTokenIndices.map { Array($0).sorted() } ?? {
+      var found: [Int] = []
+      for (index, value) in kept.enumerated() where value == "h" {
+        let next = index + 1 < kept.count ? scalar(index + 1) : " "
+        guard breaks.contains(next) || index == kept.count - 1 else { continue }
+        found.append(index)
+      }
+      return found
+    }()
+
+    for index in anchors {
+      visargaPositions.insert(index)
+      // ...and the vowel before it, but **only if that vowel is already
+      // long**.
+      //
+      // A visarga-final syllable is guru either way, but the two reasons are
+      // not interchangeable. In मामकाः the ā is genuinely long and the model
+      // under-realises it, so restoring its duration is a repair. In युयुत्सवः
+      // the a is genuinely *short*, and lengthening it turns वः into वाः — a
+      // different vowel, and the exact error reported as "युयुत्सवाह". The
+      // visarga's own duration is scaled in both cases; the vowel's is not.
+      let lengthMark = index >= 1 && scalar(index - 1) == "ː"
+      guard lengthMark else { continue }
+      var back = index - 1
+      while back >= 0 {
+        let isVowelish = "aeiouɑɐɒæɔəɛɜɨɪɯøœʊʌɤː".unicodeScalars.contains(scalar(back))
+        if !isVowelish { break }
+        visargaPositions.insert(back)
+        back -= 1
+      }
+    }
+
+    // Word-final short vowels: a vowel followed by a word break, punctuation
+    // or the end, and *not* carrying a length mark.
+    var finalShortVowels: Set<Int> = []
+    for (index, scalar) in kept.enumerated() {
+      guard "aeiouɑɐɒæɔəɛɜɨɪɯøœʊʌɤ".unicodeScalars.contains(scalar) else { continue }
+      let next: Unicode.Scalar? = index + 1 < kept.count
+        ? kept[kept.index(kept.startIndex, offsetBy: index + 1)] : nil
+      guard let next else { finalShortVowels.insert(index); continue }
+      if next == "ː" { continue }                       // long: leave alone
+      if next == " " || ",.;:!?".unicodeScalars.contains(next) {
+        finalShortVowels.insert(index)
+      }
+    }
+
+    var position = -1
+    for scalar in phonemes.unicodeScalars where vocab[String(scalar)] != nil {
+      position += 1
+      let isVowel = "aeiouɑɐɒæɔəɛɜɨɪɯøœʊʌɤ".unicodeScalars.contains(scalar)
+      if isVowel {
+        // Weight is not known from the phoneme string alone, so the vowel's
+        // own length stands in for it: a long vowel is always guru, and a
+        // short one is guru only when a coda closes it — which the held-coda
+        // rule below already lengthens.
+        scale.append(intent.laghuVowelScale)
+      } else if scalar == "ː" {
+        // Promote the vowel this lengthens, and itself, to the guru scale.
+        // Multiplied rather than assigned: assigning would clobber a visarga
+        // multiplier already applied to that same vowel.
+        let promotion = intent.laghuVowelScale == 0
+          ? 1 : intent.guruVowelScale / intent.laghuVowelScale
+        if let last = scale.indices.last { scale[last] *= promotion }
+        scale.append(intent.guruVowelScale)
+      } else if scalar == "ʰ" {
+        scale.append(intent.aspirationScale)
+      } else if breaks.contains(scalar) {
+        // A word break or punctuation. Not a phoneme, and what follows it
+        // opens a word rather than closing a cluster.
+        scale.append(1.0)
+      } else if !previousWasVowelish, !atWordStart, !scale.isEmpty {
+        // A consonant directly after another consonant *inside a word* is a
+        // cluster member — the closing half-letter the reference says to hold.
+        scale.append(intent.heldCodaScale)
+      } else {
+        scale.append(1.0)
+      }
+      if breaks.contains(scalar) {
+        atWordStart = true
+        previousWasVowelish = false
+      } else {
+        atWordStart = false
+        // The length mark continues its vowel rather than interrupting it.
+        previousWasVowelish = isVowel || scalar == "ː"
+      }
+      if visargaPositions.contains(position), let last = scale.indices.last {
+        scale[last] *= intent.visargaSyllableScale
+      }
+      if finalShortVowels.contains(position), let last = scale.indices.last {
+        scale[last] *= intent.finalShortVowelScale
+      }
+    }
+    return scale.count == tokens.count ? scale : nil
+  }
+
+  /// The same scale for a whole text, derived from its syllable weights rather
+  /// than from vowel length alone. More accurate than
+  /// `durationScaleForPhonemes`, and usable when the text is synthesized in
+  /// one call.
+  static func durationScale(
+    for text: String,
+    options: SanskritOptions = .default,
+    intent: SanskritProsodyIntent = .neutral
+  ) -> [Float]? {
+    guard intent != .neutral else { return nil }
+    let result = SanskritPhonemizer.analyze(text, options: options)
+    let syllabified = SanskritSyllabifier.syllabify(result.units, options: options)
+    let tokenCount = result.tokens.count
+    guard tokenCount > 0 else { return nil }
+
+    var scale = [Float](repeating: 1.0, count: tokenCount)
+
+    // Map each syllable onto the token range of the akṣaras it draws on, using
+    // the alignment the phonemizer already computes. Then, inside that range,
+    // scale the vowel tokens by weight and the length and aspiration marks
+    // with them.
+    // Keyed by unit index, not by position in the alignment array. The array
+    // holds only the aksharas that produced sound, so every boundary shifts
+    // the two apart — in `क क` the second akshara is unit 2 but array entry 1,
+    // and keying by position silently dropped every syllable after the first
+    // space or daṇḍa.
+    var tokensForAkshara: [Int: Range<Int>] = [:]
+    for entry in result.alignment {
+      tokensForAkshara[entry.unitIndex] = entry.tokenIndices
+    }
+    let phonemeScalars = Array(result.kokoroPhonemes.unicodeScalars)
+    // Token index -> scalar index. Nothing is dropped for Sanskrit, but derive
+    // it rather than assume.
+    let vocab = (try? KokoroConfig.loadConfig().vocab) ?? [:]
+    var scalarForToken: [Int] = []
+    for (offset, scalar) in phonemeScalars.enumerated()
+    where vocab[String(scalar)] != nil {
+      scalarForToken.append(offset)
+    }
+
+    func isVowelScalar(_ scalar: Unicode.Scalar) -> Bool {
+      "aeiouɑɐɒæɔəɛɜɨɪɯøœʊʌɤ".unicodeScalars.contains(scalar)
+    }
+
+    // A syllable may draw on two aksharas — a coda comes from the akshara
+    // after its nucleus — so two syllables can both name the same one and
+    // multiply the same token twice. With a guru scale of 2.0 that produced
+    // 4.0, a factor no syllable asked for. Each token takes the first
+    // syllable that claims it and no more.
+    //
+    // First-wins is a bound, not a resolution: where two syllables genuinely
+    // share an akshara the tokens take the earlier syllable's weight. Exact
+    // ownership needs a nucleus-to-token map the alignment does not carry.
+    var alreadyScaled = Set<Int>()
+    for syllable in syllabified.syllables {
+      let vowelFactor = syllable.weight == .guru
+        ? intent.guruVowelScale : intent.laghuVowelScale
+      for aksharaIndex in syllable.aksharaIndices {
+        guard let range = tokensForAkshara[aksharaIndex] else { continue }
+        for token in range where token < tokenCount {
+          guard alreadyScaled.insert(token).inserted else { continue }
+          guard token < scalarForToken.count else { continue }
+          let scalar = phonemeScalars[scalarForToken[token]]
+          if isVowelScalar(scalar) {
+            scale[token] *= vowelFactor
+          } else if scalar == "ː" {
+            // The length mark rides with its vowel.
+            scale[token] *= vowelFactor
+          } else if scalar == "ʰ" {
+            scale[token] *= intent.aspirationScale
+          } else if syllable.holdClosingConsonant,
+                    !syllable.coda.isEmpty,
+                    token == range.upperBound - 1 {
+            // The closing half-letter of a conjunct: held, not vowel-broken.
+            scale[token] *= intent.heldCodaScale
+          }
+        }
+      }
+    }
+    return scale
+  }
+}

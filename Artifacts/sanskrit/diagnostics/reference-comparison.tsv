@@ -1,0 +1,23 @@
+input	our_canonical	vagdhenu	edge_sanskrit	espeak	agreement	decision	notes
+क्षेत्रे	kzetre	kzetre	kʂetɾe	kʃˈeːtɾeː	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+कुरुक्षेत्रे	kurukzetre	kurukzetre	kuɾukʂetɾe	kˌʊɾʊkʃˈeːtɾeː	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+समवेता	samavetA	samavetA	samavetaː	sˌəmʋˈeːtaː	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+अधिकारस्ते	aDikAraste	aDikAraste	adʰikaːɾaste	ˌʌdʰɪkaːɾˈʌsteː	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+फलेषु	Palezu	Palezu	pʰaleʂu	pʰəlˈeːʂʊ	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+युयुत्सवः	yuyutsavaH	yuyutsavaH	jujutsavaha	jʊjˈʊtsəʋˌəh	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+मामकाः	mAmakAH	mAmakAH	maːmakaːha	mˌaːmkˈaːh	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+पाण्डवाश्चैव	pARqavAScEva	pARqavAScEva	paːɳɖavaːʃtʃaɪva	pˌaːɳɖəʋˈaːʃcɛːʋ	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+सञ्जय	saYjaya	saYjaya	saɲdʒaja	sˈʌɲɟəˌɛj	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+कर्मण्येवाधिकारस्ते	karmaRyevADikAraste	karmaRyevADikAraste	kaɾmaɳjevaːdʰikaːɾaste	kˌərməɳjˌeːʋaːdʰˌɪkaːɾˈʌsteː	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+कर्मफलहेतुर्भूर्मा	karmaPalaheturBUrmA	karmaPalaheturBUrmA	kaɾmapʰalahetuɾbʰuːɾmaː	kˌərməpʰˌəlhˌeːtʊɾbʰˈuːrmaː	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+सङ्गोऽस्त्वकर्मणि	saNgo'stvakarmaRi	saNgo'stvakarmaRi	saŋɡoːstvakaɾmaɳi	səŋɡˈoːːstʋəkˌərməɳˌɪ	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+ग्लानिर्भवति	glAnirBavati	glAnirBavati	ɡlaːniɾbʰavati	ɡlaːnˈɪɾbʰəʋtɪ	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+अभ्युत्थानमधर्मस्य	aByutTAnamaDarmasya	aByutTAnamaDarmasya	abʰjuttʰaːnamadʰaɾmasja	ˌʌbʰjʊtʰːˌaːnəmˌədʰərmˈʌsjə	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+तदात्मानं	tadAtmAnaM	tadAtmAnam	tadaːtmaːnam	tədˈaːtmaːnˌən	OUR_OUTPUT_DIFFERS	keep	see docs/SANSKRIT_G2P_RESEARCH.md; espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+सृजाम्यहम्	sfjAmyaham	sfjAmyaham	sɾɪdʒaːmjaham	sɾɪɟˈaːmjəhˌəm	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+कृष्ण	kfzRa	kfzRa	kɾɪʂɳa	kɾˈɪʂɳə	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+हृषीकेश	hfzIkeSa	hfzIkeSa	hɾɪʂiːkeʃa	hɾˌɪʂikˈeːʃ	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+क्षेत्रज्ञ	kzetrajYa	kzetrajYa	kʂetɾadʒɲa	kʃˈeːtɾəɡj	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+ज्ञान	jYAna	jYAna	dʒɲaːna	ɡjˈaːn	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+श्रद्धा	SradDA	SradDA	ʃɾaddʰaː	ʃɾˈʌdʰːaː	ALL_AGREE	keep	espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction
+दुःख	duHKa	duZKa	duhukʰa	dˈʊhkʰ	OUR_OUTPUT_DIFFERS	keep	visarga policy; espeak column is Hindi proxy (deletes schwas) — ESPEAK_DIFFERS by construction

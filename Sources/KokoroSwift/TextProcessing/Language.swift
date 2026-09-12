@@ -14,4 +14,8 @@ public enum Language: String, CaseIterable {
   case enGB = "en-gb"
   /// Hindi (Devanagari, digits and embedded English, all handled locally).
   case hi = "hi"
+  /// Classical Sanskrit (Devanagari). A separate language from Hindi, not a
+  /// variant of it: it keeps every inherent vowel, reads conjuncts
+  /// compositionally, and assigns no stress. See docs/SANSKRIT.md.
+  case sa = "sa"
 }

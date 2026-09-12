@@ -1,0 +1,23 @@
+filename	id	input	canonical	desired_ipa	kokoro_phonemes	token_ids	voice	speed	warnings
+kah__current_hf_alpha.wav	kah__current	kaːh	(raw phonemes)	kaːh	kaːh	53 43 158 50	hf_alpha	1.0	
+kah__omitted_hf_alpha.wav	kah__omitted	kaː	(raw phonemes)	kaː	kaː	53 43 158	hf_alpha	1.0	
+kah__voiceless_x_hf_alpha.wav	kah__voiceless_x	kaːx	(raw phonemes)	kaːx	kaːx	53 43 158 66	hf_alpha	1.0	
+kah__bilabial_phi_hf_alpha.wav	kah__bilabial_phi	kaːɸ	(raw phonemes)	kaːɸ	kaːɸ	53 43 158 118	hf_alpha	1.0	
+kah__sibilant_s_hf_alpha.wav	kah__sibilant_s	kaːs	(raw phonemes)	kaːs	kaːs	53 43 158 61	hf_alpha	1.0	
+kah__NEGATIVE_ha_hf_alpha.wav	kah__NEGATIVE_ha	kaːha	(raw phonemes)	kaːha	kaːha	53 43 158 50 43	hf_alpha	1.0	
+ramah__current_hf_alpha.wav	ramah__current	ɾaːmah	(raw phonemes)	ɾaːmah	ɾaːmah	125 43 158 55 43 50	hf_alpha	1.0	
+ramah__omitted_hf_alpha.wav	ramah__omitted	ɾaːma	(raw phonemes)	ɾaːma	ɾaːma	125 43 158 55 43	hf_alpha	1.0	
+ramah__voiceless_x_hf_alpha.wav	ramah__voiceless_x	ɾaːmax	(raw phonemes)	ɾaːmax	ɾaːmax	125 43 158 55 43 66	hf_alpha	1.0	
+ramah__NEGATIVE_ha_hf_alpha.wav	ramah__NEGATIVE_ha	ɾaːmaha	(raw phonemes)	ɾaːmaha	ɾaːmaha	125 43 158 55 43 50 43	hf_alpha	1.0	
+mamakah__current_hf_alpha.wav	mamakah__current	maːmakaːh	(raw phonemes)	maːmakaːh	maːmakaːh	55 43 158 55 43 53 43 158 50	hf_alpha	1.0	
+mamakah__omitted_hf_alpha.wav	mamakah__omitted	maːmakaː	(raw phonemes)	maːmakaː	maːmakaː	55 43 158 55 43 53 43 158	hf_alpha	1.0	
+mamakah__voiceless_x_hf_alpha.wav	mamakah__voiceless_x	maːmakaːx	(raw phonemes)	maːmakaːx	maːmakaːx	55 43 158 55 43 53 43 158 66	hf_alpha	1.0	
+yuyutsavah__current_hf_alpha.wav	yuyutsavah__current	jujutsaʋah	(raw phonemes)	jujutsaʋah	jujutsaʋah	52 63 52 63 62 61 43 136 43 50	hf_alpha	1.0	
+yuyutsavah__omitted_hf_alpha.wav	yuyutsavah__omitted	jujutsaʋa	(raw phonemes)	jujutsaʋa	jujutsaʋa	52 63 52 63 62 61 43 136 43	hf_alpha	1.0	
+yuyutsavah__voiceless_x_hf_alpha.wav	yuyutsavah__voiceless_x	jujutsaʋax	(raw phonemes)	jujutsaʋax	jujutsaʋax	52 63 52 63 62 61 43 136 43 66	hf_alpha	1.0	
+pandavah__current_hf_alpha.wav	pandavah__current	paːɳɖaʋaːh	(raw phonemes)	paːɳɖaʋaːh	paːɳɖaʋaːh	58 43 158 113 80 43 136 43 158 50	hf_alpha	1.0	
+pandavah__voiceless_x_hf_alpha.wav	pandavah__voiceless_x	paːɳɖaʋaːx	(raw phonemes)	paːɳɖaʋaːx	paːɳɖaʋaːx	58 43 158 113 80 43 136 43 158 66	hf_alpha	1.0	
+namah__current_hf_alpha.wav	namah__current	namah	(raw phonemes)	namah	namah	56 43 55 43 50	hf_alpha	1.0	
+namah__voiceless_x_hf_alpha.wav	namah__voiceless_x	namax	(raw phonemes)	namax	namax	56 43 55 43 66	hf_alpha	1.0	
+duhkha__current_hf_alpha.wav	duhkha__current	duhkʰa	(raw phonemes)	duhkʰa	duhkʰa	46 63 50 53 162 43	hf_alpha	1.0	
+duhkha__voiceless_x_hf_alpha.wav	duhkha__voiceless_x	duxkʰa	(raw phonemes)	duxkʰa	duxkʰa	46 63 66 53 162 43	hf_alpha	1.0	

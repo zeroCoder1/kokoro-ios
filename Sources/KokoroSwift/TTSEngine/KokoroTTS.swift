@@ -27,9 +27,21 @@ public final class KokoroTTS {
   public enum KokoroTTSError: LocalizedError {
     /// Thrown when input text exceeds maximum token count
     case tooManyTokens
+    /// A delivery whose speed or pauses cannot be rendered.
+    ///
+    /// `SanskritDelivery.speed` and its pause fields are mutable and public,
+    /// so a caller can build one this code cannot honour. Zero or non-finite
+    /// speed makes the pause division infinite and the sample count trap;
+    /// negative values ask for an array of negative length.
+    case invalidDelivery(reason: String)
 
     public var errorDescription: String? {
-      "This speech chunk is too long for Kokoro."
+      switch self {
+      case .tooManyTokens:
+        return "This speech chunk is too long for Kokoro."
+      case let .invalidDelivery(reason):
+        return "This Sanskrit delivery cannot be rendered: \(reason)."
+      }
     }
   }
 
@@ -211,6 +223,122 @@ public final class KokoroTTS {
     )
   }
 
+  /// Generates Sanskrit recitation: pāda pauses, recitation pace, and the
+  /// duration repair that keeps a visarga-final syllable its proper length.
+  ///
+  /// **Use this rather than `generateAudio(voice:language:.sa,text:)` for
+  /// Sanskrit.** That method still works and still produces correct phonemes,
+  /// but it is the plain single-call path: no daṇḍa pauses, no recitation
+  /// pace, and no duration repair, because Kokoro's punctuation does not
+  /// deliver a differentiated pause and its duration predictor under-realises
+  /// a visarga-final syllable. Both of those are supplied here.
+  ///
+  ///     let (audio, warnings) = try tts.generateSanskritAudio(
+  ///       voice: voice, text: verse
+  ///     )
+  ///     if !warnings.isEmpty { report(warnings) }
+  ///
+  ///     let (slower, _) = try tts.generateSanskritAudio(
+  ///       voice: voice, text: verse, delivery: .learning
+  ///     )
+  ///
+  /// Nothing here changes a phoneme. The verse is split at its own daṇḍas,
+  /// each stretch is synthesized from exactly the phonemes
+  /// `SanskritPhonemizer` produces for it, and the pauses are real silence
+  /// between them. See docs/SANSKRIT.md and docs/SANSKRIT_KOKORO_PROSODY.md.
+  ///
+  /// - Parameters:
+  ///   - voice: Voice embedding array.
+  ///   - text: Devanagari. Non-Devanagari is dropped, and every drop is
+  ///     reported in the returned warnings.
+  ///   - delivery: Pace and pause lengths. `.recitation` by default;
+  ///     `.learning` is slower with longer breaks, `.fast` is the voice's own
+  ///     pace, and `.unshaped` neutralizes only the per-token duration intent.
+  /// - Returns: Audio samples at `Constants.samplingRate`, and the warnings
+  ///   the pipeline raised.
+  ///
+  /// **Check the warnings.** Unsupported input is dropped rather than
+  /// substituted — that is deliberate, because a wrong phoneme in a śloka is
+  /// worse than a missing one — but a caller that ignores this array turns a
+  /// reported omission into a silent one. `KOKORO_UNSUPPORTED` means a sound
+  /// was lost; `KOKORO_APPROXIMATION` and `KOKORO_APPROXIMATED_VISARGA` mean
+  /// one was rendered inexactly.
+  /// Rejects a delivery that cannot be rendered, rather than trapping inside
+  /// the sample-count arithmetic.
+  static func validate(_ delivery: SanskritDelivery) throws {
+    guard delivery.speed.isFinite, delivery.speed > 0 else {
+      throw KokoroTTSError.invalidDelivery(
+        reason: "speed must be finite and greater than zero, got \(delivery.speed)"
+      )
+    }
+    let pauses = [
+      ("wordBoundary", delivery.prosody.wordBoundary),
+      ("padaPause", delivery.prosody.padaPause),
+      ("versePause", delivery.prosody.versePause),
+      ("sentencePause", delivery.prosody.sentencePause),
+    ]
+    for (name, value) in pauses {
+      guard value.isFinite, value >= 0 else {
+        throw KokoroTTSError.invalidDelivery(
+          reason: "\(name) must be finite and not negative, got \(value)"
+        )
+      }
+    }
+  }
+
+  @discardableResult
+  public func generateSanskritAudio(
+    voice: MLXArray,
+    text: String,
+    delivery: SanskritDelivery = .recitation
+  ) throws -> (audio: [Float], warnings: [String]) {
+    try Self.validate(delivery)
+    let sampleRate = Double(Constants.samplingRate)
+    var audio: [Float] = []
+    let analysis = SanskritProsody.analyze(text, configuration: delivery.prosody)
+    for segment in analysis.segments {
+      // Derived per segment so the multiplier lines up with that call's own
+      // tokens rather than the whole verse's.
+      let scale = SanskritProsodyPlanner.durationScaleForPhonemes(
+        segment.phonemes,
+        visargaTokenIndices: segment.visargaTokenIndices,
+        intent: delivery.intent
+      )
+      let piece = try generateAudio(
+        voice: voice, phonemes: segment.phonemes,
+        speed: delivery.speed, durationScale: scale
+      )
+      audio += AudioSegments.trimmingEdgeSilence(piece, sampleRate: sampleRate)
+      // A slower delivery wants proportionally longer breaks.
+      let pause = segment.pauseAfter / Double(delivery.speed)
+      audio += [Float](repeating: 0, count: max(0, Int(pause * sampleRate)))
+    }
+    return (audio, analysis.warnings.map(\.text))
+  }
+
+  /// Generates audio from a phoneme string, skipping G2P entirely.
+  ///
+  /// A diagnostic entry point. Comparing two phoneme sequences acoustically —
+  /// `keː` against `kiː`, or the same phonemes with and without a stress mark
+  /// — needs everything except the phonemes held identical, which is not
+  /// possible when the only way in is text that a G2P then rewrites.
+  ///
+  /// Not public, and not part of the synthesis path: `generateAudio` above is
+  /// still the way to say something. This exists so that a claim about what
+  /// the acoustic model does with a given token sequence can be measured
+  /// rather than asserted. See Tools/sanskrit-minimal-pairs.sh.
+  func generateAudio(
+    voice: MLXArray,
+    phonemes: String,
+    speed: Float = 1.0,
+    durationScale: [Float]? = nil
+  ) throws -> [Float] {
+    try synthesize(
+      voice: voice, phonemes: phonemes, tokens: nil,
+      speed: speed, style: nil, durationScale: durationScale
+    ).0
+  }
+
   /// The synthesis pipeline. `style` is `nil` on the legacy speed-only path,
   /// which leaves the predicted prosody curves exactly as the model produced
   /// them.
@@ -224,12 +352,27 @@ public final class KokoroTTS {
     // Update language if it has changed
     try updateLanguageIfNeeded(language)
 
+    // Step 1: Convert text to phonemes
+    let (phonemizedText, tokenArray) = try phonemizeText(text)
+    return try synthesize(
+      voice: voice, phonemes: phonemizedText, tokens: tokenArray,
+      speed: speed, style: style, durationScale: nil
+    )
+  }
+
+  /// The pipeline from phonemes onwards, shared by the text path and the
+  /// diagnostic phoneme path so the two cannot drift apart.
+  private func synthesize(
+    voice: MLXArray,
+    phonemes phonemizedText: String,
+    tokens tokenArray: [MToken]?,
+    speed: Float,
+    style: SpeechStyle?,
+    durationScale: [Float]?
+  ) throws -> ([Float], [MToken]?) {
     // Start performance timing
     BenchmarkTimer.reset()
     BenchmarkTimer.startTimer(Constants.bm_TTS)
-
-    // Step 1: Convert text to phonemes
-    let (phonemizedText, tokenArray) = try phonemizeText(text)
 
     // Step 2: Tokenize and prepare input
     let (paddedInputIds, attentionMask, inputLengths, textMask, inputIds) = try prepareInputTensors(phonemizedText)
@@ -250,7 +393,8 @@ public final class KokoroTTS {
     let (predictedDurations, alignmentTarget) = predictDurations(
       features: durationFeatures,
       batchSize: paddedInputIds.shape[1],
-      speed: speed
+      speed: speed,
+      durationScale: durationScale
     )
 
     // Step 6: Generate aligned encodings
@@ -454,7 +598,12 @@ public final class KokoroTTS {
   ///   - batchSize: Size of the input batch
   ///   - speed: Speech speed multiplier
   /// - Returns: Predicted durations and alignment target matrix for duration expansion
-  private func predictDurations(features: MLXArray, batchSize: Int, speed: Float) -> (MLXArray, MLXArray) {
+  private func predictDurations(
+    features: MLXArray,
+    batchSize: Int,
+    speed: Float,
+    durationScale: [Float]? = nil
+  ) -> (MLXArray, MLXArray) {
     // Pass through LSTM
     let (lstmOutput, _) = predictorLSTM(features)
 
@@ -462,7 +611,37 @@ public final class KokoroTTS {
     let durationLogits = durationProj(lstmOutput)
 
     // Convert to actual durations (clamped to minimum of 1 frame)
-    let durationSigmoid = MLX.sigmoid(durationLogits).sum(axis: -1) / speed
+    var durationSigmoid = MLX.sigmoid(durationLogits).sum(axis: -1) / speed
+
+    // A per-token multiplier, applied to the model's own prediction before it
+    // becomes frames.
+    //
+    // `speed` is one number for the whole utterance, so it cannot express that
+    // a Sanskrit guru syllable is worth two matras and a laghu one. This can:
+    // it scales the predicted duration of individual tokens and changes
+    // nothing else — not the tokens, not their order, not their identity. The
+    // phoneme sequence the model receives is byte-identical either way.
+    //
+    // The caller supplies one entry per *phoneme* token. `prepareInputTensors`
+    // wraps the sequence in a padding token at each end, so the padding is
+    // given a neutral 1.0 here rather than being the caller's problem — an
+    // off-by-two that silently slid every scale one token out of step is
+    // exactly the failure this arrangement avoids.
+    if let durationScale {
+      let count = durationSigmoid.shape.last ?? 0
+      let padded: [Float]?
+      switch durationScale.count {
+      case count: padded = durationScale
+      case count - 2: padded = [1.0] + durationScale + [1.0]
+      default: padded = nil
+      }
+      if let padded {
+        durationSigmoid = durationSigmoid * MLXArray(padded).reshaped([1, count])
+      } else {
+        print("[KokoroTTS] duration scale has \(durationScale.count) entries for "
+          + "\(count) tokens (\(count - 2) phonemes); ignored")
+      }
+    }
     let predictedDurations = MLX.clip(durationSigmoid.round(), min: 1).asType(.int32)[0]
 
     // Create alignment matrix

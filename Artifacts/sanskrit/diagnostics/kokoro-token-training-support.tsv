@@ -1,0 +1,115 @@
+symbol	token	total	languages	per_language
+;	1	0	NONE	
+:	2	0	NONE	
+,	3	0	NONE	
+.	4	21	cmn,hi	hi=15 cmn=6
+!	5	0	NONE	
+?	6	0	NONE	
+—	9	0	NONE	
+…	10	0	NONE	
+"	11	0	NONE	
+(	12	34	ja	ja=34
+)	13	34	ja	ja=34
+“	14	0	NONE	
+”	15	0	NONE	
+ 	16	7974	cmn,en-gb,en-us,es,fr-fr,it,ja,pt-br	en-us=3950 en-gb=3950 ja=25 cmn=17 es=8 fr-fr=8 it=8 pt-br=8
+̃	17	28	fr-fr,hi,pt-br	hi=14 pt-br=10 fr-fr=4
+ʣ	18	0	NONE	
+ʥ	19	0	NONE	
+ʦ	20	0	NONE	
+ʨ	21	0	NONE	
+ᵝ	22	6	ja	ja=6
+ꭧ	23	0	NONE	
+A	24	0	NONE	
+I	25	0	NONE	
+O	31	0	NONE	
+Q	33	0	NONE	
+S	35	0	NONE	
+T	36	0	NONE	
+W	39	0	NONE	
+Y	41	0	NONE	
+ᵊ	42	0	NONE	
+a	43	2675	cmn,en-gb,en-us,es,fr-fr,hi,it,ja,pt-br	en-gb=1708 en-us=687 hi=205 ja=34 it=15 es=13 pt-br=7 fr-fr=4 cmn=2
+b	44	1403	en-gb,en-us,fr-fr,hi,it,pt-br	en-us=678 en-gb=678 hi=42 fr-fr=2 pt-br=2 it=1
+c	45	23	hi	hi=23
+d	46	2807	en-gb,en-us,es,fr-fr,hi,it,ja,pt-br	en-us=1381 en-gb=1381 hi=37 it=3 fr-fr=2 es=1 pt-br=1 ja=1
+e	47	1171	cmn,en-gb,en-us,es,hi,it,ja,pt-br	en-gb=566 en-us=521 ja=38 hi=23 es=12 it=6 pt-br=4 cmn=1
+f	48	1182	en-gb,en-us,fr-fr,hi,it	en-us=588 en-gb=588 fr-fr=2 hi=2 it=2
+h	50	561	cmn,en-gb,en-us,hi,ja	en-us=251 en-gb=251 hi=50 cmn=6 ja=3
+i	51	2396	cmn,en-gb,en-us,es,fr-fr,hi,it,ja,pt-br	en-gb=1167 en-us=1125 hi=47 ja=24 cmn=17 it=5 pt-br=5 es=3 fr-fr=3
+j	52	607	cmn,en-gb,en-us,es,fr-fr,hi,it,ja,pt-br	en-gb=305 en-us=236 hi=37 ja=17 es=3 fr-fr=3 it=2 pt-br=2 cmn=2
+k	53	3397	cmn,en-gb,en-us,es,fr-fr,hi,it,ja,pt-br	en-us=1655 en-gb=1655 hi=69 it=6 ja=4 es=3 fr-fr=2 pt-br=2 cmn=1
+l	54	4221	cmn,en-gb,en-us,es,fr-fr,hi,it,ja,pt-br	en-us=2074 en-gb=2074 hi=41 ja=17 it=5 es=3 fr-fr=3 pt-br=3 cmn=1
+m	55	2305	en-gb,en-us,es,fr-fr,hi,it,ja,pt-br	en-us=1124 en-gb=1124 hi=47 pt-br=4 es=2 it=2 fr-fr=1 ja=1
+n	56	4822	cmn,en-gb,en-us,es,fr-fr,hi,it,ja	en-us=2337 en-gb=2337 hi=91 ja=37 cmn=12 es=3 it=3 fr-fr=2
+o	57	688	cmn,en-us,es,fr-fr,hi,it,ja,pt-br	en-us=622 hi=23 es=14 it=10 pt-br=7 cmn=5 ja=4 fr-fr=3
+p	58	2133	cmn,en-gb,en-us,es,fr-fr,hi,it,ja,pt-br	en-us=1038 en-gb=1038 hi=40 es=4 it=4 pt-br=4 fr-fr=2 cmn=2 ja=1
+q	59	1	hi	hi=1
+r	60	39	cmn,en-gb,en-us,es,hi,it,pt-br	hi=22 es=5 it=5 pt-br=4 en-us=1 en-gb=1 cmn=1
+s	61	4336	cmn,en-gb,en-us,es,fr-fr,hi,it,ja,pt-br	en-us=2122 en-gb=2122 hi=66 cmn=7 es=5 fr-fr=4 pt-br=4 it=3 ja=3
+t	62	4129	cmn,en-gb,en-us,es,fr-fr,hi,it,ja,pt-br	en-gb=2221 en-us=1796 hi=50 ja=38 cmn=11 es=5 pt-br=4 fr-fr=2 it=2
+u	63	817	cmn,en-gb,en-us,es,fr-fr,hi,it,pt-br	en-us=395 en-gb=395 hi=13 cmn=6 es=3 fr-fr=2 pt-br=2 it=1
+v	64	691	en-gb,en-us,fr-fr,it,pt-br	en-us=343 en-gb=343 fr-fr=2 it=2 pt-br=1
+w	65	438	cmn,en-gb,en-us,es,fr-fr,ja,pt-br	en-us=215 en-gb=215 cmn=4 es=1 fr-fr=1 pt-br=1 ja=1
+x	66	11	en-gb,en-us,es,hi,pt-br	pt-br=3 en-us=2 en-gb=2 es=2 hi=2
+y	67	10	cmn,fr-fr,pt-br	cmn=6 fr-fr=3 pt-br=1
+z	68	738	en-gb,en-us,fr-fr,hi,it,ja,pt-br	en-gb=356 en-us=351 ja=17 hi=9 it=2 pt-br=2 fr-fr=1
+ɑ	69	1103	cmn,en-gb,en-us	en-us=878 en-gb=221 cmn=4
+ɐ	70	652	en-gb,en-us,pt-br	en-us=329 en-gb=317 pt-br=6
+ɒ	71	753	en-gb	en-gb=753
+æ	72	1001	en-us,pt-br	en-us=996 pt-br=5
+β	75	4	es	es=4
+ɔ	76	848	en-gb,en-us,fr-fr,hi,it	en-us=467 en-gb=370 hi=8 it=2 fr-fr=1
+ɕ	77	16	cmn,ja	cmn=11 ja=5
+ç	78	1	ja	ja=1
+ɖ	80	1	hi	hi=1
+ð	81	56	en-gb,en-us,es	en-us=27 en-gb=27 es=2
+ʤ	82	0	NONE	
+ə	83	6557	cmn,en-gb,en-us,fr-fr,hi,ja	en-gb=3936 en-us=2475 hi=116 ja=18 fr-fr=6 cmn=6
+ɚ	85	694	en-us	en-us=694
+ɛ	86	1792	cmn,en-gb,en-us,es,fr-fr,hi,it	en-us=913 en-gb=853 hi=12 cmn=8 fr-fr=4 es=1 it=1
+ɜ	87	393	cmn,en-gb,en-us	en-us=196 en-gb=186 cmn=11
+ɟ	90	12	hi	hi=12
+ɡ	92	808	cmn,en-gb,en-us,es,hi,it,pt-br	en-us=388 en-gb=388 hi=27 it=2 es=1 pt-br=1 cmn=1
+ɥ	99	0	NONE	
+ɨ	101	0	NONE	
+ɪ	102	8012	en-gb,en-us,hi,it,ja,pt-br	en-gb=4129 en-us=3821 hi=43 ja=16 pt-br=2 it=1
+ʝ	103	0	NONE	
+ɯ	110	6	ja	ja=6
+ɰ	111	0	NONE	
+ŋ	112	577	cmn,en-gb,en-us,hi,pt-br	en-us=282 en-gb=282 cmn=6 pt-br=4 hi=3
+ɳ	113	9	hi	hi=9
+ɲ	114	7	es,it,pt-br	it=3 es=2 pt-br=2
+ɴ	115	2	ja	ja=2
+ø	116	3	fr-fr	fr-fr=3
+ɸ	118	0	NONE	
+θ	119	354	en-gb,en-us,es	en-us=175 en-gb=175 es=4
+œ	120	2	fr-fr	fr-fr=2
+ɹ	123	3921	en-gb,en-us	en-us=2114 en-gb=1807
+ɾ	125	532	en-us,es,hi,it,pt-br	en-us=415 hi=110 es=4 it=2 pt-br=1
+ɻ	126	0	NONE	
+ʁ	128	7	fr-fr	fr-fr=7
+ɽ	129	1	ja	ja=1
+ʂ	130	4	hi	hi=4
+ʃ	131	989	en-gb,en-us,es,fr-fr,hi,it,ja,pt-br	en-gb=475 en-us=474 hi=18 ja=16 es=2 pt-br=2 fr-fr=1 it=1
+ʈ	132	13	hi	hi=13
+ʧ	133	0	NONE	
+ʊ	135	1751	en-gb,en-us,hi,it,pt-br	en-gb=855 en-us=854 hi=31 pt-br=9 it=2
+ʋ	136	51	hi	hi=51
+ʌ	138	1041	en-gb,en-us,hi	en-gb=483 en-us=474 hi=84
+ɣ	139	0	NONE	
+ɤ	140	0	NONE	
+χ	142	4	cmn	cmn=4
+ʎ	143	4	es,it	es=2 it=2
+ʒ	147	528	en-gb,en-us,fr-fr,it,ja,pt-br	en-us=267 en-gb=254 fr-fr=3 pt-br=2 it=1 ja=1
+ʔ	148	10	en-us	en-us=10
+ˈ	156	8542	cmn,en-gb,en-us,es,fr-fr,hi,it,ja,pt-br	en-us=4053 en-gb=4053 hi=285 ja=53 cmn=30 es=18 it=17 pt-br=17 fr-fr=16
+ˌ	157	4076	en-gb,en-us,es,hi,ja,pt-br	en-us=1998 en-gb=1977 hi=91 pt-br=5 es=3 ja=2
+ː	158	3906	en-gb,en-us,hi,it,ja	en-us=2150 en-gb=1457 hi=279 ja=17 it=3
+ʰ	162	44	hi	hi=44
+ʲ	164	1	ja	ja=1
+↓	169	0	NONE	
+→	171	0	NONE	
+↗	172	0	NONE	
+↘	173	0	NONE	
+ᵻ	177	338	en-us	en-us=338
